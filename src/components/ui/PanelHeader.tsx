@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function PanelHeader({
   title,
   onClose,
@@ -10,13 +12,13 @@ export default function PanelHeader({
   action?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
-      <h3 className="text-sm font-semibold text-gray-700">{title}</h3>
+    <div className="flex items-center justify-between px-3 py-2 bg-muted border-b">
+      <h3 className="text-sm font-semibold text-foreground">{title}</h3>
       {action}
       {onClose && (
-        <button onClick={onClose} className="text-gray-400 hover:text-gray-600">
+        <Button variant="ghost" size="icon-xs" onClick={onClose}>
           ✕
-        </button>
+        </Button>
       )}
     </div>
   );

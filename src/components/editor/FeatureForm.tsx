@@ -4,6 +4,18 @@ import { useState, useEffect } from "react";
 import { useEditor } from "@/lib/editor-context";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const TYPE_LABELS: Record<string, string> = {
   polygon: "Polygon",
@@ -21,6 +33,7 @@ export default function FeatureForm() {
   const [sourceText, setSourceText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [layerId, setLayerId] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (!selectedFeature) return;
@@ -47,12 +60,11 @@ export default function FeatureForm() {
   };
 
   return (
-    <div className="absolute left-16 top-3 z-10 w-72 bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="absolute left-16 top-3 z-10 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
       <PanelHeader
         title={TYPE_LABELS[selectedFeature.type] ?? "Feature"}
         onClose={() => selectFeature(null)}
       />
-
       <div className="p-3 space-y-3">
         <StyleFields
           label={label}
@@ -71,9 +83,14 @@ export default function FeatureForm() {
         />
         <FormActions
           onSave={handleSave}
-          onDelete={() => {
-            if (confirm("Delete this feature?")) deleteFeature(selectedFeature.id);
-          }}
+          onDelete={() => setConfirmOpen(true)}
+        />
+        <ConfirmDialog
+          open={confirmOpen}
+          onOpenChange={setConfirmOpen}
+          title="Delete this feature?"
+          description="This action cannot be undone."
+          onConfirm={() => deleteFeature(selectedFeature.id)}
         />
       </div>
     </div>
@@ -98,11 +115,10 @@ function StyleFields({
   return (
     <>
       <Field label="Label">
-        <input
+        <Input
           type="text"
           value={label}
           onChange={(e) => onLabelChange(e.target.value)}
-          className="w-full px-2 py-1.5 border rounded text-sm"
           placeholder="e.g. Roman Empire"
         />
       </Field>
@@ -116,14 +132,13 @@ function StyleFields({
           />
         </Field>
         <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
-          <input
-            type="range"
-            min={0.1}
-            max={1}
-            step={0.05}
-            value={opacity}
-            onChange={(e) => onOpacityChange(parseFloat(e.target.value))}
-            className="w-full mt-2 accent-blue-600"
+          <Slider
+            min={10}
+            max={100}
+            step={5}
+            value={[Math.round(opacity * 100)]}
+            onValueChange={(v: number[]) => onOpacityChange(v[0] / 100)}
+            className="mt-2"
           />
         </Field>
       </div>
@@ -142,15 +157,16 @@ function LayerSelect({
 }) {
   return (
     <Field label="Layer">
-      <select
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full px-2 py-1.5 border rounded text-sm"
-      >
-        {layers.map((l) => (
-          <option key={l.id} value={l.id}>{l.name}</option>
-        ))}
-      </select>
+      <Select value={value} onValueChange={onChange}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          {layers.map((l) => (
+            <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
     </Field>
   );
 }
@@ -169,20 +185,18 @@ function SourceFields({
   return (
     <>
       <Field label="Source / Citation">
-        <textarea
+        <Textarea
           value={text}
           onChange={(e) => onTextChange(e.target.value)}
-          className="w-full px-2 py-1.5 border rounded text-sm"
           rows={2}
           placeholder="e.g. Pliny the Elder, Natural History, Book III"
         />
       </Field>
       <Field label="Source URL">
-        <input
+        <Input
           type="url"
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
-          className="w-full px-2 py-1.5 border rounded text-sm"
           placeholder="https://..."
         />
       </Field>
@@ -199,18 +213,12 @@ function FormActions({
 }) {
   return (
     <div className="flex gap-2 pt-1">
-      <button
-        onClick={onSave}
-        className="flex-1 py-1.5 bg-blue-600 text-white rounded text-sm hover:bg-blue-700"
-      >
+      <Button onClick={onSave} className="flex-1">
         Save
-      </button>
-      <button
-        onClick={onDelete}
-        className="py-1.5 px-3 bg-red-50 text-red-600 rounded text-sm hover:bg-red-100"
-      >
+      </Button>
+      <Button variant="destructive" onClick={onDelete}>
         Delete
-      </button>
+      </Button>
     </div>
   );
 }

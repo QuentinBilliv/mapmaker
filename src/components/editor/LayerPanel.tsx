@@ -3,6 +3,9 @@
 import { useState } from "react";
 import { useEditor } from "@/lib/editor-context";
 import type { LayerData } from "@/lib/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function LayerPanel() {
   const { layers, features, addLayer } = useEditor();
@@ -24,18 +27,18 @@ export default function LayerPanel() {
   };
 
   return (
-    <div className="absolute right-3 top-3 z-10 w-64 bg-white rounded-lg shadow-lg overflow-hidden">
-      <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
-        <h3 className="text-sm font-semibold text-gray-700">Layers</h3>
-        <button
+    <div className="absolute right-3 top-3 z-10 w-64 bg-popover rounded-lg shadow-lg overflow-hidden">
+      <div className="flex items-center justify-between px-3 py-2 bg-muted border-b">
+        <h3 className="text-sm font-semibold text-foreground">Layers</h3>
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={() => setIsAdding(!isAdding)}
-          className="text-blue-600 hover:text-blue-700 text-lg leading-none"
           title="Add layer"
         >
           +
-        </button>
+        </Button>
       </div>
-
       {isAdding && (
         <AddLayerInput
           value={newLayerName}
@@ -68,21 +71,17 @@ function AddLayerInput({
 }) {
   return (
     <div className="p-2 border-b flex gap-1">
-      <input
+      <Input
         type="text"
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && onSubmit()}
         placeholder="Layer name"
-        className="flex-1 px-2 py-1 border rounded text-sm"
         autoFocus
       />
-      <button
-        onClick={onSubmit}
-        className="px-2 py-1 bg-blue-600 text-white rounded text-sm"
-      >
+      <Button size="sm" onClick={onSubmit}>
         OK
-      </button>
+      </Button>
     </div>
   );
 }
@@ -97,41 +96,52 @@ function LayerRow({
   canDelete: boolean;
 }) {
   const { activeLayerId, setActiveLayerId, toggleLayer, deleteLayer } = useEditor();
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (
     <div
       onClick={() => setActiveLayerId(layer.id)}
       className={`flex items-center gap-2 px-3 py-2 cursor-pointer text-sm border-b last:border-b-0 ${
         activeLayerId === layer.id
-          ? "bg-blue-50 text-blue-700"
-          : "hover:bg-gray-50 text-gray-700"
+          ? "bg-accent text-accent-foreground"
+          : "hover:bg-muted text-foreground"
       }`}
     >
-      <button
+      <Button
+        variant="ghost"
+        size="icon-xs"
         onClick={(e) => {
           e.stopPropagation();
           toggleLayer(layer.id);
         }}
-        className="text-xs"
         title={layer.visible ? "Hide" : "Show"}
+        className="text-xs"
       >
         {layer.visible ? "👁" : "👁‍🗨"}
-      </button>
-
+      </Button>
       <span className="flex-1 truncate">{layer.name}</span>
-      <span className="text-xs text-gray-400">{count}</span>
+      <span className="text-xs text-muted-foreground">{count}</span>
       {canDelete && (
-        <button
+        <Button
+          variant="ghost"
+          size="icon-xs"
           onClick={(e) => {
             e.stopPropagation();
-            if (confirm(`Delete layer "${layer.name}"?`)) deleteLayer(layer.id);
+            setConfirmOpen(true);
           }}
-          className="text-red-400 hover:text-red-600 text-xs"
           title="Delete"
+          className="text-destructive hover:text-destructive"
         >
           ✕
-        </button>
+        </Button>
       )}
+      <ConfirmDialog
+        open={confirmOpen}
+        onOpenChange={setConfirmOpen}
+        title={`Delete layer "${layer.name}"?`}
+        description="All features in this layer will be removed."
+        onConfirm={() => deleteLayer(layer.id)}
+      />
     </div>
   );
 }

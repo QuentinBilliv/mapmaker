@@ -2,6 +2,9 @@
 
 import { useEditor } from "@/lib/editor-context";
 import { DrawMode } from "@/lib/draw-engine";
+import { Button } from "@/components/ui/button";
+import { Slider } from "@/components/ui/slider";
+import { Separator } from "@/components/ui/separator";
 
 const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
   { mode: "select", label: "Select", icon: "↖" },
@@ -18,11 +21,11 @@ const PRESET_COLORS = [
 
 export default function DrawingToolbar() {
   return (
-    <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-white rounded-lg shadow-lg p-2">
+    <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-2">
       <ToolButtons />
-      <div className="border-t my-1" />
+      <Separator />
       <ColorPalette />
-      <div className="border-t my-1" />
+      <Separator />
       <OpacitySlider />
     </div>
   );
@@ -34,18 +37,16 @@ function ToolButtons() {
   return (
     <>
       {TOOLS.map((tool) => (
-        <button
+        <Button
           key={tool.mode}
+          variant={drawMode === tool.mode ? "default" : "ghost"}
+          size="icon"
           onClick={() => setDrawMode(tool.mode)}
-          className={`w-10 h-10 flex items-center justify-center rounded text-lg transition-colors ${
-            drawMode === tool.mode
-              ? "bg-blue-600 text-white"
-              : "hover:bg-gray-100 text-gray-700"
-          }`}
           title={tool.label}
+          className="text-lg"
         >
           {tool.icon}
-        </button>
+        </Button>
       ))}
     </>
   );
@@ -61,7 +62,7 @@ function ColorPalette() {
           key={color}
           onClick={() => setActiveColor(color)}
           className={`w-4 h-4 rounded-full border-2 ${
-            activeColor === color ? "border-blue-600" : "border-transparent"
+            activeColor === color ? "border-ring" : "border-transparent"
           }`}
           style={{ backgroundColor: color }}
           title={color}
@@ -76,14 +77,12 @@ function OpacitySlider() {
 
   return (
     <div className="px-1">
-      <input
-        type="range"
-        min={0.1}
-        max={1}
-        step={0.1}
-        value={activeOpacity}
-        onChange={(e) => setActiveOpacity(parseFloat(e.target.value))}
-        className="w-full h-1 accent-blue-600"
+      <Slider
+        min={10}
+        max={100}
+        step={10}
+        value={[Math.round(activeOpacity * 100)]}
+        onValueChange={(v: number[]) => setActiveOpacity(v[0] / 100)}
         title={`Opacity: ${Math.round(activeOpacity * 100)}%`}
       />
     </div>

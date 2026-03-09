@@ -4,6 +4,16 @@ import { useState } from "react";
 import { useEditor } from "@/lib/editor-context";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const LICENSES = ["CC BY", "CC BY-SA", "CC BY-NC", "Public domain"];
 
@@ -19,12 +29,13 @@ function MetadataToggle({ onOpen }: { onOpen: () => void }) {
   const { map } = useEditor();
 
   return (
-    <button
+    <Button
+      variant="outline"
       onClick={onOpen}
-      className="absolute top-3 left-1/2 -translate-x-1/2 z-10 bg-white rounded-lg shadow-lg px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
+      className="absolute top-3 left-1/2 -translate-x-1/2 z-10 shadow-lg"
     >
       {map.title || "Untitled"}
-    </button>
+    </Button>
   );
 }
 
@@ -42,47 +53,44 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-96 bg-white rounded-lg shadow-lg overflow-hidden">
+    <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-96 bg-popover rounded-lg shadow-lg overflow-hidden">
       <PanelHeader title="Metadata" onClose={() => { save(); onClose(); }} />
-
       <div className="p-3 space-y-3">
         <Field label="Title">
-          <input
+          <Input
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onBlur={save}
-            className="w-full px-2 py-1.5 border rounded text-sm"
             placeholder="My historical map"
           />
         </Field>
         <Field label="Description">
-          <textarea
+          <Textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             onBlur={save}
-            className="w-full px-2 py-1.5 border rounded text-sm"
             rows={2}
           />
         </Field>
         <Field label="License">
-          <select
-            value={license}
-            onChange={(e) => { setLicense(e.target.value); save(); }}
-            className="w-full px-2 py-1.5 border rounded text-sm"
-          >
-            {LICENSES.map((l) => (
-              <option key={l} value={l}>{l}</option>
-            ))}
-          </select>
+          <Select value={license} onValueChange={(v) => { setLicense(v); save(); }}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LICENSES.map((l) => (
+                <SelectItem key={l} value={l}>{l}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </Field>
         <Field label="Tags (comma-separated)">
-          <input
+          <Input
             type="text"
             value={tagsStr}
             onChange={(e) => setTagsStr(e.target.value)}
             onBlur={save}
-            className="w-full px-2 py-1.5 border rounded text-sm"
             placeholder="Rome, Mediterranean, Trade"
           />
         </Field>

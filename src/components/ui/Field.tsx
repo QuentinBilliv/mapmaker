@@ -1,5 +1,7 @@
 "use client";
 
+import { Label } from "@/components/ui/label";
+
 export default function Field({
   label,
   className,
@@ -11,7 +13,7 @@ export default function Field({
 }) {
   return (
     <div className={className}>
-      <label className="block text-xs text-gray-500 mb-1">{label}</label>
+      <Label className="text-xs text-muted-foreground mb-1">{label}</Label>
       {children}
     </div>
   );
