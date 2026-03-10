@@ -38,6 +38,26 @@ export function useDrawing(
     }
   }, [drawMode, mapRef]);
 
+  const finishDrawing = useCallback(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    const mode = drawModeRef.current;
+    if (mode === "select" || mode === "point") return;
+    const state = drawStateRef.current;
+    const geometry = buildGeometry(mode, state.currentPoints);
+    if (geometry) onFeatureDrawn(geometry);
+    state.currentPoints = [];
+    clearDrawPreview(map);
+  }, [mapRef, onFeatureDrawn]);
+
+  const cancelDrawing = useCallback(() => {
+    const map = mapRef.current;
+    if (map) {
+      drawStateRef.current.currentPoints = [];
+      clearDrawPreview(map);
+    }
+  }, [mapRef]);
+
   const handleClick = useCallback(
     (e: maplibregl.MapMouseEvent) => {
       const map = mapRef.current;
@@ -72,19 +92,10 @@ export function useDrawing(
 
   const handleDblClick = useCallback(
     (e: maplibregl.MapMouseEvent) => {
-      const map = mapRef.current;
-      if (!map) return;
-      const mode = drawModeRef.current;
-      if (mode === "select" || mode === "point") return;
-
       e.preventDefault();
-      const state = drawStateRef.current;
-      const geometry = buildGeometry(mode, state.currentPoints);
-      if (geometry) onFeatureDrawn(geometry);
-      state.currentPoints = [];
-      clearDrawPreview(map);
+      finishDrawing();
     },
-    [mapRef, onFeatureDrawn]
+    [finishDrawing]
   );
 
   const handleMouseMove = useCallback(
@@ -98,14 +109,6 @@ export function useDrawing(
     },
     [mapRef]
   );
-
-  const cancelDrawing = useCallback(() => {
-    const map = mapRef.current;
-    if (map) {
-      drawStateRef.current.currentPoints = [];
-      clearDrawPreview(map);
-    }
-  }, [mapRef]);
 
   useEffect(() => {
     const map = mapRef.current;
@@ -125,6 +128,7 @@ export function useDrawing(
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Enter") finishDrawing();
       if (e.key === "Escape") cancelDrawing();
     };
     document.addEventListener("keydown", onKeyDown);
@@ -137,5 +141,5 @@ export function useDrawing(
         map.off("mousemove", handleMouseMove);
       }
     };
-  }, [mapRef, handleClick, handleDblClick, handleMouseMove, cancelDrawing]);
+  }, [mapRef, handleClick, handleDblClick, handleMouseMove, finishDrawing, cancelDrawing]);
 }
