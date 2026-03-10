@@ -25,6 +25,16 @@ const SHAPE_SVGS: Record<PointShape, React.ReactNode> = {
       <polygon points="7,2 13,2 13,7 18,7 18,13 13,13 13,18 7,18 7,13 2,13 2,7 7,7" />
     </Svg>
   ),
+  pentagon: (
+    <Svg>
+      <polygon points="10,2 18.1,7.8 15,17 5,17 1.9,7.8" />
+    </Svg>
+  ),
+  hexagon: (
+    <Svg>
+      <polygon points="15,2.5 19,10 15,17.5 5,17.5 1,10 5,2.5" />
+    </Svg>
+  ),
 };
 
 export function ShapePreview({ shape }: { shape: PointShape }) {

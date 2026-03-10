@@ -15,13 +15,15 @@ export interface LayerData {
   order: number;
 }
 
-export type PointShape = "circle" | "triangle" | "square" | "diamond" | "star" | "cross";
+export type PointShape = "circle" | "triangle" | "square" | "diamond" | "star" | "cross" | "pentagon" | "hexagon";
 
 export const POINT_SHAPES: { value: PointShape; label: string }[] = [
   { value: "circle", label: "Circle" },
   { value: "triangle", label: "Triangle" },
   { value: "square", label: "Square" },
   { value: "diamond", label: "Diamond" },
+  { value: "pentagon", label: "Pentagon" },
+  { value: "hexagon", label: "Hexagon" },
   { value: "star", label: "Star" },
   { value: "cross", label: "Cross" },
 ];
@@ -54,6 +56,8 @@ export interface FeatureData {
   shape?: PointShape;
   icon?: string;
   customSvg?: string;
+  borderColor?: string;
+  borderWidth?: number;
   smoothing: number;
   strokeWidth: number;
   lineStyle: LineStyle;

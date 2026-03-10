@@ -63,10 +63,35 @@ const SHAPE_PATHS: Record<PointShape, Drawer> = {
     ctx.lineTo(HALF - t, HALF - t);
     ctx.closePath();
   },
+  pentagon(ctx) {
+    for (let i = 0; i < 5; i++) {
+      const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+      const x = HALF + Math.cos(angle) * R;
+      const y = HALF + Math.sin(angle) * R;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  },
+  hexagon(ctx) {
+    for (let i = 0; i < 6; i++) {
+      const angle = (i * 2 * Math.PI) / 6 - Math.PI / 6;
+      const x = HALF + Math.cos(angle) * R;
+      const y = HALF + Math.sin(angle) * R;
+      if (i === 0) ctx.moveTo(x, y);
+      else ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+  },
 };
 
 
-function renderDrawer(drawer: Drawer, color: string, stroke = true): ImageData {
+function renderDrawer(
+  drawer: Drawer,
+  color: string,
+  borderColor = "#ffffff",
+  borderWidth = 6
+): ImageData {
   const canvas = document.createElement("canvas");
   canvas.width = SIZE;
   canvas.height = SIZE;
@@ -77,9 +102,9 @@ function renderDrawer(drawer: Drawer, color: string, stroke = true): ImageData {
 
   ctx.fillStyle = color;
   ctx.fill();
-  if (stroke) {
-    ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 6;
+  if (borderWidth > 0) {
+    ctx.strokeStyle = borderColor;
+    ctx.lineWidth = borderWidth;
     ctx.stroke();
   }
 
@@ -94,11 +119,14 @@ function addIfMissing(map: maplibregl.Map, id: string, data: ImageData) {
 export function ensureShapeIcon(
   map: maplibregl.Map,
   shape: PointShape,
-  color: string
+  color: string,
+  borderColor = "#ffffff",
+  borderWidth = 6
 ) {
-  const id = `shape-${shape}-${color.replace("#", "")}`;
+  const bc = borderColor.replace("#", "");
+  const id = `shape-${shape}-${color.replace("#", "")}-${bc}-${borderWidth}`;
   if (!map.hasImage(id)) {
-    addIfMissing(map, id, renderDrawer(SHAPE_PATHS[shape], color));
+    addIfMissing(map, id, renderDrawer(SHAPE_PATHS[shape], color, borderColor, borderWidth));
   }
   return id;
 }

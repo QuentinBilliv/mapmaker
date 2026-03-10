@@ -195,7 +195,7 @@ function buildGeoJSON(
           }
         } else {
           const shape: PointShape = f.shape ?? "circle";
-          iconId = ensureShapeIcon(map, shape, f.color);
+          iconId = ensureShapeIcon(map, shape, f.color, f.borderColor ?? "#ffffff", f.borderWidth ?? 6);
         }
       }
 

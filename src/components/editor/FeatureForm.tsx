@@ -41,6 +41,8 @@ export default function FeatureForm() {
   const [shape, setShape] = useState<PointShape>("circle");
   const [icon, setIcon] = useState<string | undefined>();
   const [customSvg, setCustomSvg] = useState<string | undefined>();
+  const [borderColor, setBorderColor] = useState("#ffffff");
+  const [borderWidth, setBorderWidth] = useState(6);
   const [smoothing, setSmoothing] = useState(0);
   const [strokeWidth, setStrokeWidth] = useState(3);
   const [lineStyle, setLineStyle] = useState<LineStyle>("solid");
@@ -60,6 +62,8 @@ export default function FeatureForm() {
     setShape(selectedFeature.shape ?? "circle");
     setIcon(selectedFeature.icon);
     setCustomSvg(selectedFeature.customSvg);
+    setBorderColor(selectedFeature.borderColor ?? "#ffffff");
+    setBorderWidth(selectedFeature.borderWidth ?? 6);
     setSmoothing(selectedFeature.smoothing ?? 0);
     setStrokeWidth(selectedFeature.strokeWidth ?? 3);
     setLineStyle(selectedFeature.lineStyle ?? "solid");
@@ -82,6 +86,8 @@ export default function FeatureForm() {
       shape: isPoint ? (icon || customSvg ? undefined : shape) : undefined,
       icon: isPoint ? icon : undefined,
       customSvg: isPoint ? customSvg : undefined,
+      borderColor: isPoint ? borderColor : undefined,
+      borderWidth: isPoint ? borderWidth : undefined,
       smoothing: isPoint ? 0 : smoothing,
       strokeWidth: isPoint ? 0 : strokeWidth,
       lineStyle: isPoint ? "solid" : lineStyle,
@@ -91,7 +97,7 @@ export default function FeatureForm() {
       layerId,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, color, opacity, size, shape, icon, customSvg, smoothing, strokeWidth, lineStyle, arrowStyle, sourceText, sourceUrl, layerId]);
+  }, [label, color, opacity, size, shape, icon, customSvg, borderColor, borderWidth, smoothing, strokeWidth, lineStyle, arrowStyle, sourceText, sourceUrl, layerId]);
 
   if (!selectedFeature) return null;
 
@@ -137,6 +143,26 @@ export default function FeatureForm() {
                 onValueChange={(v: number[]) => setSize(v[0] / 100)}
               />
             </Field>
+            <div className="flex gap-3">
+              <Field label="Border" className="flex-1">
+                <input
+                  type="color"
+                  value={borderColor}
+                  onChange={(e) => setBorderColor(e.target.value)}
+                  className="w-full h-8 rounded cursor-pointer"
+                />
+              </Field>
+              <Field label={`Width (${borderWidth}px)`} className="flex-1">
+                <Slider
+                  min={0}
+                  max={12}
+                  step={1}
+                  value={[borderWidth]}
+                  onValueChange={(v: number[]) => setBorderWidth(v[0])}
+                  className="mt-2"
+                />
+              </Field>
+            </div>
           </>
         ) : (
           <StrokeFields

@@ -29,6 +29,8 @@ interface EditorState {
   activeSize: number;
   activeShape: PointShape;
   activeIcon: string | null;
+  activeBorderColor: string;
+  activeBorderWidth: number;
   activeSmoothing: number;
   activeStrokeWidth: number;
   activeLineStyle: LineStyle;
@@ -48,6 +50,8 @@ interface EditorActions {
   setActiveSize: (size: number) => void;
   setActiveShape: (shape: PointShape) => void;
   setActiveIcon: (icon: string | null) => void;
+  setActiveBorderColor: (color: string) => void;
+  setActiveBorderWidth: (width: number) => void;
   setActiveSmoothing: (smoothing: number) => void;
   setActiveStrokeWidth: (width: number) => void;
   setActiveLineStyle: (style: LineStyle) => void;
@@ -90,6 +94,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeSize, setActiveSize] = useState(1);
   const [activeShape, setActiveShape] = useState<PointShape>("circle");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
+  const [activeBorderColor, setActiveBorderColor] = useState("#ffffff");
+  const [activeBorderWidth, setActiveBorderWidth] = useState(6);
   const [activeSmoothing, setActiveSmoothing] = useState(0);
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(3);
   const [activeLineStyle, setActiveLineStyle] = useState<LineStyle>("solid");
@@ -124,6 +130,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         size: isPoint ? activeSize : undefined,
         shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
         icon: isPoint ? (activeIcon ?? undefined) : undefined,
+        borderColor: isPoint ? activeBorderColor : undefined,
+        borderWidth: isPoint ? activeBorderWidth : undefined,
         smoothing: isPoint ? 0 : activeSmoothing,
         strokeWidth: isPoint ? 0 : activeStrokeWidth,
         lineStyle: isPoint ? "solid" : activeLineStyle,
@@ -139,7 +147,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSourceText("");
       setActiveSourceUrl("");
     },
-    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeSmoothing, activeStrokeWidth, activeLineStyle, activeArrowStyle]
+    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeBorderColor, activeBorderWidth, activeSmoothing, activeStrokeWidth, activeLineStyle, activeArrowStyle]
   );
 
   const updateFeature = useCallback(
@@ -224,6 +232,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeSize,
       activeShape,
       activeIcon,
+      activeBorderColor,
+      activeBorderWidth,
       activeSmoothing,
       activeStrokeWidth,
       activeLineStyle,
@@ -240,6 +250,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSize,
       setActiveShape,
       setActiveIcon,
+      setActiveBorderColor,
+      setActiveBorderWidth,
       setActiveSmoothing,
       setActiveStrokeWidth,
       setActiveLineStyle,
@@ -271,6 +283,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeSize,
       activeShape,
       activeIcon,
+      activeBorderColor,
+      activeBorderWidth,
       activeSmoothing,
       activeStrokeWidth,
       activeLineStyle,
