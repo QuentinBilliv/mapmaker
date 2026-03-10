@@ -12,6 +12,7 @@ import { v4 as uuid } from "uuid";
 import { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
 import { DEFAULT_LAYER, DEFAULT_MAP } from "./defaults";
+import { BASE_MAPS, type BaseMap } from "./map-style";
 import type { MapData, LayerData, FeatureData, PointShape } from "./types";
 
 interface EditorState {
@@ -28,6 +29,7 @@ interface EditorState {
   activeSize: number;
   activeShape: PointShape;
   activeIcon: string | null;
+  activeBaseMap: BaseMap;
   selectedFeature: FeatureData | null;
 }
 
@@ -49,6 +51,7 @@ interface EditorActions {
   addLayer: (name: string) => void;
   toggleLayer: (id: string) => void;
   deleteLayer: (id: string) => void;
+  setActiveBaseMap: (baseMap: BaseMap) => void;
   updateMap: (updates: Partial<MapData>) => void;
   finishDrawing: () => void;
   cancelDrawing: () => void;
@@ -79,6 +82,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeSize, setActiveSize] = useState(1);
   const [activeShape, setActiveShape] = useState<PointShape>("circle");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
+  const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
     null
   );
@@ -197,6 +201,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeSize,
       activeShape,
       activeIcon,
+      activeBaseMap,
       selectedFeature,
       setDrawMode,
       setActiveLabel,
@@ -215,6 +220,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addLayer,
       toggleLayer,
       deleteLayer,
+      setActiveBaseMap,
       updateMap,
       finishDrawing,
       cancelDrawing,
@@ -234,6 +240,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeSize,
       activeShape,
       activeIcon,
+      activeBaseMap,
       selectedFeature,
       selectFeature,
       addFeature,
@@ -242,6 +249,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addLayer,
       toggleLayer,
       deleteLayer,
+      setActiveBaseMap,
       updateMap,
       finishDrawing,
       cancelDrawing,

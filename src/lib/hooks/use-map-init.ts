@@ -3,12 +3,13 @@
 import { useRef, useEffect } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { PHYSICAL_STYLE } from "@/lib/map-style";
+import type { BaseMap } from "@/lib/map-style";
 
 export function useMapInit(
   containerRef: React.RefObject<HTMLDivElement | null>,
   center: [number, number],
-  zoom: number
+  zoom: number,
+  baseMap: BaseMap
 ) {
   const mapRef = useRef<maplibregl.Map | null>(null);
 
@@ -17,7 +18,7 @@ export function useMapInit(
 
     const map = new maplibregl.Map({
       container: containerRef.current,
-      style: PHYSICAL_STYLE,
+      style: baseMap.style,
       center,
       zoom,
       doubleClickZoom: false,
@@ -34,6 +35,12 @@ export function useMapInit(
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    map.setStyle(baseMap.style);
+  }, [baseMap]);
 
   return mapRef;
 }

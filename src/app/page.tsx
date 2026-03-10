@@ -7,6 +7,7 @@ import LayerPanel from "@/components/editor/LayerPanel";
 import FeatureForm from "@/components/editor/FeatureForm";
 import DrawingSettingsPanel from "@/components/editor/DrawingSettingsPanel";
 import MapMetadata from "@/components/editor/MapMetadata";
+import BaseMapSelector from "@/components/editor/BaseMapSelector";
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
         <MapMetadata />
         <DrawingSettingsPanel />
         <FeatureForm />
+        <BaseMapSelector />
       </div>
     </EditorProvider>
   );
