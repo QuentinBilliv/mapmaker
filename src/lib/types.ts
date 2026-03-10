@@ -15,6 +15,17 @@ export interface LayerData {
   order: number;
 }
 
+export type PointShape = "circle" | "triangle" | "square" | "diamond" | "star" | "cross";
+
+export const POINT_SHAPES: { value: PointShape; label: string }[] = [
+  { value: "circle", label: "Circle" },
+  { value: "triangle", label: "Triangle" },
+  { value: "square", label: "Square" },
+  { value: "diamond", label: "Diamond" },
+  { value: "star", label: "Star" },
+  { value: "cross", label: "Cross" },
+];
+
 export interface FeatureData {
   id: string;
   layerId: string;
@@ -22,7 +33,10 @@ export interface FeatureData {
   label: string;
   color: string;
   opacity: number;
+  shape?: PointShape;
+  icon?: string;
+  customSvg?: string;
   sourceText: string;
   sourceUrl?: string;
-  geometry: string; // JSON stringified GeoJSON geometry
+  geometry: string;
 }

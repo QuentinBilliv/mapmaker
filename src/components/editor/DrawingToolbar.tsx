@@ -1,7 +1,11 @@
 "use client";
 
+import { useState } from "react";
 import { useEditor } from "@/lib/editor-context";
 import { DrawMode } from "@/lib/draw-engine";
+import { POINT_SHAPES } from "@/lib/types";
+import { ShapePreview } from "@/components/ui/marker-icons";
+import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { Button } from "@/components/ui/button";
 import { Slider } from "@/components/ui/slider";
 import { Separator } from "@/components/ui/separator";
@@ -20,11 +24,19 @@ const PRESET_COLORS = [
 ];
 
 export default function DrawingToolbar() {
+  const { drawMode } = useEditor();
+
   return (
     <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-2">
       <ToolButtons />
       <Separator />
       <ColorPalette />
+      {drawMode === "point" && (
+        <>
+          <Separator />
+          <MarkerPicker />
+        </>
+      )}
       <Separator />
       <OpacitySlider />
     </div>
@@ -68,6 +80,43 @@ function ColorPalette() {
           title={color}
         />
       ))}
+    </div>
+  );
+}
+
+function MarkerPicker() {
+  const { activeShape, setActiveShape, activeIcon, setActiveIcon } = useEditor();
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  return (
+    <div className="flex flex-col gap-1">
+      <div className="grid grid-cols-3 gap-1 px-0.5">
+        {POINT_SHAPES.map((s) => (
+          <Button
+            key={s.value}
+            variant={!activeIcon && activeShape === s.value ? "default" : "ghost"}
+            size="icon-xs"
+            onClick={() => { setActiveShape(s.value); setActiveIcon(null); }}
+            title={s.label}
+          >
+            <ShapePreview shape={s.value} />
+          </Button>
+        ))}
+        <Button
+          variant={activeIcon ? "default" : "outline"}
+          size="icon-xs"
+          onClick={() => setPickerOpen(true)}
+          title="Choose icon"
+        >
+          +
+        </Button>
+      </div>
+      <IconPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        selected={activeIcon ?? undefined}
+        onSelect={(id) => setActiveIcon(id)}
+      />
     </div>
   );
 }

@@ -1,7 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useEditor } from "@/lib/editor-context";
+import { POINT_SHAPES, type PointShape } from "@/lib/types";
+import { ShapePreview } from "@/components/ui/marker-icons";
+import IconPickerDialog from "@/components/editor/IconPickerDialog";
+import { sanitizeSvg } from "@/lib/svg-sanitizer";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -33,6 +37,9 @@ export default function FeatureForm() {
   const [sourceText, setSourceText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [layerId, setLayerId] = useState("");
+  const [shape, setShape] = useState<PointShape>("circle");
+  const [icon, setIcon] = useState<string | undefined>();
+  const [customSvg, setCustomSvg] = useState<string | undefined>();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
@@ -43,6 +50,9 @@ export default function FeatureForm() {
     setSourceText(selectedFeature.sourceText);
     setSourceUrl(selectedFeature.sourceUrl ?? "");
     setLayerId(selectedFeature.layerId);
+    setShape(selectedFeature.shape ?? "circle");
+    setIcon(selectedFeature.icon);
+    setCustomSvg(selectedFeature.customSvg);
   }, [selectedFeature]);
 
   if (!selectedFeature) return null;
@@ -52,6 +62,9 @@ export default function FeatureForm() {
       label,
       color,
       opacity,
+      shape: selectedFeature.type === "point" ? (icon || customSvg ? undefined : shape) : undefined,
+      icon: selectedFeature.type === "point" ? icon : undefined,
+      customSvg: selectedFeature.type === "point" ? customSvg : undefined,
       sourceText,
       sourceUrl: sourceUrl || undefined,
       layerId,
@@ -74,6 +87,17 @@ export default function FeatureForm() {
           onColorChange={setColor}
           onOpacityChange={setOpacity}
         />
+        {selectedFeature.type === "point" && (
+          <MarkerSelect
+            shape={shape}
+            icon={icon}
+            customSvg={customSvg}
+            onShapeChange={(s) => { setShape(s); setIcon(undefined); setCustomSvg(undefined); }}
+            onIconChange={(i) => { setIcon(i); setShape("circle"); setCustomSvg(undefined); }}
+            onCustomSvgChange={(svg) => { setCustomSvg(svg); setIcon(undefined); }}
+            onClearCustom={() => { setCustomSvg(undefined); }}
+          />
+        )}
         <LayerSelect layers={layers} value={layerId} onChange={setLayerId} />
         <SourceFields
           text={sourceText}
@@ -143,6 +167,98 @@ function StyleFields({
         </Field>
       </div>
     </>
+  );
+}
+
+function MarkerSelect({
+  shape,
+  icon,
+  customSvg,
+  onShapeChange,
+  onIconChange,
+  onCustomSvgChange,
+  onClearCustom,
+}: {
+  shape: PointShape;
+  icon?: string;
+  customSvg?: string;
+  onShapeChange: (s: PointShape) => void;
+  onIconChange: (i: string) => void;
+  onCustomSvgChange: (svg: string) => void;
+  onClearCustom: () => void;
+}) {
+  const fileRef = useRef<HTMLInputElement>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+
+  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      try {
+        const sanitized = sanitizeSvg(reader.result as string);
+        onCustomSvgChange(sanitized);
+      } catch {
+        alert("Invalid SVG file");
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = "";
+  };
+
+  return (
+    <Field label="Marker">
+      <div className="flex flex-col gap-1.5">
+        <div className="flex gap-1 flex-wrap">
+          {POINT_SHAPES.map((s) => (
+            <Button
+              key={s.value}
+              variant={!icon && !customSvg && shape === s.value ? "default" : "outline"}
+              size="icon-xs"
+              onClick={() => onShapeChange(s.value)}
+              title={s.label}
+            >
+              <ShapePreview shape={s.value} />
+            </Button>
+          ))}
+          <Button
+            variant={icon ? "default" : "outline"}
+            size="icon-xs"
+            onClick={() => setPickerOpen(true)}
+            title="Choose icon"
+          >
+            +
+          </Button>
+        </div>
+        <div className="flex gap-1 items-center">
+          <Button
+            variant={customSvg ? "default" : "outline"}
+            size="xs"
+            onClick={() => fileRef.current?.click()}
+          >
+            {customSvg ? "Replace SVG" : "Upload SVG"}
+          </Button>
+          {customSvg && (
+            <Button variant="ghost" size="xs" onClick={onClearCustom}>
+              ✕
+            </Button>
+          )}
+          <input
+            ref={fileRef}
+            type="file"
+            accept=".svg"
+            onChange={handleUpload}
+            className="hidden"
+          />
+        </div>
+      </div>
+      <IconPickerDialog
+        open={pickerOpen}
+        onOpenChange={setPickerOpen}
+        selected={icon}
+        onSelect={onIconChange}
+      />
+    </Field>
   );
 }
 

@@ -11,7 +11,7 @@ import { v4 as uuid } from "uuid";
 import { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
 import { DEFAULT_LAYER, DEFAULT_MAP } from "./defaults";
-import type { MapData, LayerData, FeatureData } from "./types";
+import type { MapData, LayerData, FeatureData, PointShape } from "./types";
 
 interface EditorState {
   map: MapData;
@@ -21,6 +21,8 @@ interface EditorState {
   activeColor: string;
   activeOpacity: number;
   activeLayerId: string;
+  activeShape: PointShape;
+  activeIcon: string | null;
   selectedFeature: FeatureData | null;
 }
 
@@ -29,6 +31,8 @@ interface EditorActions {
   setActiveColor: (color: string) => void;
   setActiveOpacity: (opacity: number) => void;
   setActiveLayerId: (id: string) => void;
+  setActiveShape: (shape: PointShape) => void;
+  setActiveIcon: (icon: string | null) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: Partial<FeatureData>) => void;
@@ -54,9 +58,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [layers, setLayers] = useState<LayerData[]>([DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>([]);
   const [drawMode, setDrawMode] = useState<DrawMode>("select");
-  const [activeColor, setActiveColor] = useState("#3b82f6");
-  const [activeOpacity, setActiveOpacity] = useState(0.5);
+  const [activeColor, setActiveColor] = useState("#1a1a1a");
+  const [activeOpacity, setActiveOpacity] = useState(1);
   const [activeLayerId, setActiveLayerId] = useState(DEFAULT_LAYER.id);
+  const [activeShape, setActiveShape] = useState<PointShape>("circle");
+  const [activeIcon, setActiveIcon] = useState<string | null>(null);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
     null
   );
@@ -68,6 +74,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 
   const addFeature = useCallback(
     (geometry: GeoJSON.Geometry) => {
+      const isPoint = geometryTypeToFeatureType(geometry.type) === "point";
       const newFeature: FeatureData = {
         id: uuid(),
         layerId: activeLayerId,
@@ -75,6 +82,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         label: "",
         color: activeColor,
         opacity: activeOpacity,
+        shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
+        icon: isPoint ? (activeIcon ?? undefined) : undefined,
         sourceText: "",
         geometry: JSON.stringify(geometry),
       };
@@ -82,7 +91,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setSelectedFeatureId(newFeature.id);
       setDrawMode("select");
     },
-    [activeLayerId, activeColor, activeOpacity]
+    [activeLayerId, activeColor, activeOpacity, activeShape, activeIcon]
   );
 
   const updateFeature = useCallback(
@@ -149,11 +158,15 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeColor,
       activeOpacity,
       activeLayerId,
+      activeShape,
+      activeIcon,
       selectedFeature,
       setDrawMode,
       setActiveColor,
       setActiveOpacity,
       setActiveLayerId,
+      setActiveShape,
+      setActiveIcon,
       selectFeature,
       addFeature,
       updateFeature,
@@ -171,6 +184,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeColor,
       activeOpacity,
       activeLayerId,
+      activeShape,
+      activeIcon,
       selectedFeature,
       selectFeature,
       addFeature,

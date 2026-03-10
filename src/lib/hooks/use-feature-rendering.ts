@@ -2,7 +2,14 @@
 
 import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData, LayerData } from "@/lib/types";
+import type { FeatureData, LayerData, PointShape } from "@/lib/types";
+import {
+  ensureShapeIcon,
+  catalogIconId,
+  ensureCatalogIcon,
+  customSvgIconId,
+  ensureCustomSvgIcon,
+} from "@/lib/shape-icons";
 
 const FEATURES_SOURCE = "map-features";
 
@@ -47,14 +54,16 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
 
   map.addLayer({
     id: "features-circle",
-    type: "circle",
+    type: "symbol",
     source: FEATURES_SOURCE,
+    layout: {
+      "icon-image": ["get", "iconId"],
+      "icon-size": 1,
+      "icon-allow-overlap": true,
+      "icon-anchor": "center",
+    },
     paint: {
-      "circle-radius": 8,
-      "circle-color": ["get", "color"],
-      "circle-opacity": ["get", "opacity"],
-      "circle-stroke-color": "#fff",
-      "circle-stroke-width": 2,
+      "icon-opacity": ["get", "opacity"],
     },
     filter: ["==", "$type", "Point"],
   });
@@ -78,34 +87,91 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
   });
 }
 
-function updateSource(
+interface BuildResult {
+  geojson: GeoJSON.FeatureCollection;
+  pendingSvgs: Promise<string>[];
+}
+
+function buildGeoJSON(
   map: maplibregl.Map,
   features: FeatureData[],
   layers: LayerData[]
-) {
-  ensureSourceAndLayers(map);
-
+): BuildResult {
   const visibleLayerIds = new Set(
     layers.filter((l) => l.visible).map((l) => l.id)
   );
 
+  const pendingSvgs: Promise<string>[] = [];
+
   const geojsonFeatures: GeoJSON.Feature[] = features
     .filter((f) => visibleLayerIds.has(f.layerId))
-    .map((f) => ({
-      type: "Feature" as const,
-      geometry: JSON.parse(f.geometry),
-      properties: {
-        id: f.id,
-        label: f.label,
-        color: f.color,
-        opacity: f.opacity,
-        featureType: f.type,
-        layerId: f.layerId,
-      },
-    }));
+    .map((f) => {
+      let iconId = "";
 
+      if (f.type === "point") {
+        if (f.customSvg) {
+          iconId = customSvgIconId(f.customSvg, f.color);
+          if (!map.hasImage(iconId)) {
+            pendingSvgs.push(ensureCustomSvgIcon(map, f.customSvg, f.color));
+          }
+        } else if (f.icon) {
+          iconId = catalogIconId(f.icon, f.color);
+          if (!map.hasImage(iconId)) {
+            pendingSvgs.push(ensureCatalogIcon(map, f.icon, f.color));
+          }
+        } else {
+          const shape: PointShape = f.shape ?? "circle";
+          iconId = ensureShapeIcon(map, shape, f.color);
+        }
+      }
+
+      return {
+        type: "Feature" as const,
+        geometry: JSON.parse(f.geometry),
+        properties: {
+          id: f.id,
+          label: f.label,
+          color: f.color,
+          opacity: f.opacity,
+          featureType: f.type,
+          layerId: f.layerId,
+          iconId,
+        },
+      };
+    });
+
+  return {
+    geojson: { type: "FeatureCollection", features: geojsonFeatures },
+    pendingSvgs,
+  };
+}
+
+function setSourceData(
+  map: maplibregl.Map,
+  features: FeatureData[],
+  layers: LayerData[]
+): Promise<string>[] {
   const source = map.getSource(FEATURES_SOURCE) as maplibregl.GeoJSONSource;
-  source.setData({ type: "FeatureCollection", features: geojsonFeatures });
+  if (!source) return [];
+  const { geojson, pendingSvgs } = buildGeoJSON(map, features, layers);
+  source.setData(geojson);
+  return pendingSvgs;
+}
+
+function fullUpdate(
+  map: maplibregl.Map,
+  features: FeatureData[],
+  layers: LayerData[],
+  cancelled: () => boolean
+) {
+  ensureSourceAndLayers(map);
+  const pending = setSourceData(map, features, layers);
+  if (pending.length > 0) {
+    Promise.all(pending).then(() => {
+      if (cancelled()) return;
+      setSourceData(map, features, layers);
+    });
+  }
 }
 
 export function useFeatureRendering(
@@ -116,14 +182,24 @@ export function useFeatureRendering(
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
+    let dead = false;
+    const isCancelled = () => dead;
 
-    if (map.isStyleLoaded()) {
-      updateSource(map, features, layers);
+    if (map.getSource(FEATURES_SOURCE)) {
+      const pending = setSourceData(map, features, layers);
+      if (pending.length > 0) {
+        Promise.all(pending).then(() => {
+          if (dead) return;
+          setSourceData(map, features, layers);
+        });
+      }
+    } else if (map.isStyleLoaded()) {
+      fullUpdate(map, features, layers, isCancelled);
     } else {
-      const onLoad = () => updateSource(map, features, layers);
-      map.on("load", onLoad);
-      return () => { map.off("load", onLoad); };
+      map.once("load", () => fullUpdate(map, features, layers, isCancelled));
     }
+
+    return () => { dead = true; };
   }, [mapRef, features, layers]);
 }
 
