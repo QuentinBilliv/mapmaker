@@ -33,6 +33,7 @@ export interface FeatureData {
   label: string;
   color: string;
   opacity: number;
+  size?: number;
   shape?: PointShape;
   icon?: string;
   customSvg?: string;

@@ -5,10 +5,12 @@ import type { PointShape } from "./types";
 import { loadCatalogEntry } from "./icon-catalog";
 import { sanitizeSvg } from "./svg-sanitizer";
 
-const SIZE = 32;
+const SIZE = 128;
 const HALF = SIZE / 2;
-const PAD = 3;
+const PAD = 10;
 const R = HALF - PAD;
+
+export const ICON_SCALE = 0.25;
 
 type Drawer = (ctx: CanvasRenderingContext2D) => void;
 
@@ -46,7 +48,7 @@ const SHAPE_PATHS: Record<PointShape, Drawer> = {
     ctx.closePath();
   },
   cross(ctx) {
-    const t = 5;
+    const t = SIZE * 0.15;
     ctx.moveTo(HALF - t, PAD);
     ctx.lineTo(HALF + t, PAD);
     ctx.lineTo(HALF + t, HALF - t);
@@ -77,7 +79,7 @@ function renderDrawer(drawer: Drawer, color: string, stroke = true): ImageData {
   ctx.fill();
   if (stroke) {
     ctx.strokeStyle = "#ffffff";
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 6;
     ctx.stroke();
   }
 

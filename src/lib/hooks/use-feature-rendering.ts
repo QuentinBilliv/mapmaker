@@ -9,6 +9,7 @@ import {
   ensureCatalogIcon,
   customSvgIconId,
   ensureCustomSvgIcon,
+  ICON_SCALE,
 } from "@/lib/shape-icons";
 
 const FEATURES_SOURCE = "map-features";
@@ -58,7 +59,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     source: FEATURES_SOURCE,
     layout: {
       "icon-image": ["get", "iconId"],
-      "icon-size": 1,
+      "icon-size": ["*", ["get", "size"], ICON_SCALE],
       "icon-allow-overlap": true,
       "icon-anchor": "center",
     },
@@ -133,6 +134,7 @@ function buildGeoJSON(
           label: f.label,
           color: f.color,
           opacity: f.opacity,
+          size: f.size ?? 1,
           featureType: f.type,
           layerId: f.layerId,
           iconId,

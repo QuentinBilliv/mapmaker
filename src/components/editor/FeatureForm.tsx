@@ -37,6 +37,7 @@ export default function FeatureForm() {
   const [sourceText, setSourceText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [layerId, setLayerId] = useState("");
+  const [size, setSize] = useState(1);
   const [shape, setShape] = useState<PointShape>("circle");
   const [icon, setIcon] = useState<string | undefined>();
   const [customSvg, setCustomSvg] = useState<string | undefined>();
@@ -50,6 +51,7 @@ export default function FeatureForm() {
     setSourceText(selectedFeature.sourceText);
     setSourceUrl(selectedFeature.sourceUrl ?? "");
     setLayerId(selectedFeature.layerId);
+    setSize(selectedFeature.size ?? 1);
     setShape(selectedFeature.shape ?? "circle");
     setIcon(selectedFeature.icon);
     setCustomSvg(selectedFeature.customSvg);
@@ -62,6 +64,7 @@ export default function FeatureForm() {
       label,
       color,
       opacity,
+      size: selectedFeature.type === "point" ? size : undefined,
       shape: selectedFeature.type === "point" ? (icon || customSvg ? undefined : shape) : undefined,
       icon: selectedFeature.type === "point" ? icon : undefined,
       customSvg: selectedFeature.type === "point" ? customSvg : undefined,
@@ -88,15 +91,26 @@ export default function FeatureForm() {
           onOpacityChange={setOpacity}
         />
         {selectedFeature.type === "point" && (
-          <MarkerSelect
-            shape={shape}
-            icon={icon}
-            customSvg={customSvg}
-            onShapeChange={(s) => { setShape(s); setIcon(undefined); setCustomSvg(undefined); }}
-            onIconChange={(i) => { setIcon(i); setShape("circle"); setCustomSvg(undefined); }}
-            onCustomSvgChange={(svg) => { setCustomSvg(svg); setIcon(undefined); }}
-            onClearCustom={() => { setCustomSvg(undefined); }}
-          />
+          <>
+            <MarkerSelect
+              shape={shape}
+              icon={icon}
+              customSvg={customSvg}
+              onShapeChange={(s) => { setShape(s); setIcon(undefined); setCustomSvg(undefined); }}
+              onIconChange={(i) => { setIcon(i); setShape("circle"); setCustomSvg(undefined); }}
+              onCustomSvgChange={(svg) => { setCustomSvg(svg); setIcon(undefined); }}
+              onClearCustom={() => { setCustomSvg(undefined); }}
+            />
+            <Field label={`Size (${Math.round(size * 100)}%)`}>
+              <Slider
+                min={50}
+                max={300}
+                step={25}
+                value={[Math.round(size * 100)]}
+                onValueChange={(v: number[]) => setSize(v[0] / 100)}
+              />
+            </Field>
+          </>
         )}
         <LayerSelect layers={layers} value={layerId} onChange={setLayerId} />
         <SourceFields

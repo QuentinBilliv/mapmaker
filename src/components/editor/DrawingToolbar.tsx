@@ -35,6 +35,8 @@ export default function DrawingToolbar() {
         <>
           <Separator />
           <MarkerPicker />
+          <Separator />
+          <SizeSlider />
         </>
       )}
       <Separator />
@@ -116,6 +118,23 @@ function MarkerPicker() {
         onOpenChange={setPickerOpen}
         selected={activeIcon ?? undefined}
         onSelect={(id) => setActiveIcon(id)}
+      />
+    </div>
+  );
+}
+
+function SizeSlider() {
+  const { activeSize, setActiveSize } = useEditor();
+
+  return (
+    <div className="px-1">
+      <Slider
+        min={50}
+        max={300}
+        step={25}
+        value={[Math.round(activeSize * 100)]}
+        onValueChange={(v: number[]) => setActiveSize(v[0] / 100)}
+        title={`Size: ${Math.round(activeSize * 100)}%`}
       />
     </div>
   );

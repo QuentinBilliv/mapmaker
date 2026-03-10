@@ -21,6 +21,7 @@ interface EditorState {
   activeColor: string;
   activeOpacity: number;
   activeLayerId: string;
+  activeSize: number;
   activeShape: PointShape;
   activeIcon: string | null;
   selectedFeature: FeatureData | null;
@@ -31,6 +32,7 @@ interface EditorActions {
   setActiveColor: (color: string) => void;
   setActiveOpacity: (opacity: number) => void;
   setActiveLayerId: (id: string) => void;
+  setActiveSize: (size: number) => void;
   setActiveShape: (shape: PointShape) => void;
   setActiveIcon: (icon: string | null) => void;
   selectFeature: (id: string | null) => void;
@@ -61,6 +63,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeColor, setActiveColor] = useState("#1a1a1a");
   const [activeOpacity, setActiveOpacity] = useState(1);
   const [activeLayerId, setActiveLayerId] = useState(DEFAULT_LAYER.id);
+  const [activeSize, setActiveSize] = useState(1);
   const [activeShape, setActiveShape] = useState<PointShape>("circle");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
@@ -82,6 +85,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         label: "",
         color: activeColor,
         opacity: activeOpacity,
+        size: isPoint ? activeSize : undefined,
         shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
         icon: isPoint ? (activeIcon ?? undefined) : undefined,
         sourceText: "",
@@ -91,7 +95,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setSelectedFeatureId(newFeature.id);
       setDrawMode("select");
     },
-    [activeLayerId, activeColor, activeOpacity, activeShape, activeIcon]
+    [activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon]
   );
 
   const updateFeature = useCallback(
@@ -158,6 +162,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeColor,
       activeOpacity,
       activeLayerId,
+      activeSize,
       activeShape,
       activeIcon,
       selectedFeature,
@@ -165,6 +170,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveColor,
       setActiveOpacity,
       setActiveLayerId,
+      setActiveSize,
       setActiveShape,
       setActiveIcon,
       selectFeature,
@@ -184,6 +190,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeColor,
       activeOpacity,
       activeLayerId,
+      activeSize,
       activeShape,
       activeIcon,
       selectedFeature,
