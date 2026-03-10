@@ -41,6 +41,7 @@ export default function FeatureForm() {
   const [shape, setShape] = useState<PointShape>("circle");
   const [icon, setIcon] = useState<string | undefined>();
   const [customSvg, setCustomSvg] = useState<string | undefined>();
+  const [smoothing, setSmoothing] = useState(0);
   const [confirmOpen, setConfirmOpen] = useState(false);
   const originalRef = useRef<Partial<FeatureData> | null>(null);
 
@@ -56,6 +57,7 @@ export default function FeatureForm() {
     setShape(selectedFeature.shape ?? "circle");
     setIcon(selectedFeature.icon);
     setCustomSvg(selectedFeature.customSvg);
+    setSmoothing(selectedFeature.smoothing ?? 0);
     if (!originalRef.current || originalRef.current.id !== selectedFeature.id) {
       originalRef.current = { ...selectedFeature };
     }
@@ -73,12 +75,13 @@ export default function FeatureForm() {
       shape: isPoint ? (icon || customSvg ? undefined : shape) : undefined,
       icon: isPoint ? icon : undefined,
       customSvg: isPoint ? customSvg : undefined,
+      smoothing: isPoint ? 0 : smoothing,
       sourceText,
       sourceUrl: sourceUrl || undefined,
       layerId,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, color, opacity, size, shape, icon, customSvg, sourceText, sourceUrl, layerId]);
+  }, [label, color, opacity, size, shape, icon, customSvg, smoothing, sourceText, sourceUrl, layerId]);
 
   if (!selectedFeature) return null;
 
@@ -104,7 +107,7 @@ export default function FeatureForm() {
           onColorChange={setColor}
           onOpacityChange={setOpacity}
         />
-        {selectedFeature.type === "point" && (
+        {selectedFeature.type === "point" ? (
           <>
             <MarkerSelect
               shape={shape}
@@ -125,6 +128,17 @@ export default function FeatureForm() {
               />
             </Field>
           </>
+        ) : (
+          <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
+            <Slider
+              min={0}
+              max={100}
+              step={5}
+              value={[Math.round(smoothing * 100)]}
+              onValueChange={(v: number[]) => setSmoothing(v[0] / 100)}
+              className="mt-2"
+            />
+          </Field>
         )}
         <LayerSelect layers={layers} value={layerId} onChange={setLayerId} />
         <SourceFields
@@ -186,7 +200,7 @@ function StyleFields({
         </Field>
         <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
           <Slider
-            min={10}
+            min={0}
             max={100}
             step={5}
             value={[Math.round(opacity * 100)]}

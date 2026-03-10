@@ -11,6 +11,7 @@ import {
   ensureCustomSvgIcon,
   ICON_SCALE,
 } from "@/lib/shape-icons";
+import { smoothGeometry } from "@/lib/smooth-geometry";
 
 const FEATURES_SOURCE = "map-features";
 
@@ -126,9 +127,15 @@ function buildGeoJSON(
         }
       }
 
+      const rawGeometry = JSON.parse(f.geometry);
+      const displayGeometry =
+        f.type !== "point" && f.smoothing > 0
+          ? smoothGeometry(rawGeometry, f.smoothing)
+          : rawGeometry;
+
       return {
         type: "Feature" as const,
-        geometry: JSON.parse(f.geometry),
+        geometry: displayGeometry,
         properties: {
           id: f.id,
           label: f.label,

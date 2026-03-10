@@ -11,6 +11,8 @@
   "dependencies": {
     "@base-ui/react": "^1.2.0",
     "@maplibre/maplibre-gl-style-spec": "^24.7.0",
+    "@turf/bezier-spline": "^7.3.4",
+    "@turf/helpers": "^7.3.4",
     "autoprefixer": "^10.4.27",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

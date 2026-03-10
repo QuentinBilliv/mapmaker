@@ -34,6 +34,8 @@ export default function DrawingSettingsPanel() {
     setActiveColor,
     activeOpacity,
     setActiveOpacity,
+    activeSmoothing,
+    setActiveSmoothing,
     activeLayerId,
     setActiveLayerId,
     layers,
@@ -70,7 +72,7 @@ export default function DrawingSettingsPanel() {
           </Field>
           <Field label={`Opacity (${Math.round(activeOpacity * 100)}%)`} className="flex-1">
             <Slider
-              min={10}
+              min={0}
               max={100}
               step={5}
               value={[Math.round(activeOpacity * 100)]}
@@ -79,6 +81,16 @@ export default function DrawingSettingsPanel() {
             />
           </Field>
         </div>
+        <Field label={`Smoothing (${Math.round(activeSmoothing * 100)}%)`}>
+          <Slider
+            min={0}
+            max={100}
+            step={5}
+            value={[Math.round(activeSmoothing * 100)]}
+            onValueChange={(v: number[]) => setActiveSmoothing(v[0] / 100)}
+            className="mt-2"
+          />
+        </Field>
         <Field label="Layer">
           <Select value={activeLayerId} onValueChange={setActiveLayerId}>
             <SelectTrigger className="w-full">

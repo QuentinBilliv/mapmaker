@@ -37,6 +37,7 @@ export interface FeatureData {
   shape?: PointShape;
   icon?: string;
   customSvg?: string;
+  smoothing: number;
   sourceText: string;
   sourceUrl?: string;
   geometry: string;

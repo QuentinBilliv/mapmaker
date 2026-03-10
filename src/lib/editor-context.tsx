@@ -29,6 +29,7 @@ interface EditorState {
   activeSize: number;
   activeShape: PointShape;
   activeIcon: string | null;
+  activeSmoothing: number;
   activeBaseMap: BaseMap;
   selectedFeature: FeatureData | null;
 }
@@ -44,6 +45,7 @@ interface EditorActions {
   setActiveSize: (size: number) => void;
   setActiveShape: (shape: PointShape) => void;
   setActiveIcon: (icon: string | null) => void;
+  setActiveSmoothing: (smoothing: number) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: Partial<FeatureData>) => void;
@@ -82,6 +84,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeSize, setActiveSize] = useState(1);
   const [activeShape, setActiveShape] = useState<PointShape>("circle");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
+  const [activeSmoothing, setActiveSmoothing] = useState(0);
   const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
     null
@@ -105,6 +108,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         size: isPoint ? activeSize : undefined,
         shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
         icon: isPoint ? (activeIcon ?? undefined) : undefined,
+        smoothing: isPoint ? 0 : activeSmoothing,
         sourceText: activeSourceText,
         sourceUrl: activeSourceUrl || undefined,
         geometry: JSON.stringify(geometry),
@@ -116,7 +120,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSourceText("");
       setActiveSourceUrl("");
     },
-    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon]
+    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeSmoothing]
   );
 
   const updateFeature = useCallback(
@@ -201,6 +205,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeSize,
       activeShape,
       activeIcon,
+      activeSmoothing,
       activeBaseMap,
       selectedFeature,
       setDrawMode,
@@ -213,6 +218,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSize,
       setActiveShape,
       setActiveIcon,
+      setActiveSmoothing,
       selectFeature,
       addFeature,
       updateFeature,
@@ -240,6 +246,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeSize,
       activeShape,
       activeIcon,
+      activeSmoothing,
       activeBaseMap,
       selectedFeature,
       selectFeature,
