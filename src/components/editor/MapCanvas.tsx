@@ -8,7 +8,7 @@ import { useDrawing } from "@/lib/hooks/use-drawing";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 
 export default function MapCanvas() {
-  const { map, features, layers, drawMode, addFeature, selectFeature, updateMap } =
+  const { map, features, layers, drawMode, addFeature, selectFeature, updateMap, registerDrawingControls } =
     useEditor();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,7 +19,8 @@ export default function MapCanvas() {
     [selectFeature]
   );
 
-  useDrawing(mapRef, drawMode, addFeature, onFeatureClick);
+  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick);
+  useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useFeatureRendering(mapRef, features, layers);
   useMoveListener(mapRef, updateMap);
 

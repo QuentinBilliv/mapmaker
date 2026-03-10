@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useEditor } from "@/lib/editor-context";
-import { POINT_SHAPES, type PointShape } from "@/lib/types";
+import { POINT_SHAPES, type PointShape, type FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -32,8 +32,8 @@ export default function FeatureForm() {
     useEditor();
 
   const [label, setLabel] = useState("");
-  const [color, setColor] = useState("#3b82f6");
-  const [opacity, setOpacity] = useState(0.5);
+  const [color, setColor] = useState("#1a1a1a");
+  const [opacity, setOpacity] = useState(1);
   const [sourceText, setSourceText] = useState("");
   const [sourceUrl, setSourceUrl] = useState("");
   const [layerId, setLayerId] = useState("");
@@ -42,6 +42,7 @@ export default function FeatureForm() {
   const [icon, setIcon] = useState<string | undefined>();
   const [customSvg, setCustomSvg] = useState<string | undefined>();
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const originalRef = useRef<Partial<FeatureData> | null>(null);
 
   useEffect(() => {
     if (!selectedFeature) return;
@@ -55,23 +56,36 @@ export default function FeatureForm() {
     setShape(selectedFeature.shape ?? "circle");
     setIcon(selectedFeature.icon);
     setCustomSvg(selectedFeature.customSvg);
+    if (!originalRef.current || originalRef.current.id !== selectedFeature.id) {
+      originalRef.current = { ...selectedFeature };
+    }
   }, [selectedFeature]);
 
-  if (!selectedFeature) return null;
+  const isPoint = selectedFeature?.type === "point";
 
-  const handleSave = () => {
+  useEffect(() => {
+    if (!selectedFeature) return;
     updateFeature(selectedFeature.id, {
       label,
       color,
       opacity,
-      size: selectedFeature.type === "point" ? size : undefined,
-      shape: selectedFeature.type === "point" ? (icon || customSvg ? undefined : shape) : undefined,
-      icon: selectedFeature.type === "point" ? icon : undefined,
-      customSvg: selectedFeature.type === "point" ? customSvg : undefined,
+      size: isPoint ? size : undefined,
+      shape: isPoint ? (icon || customSvg ? undefined : shape) : undefined,
+      icon: isPoint ? icon : undefined,
+      customSvg: isPoint ? customSvg : undefined,
       sourceText,
       sourceUrl: sourceUrl || undefined,
       layerId,
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [label, color, opacity, size, shape, icon, customSvg, sourceText, sourceUrl, layerId]);
+
+  if (!selectedFeature) return null;
+
+  const handleCancel = () => {
+    if (originalRef.current) {
+      updateFeature(selectedFeature.id, originalRef.current);
+    }
     selectFeature(null);
   };
 
@@ -120,7 +134,8 @@ export default function FeatureForm() {
           onUrlChange={setSourceUrl}
         />
         <FormActions
-          onSave={handleSave}
+          onClose={() => selectFeature(null)}
+          onCancel={handleCancel}
           onDelete={() => setConfirmOpen(true)}
         />
         <ConfirmDialog
@@ -335,16 +350,21 @@ function SourceFields({
 }
 
 function FormActions({
-  onSave,
+  onClose,
+  onCancel,
   onDelete,
 }: {
-  onSave: () => void;
+  onClose: () => void;
+  onCancel: () => void;
   onDelete: () => void;
 }) {
   return (
     <div className="flex gap-2 pt-1">
-      <Button onClick={onSave} className="flex-1">
-        Save
+      <Button onClick={onClose} className="flex-1">
+        OK
+      </Button>
+      <Button variant="outline" onClick={onCancel}>
+        Cancel
       </Button>
       <Button variant="destructive" onClick={onDelete}>
         Delete

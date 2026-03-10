@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { v4 as uuid } from "uuid";
@@ -18,6 +19,9 @@ interface EditorState {
   layers: LayerData[];
   features: FeatureData[];
   drawMode: DrawMode;
+  activeLabel: string;
+  activeSourceText: string;
+  activeSourceUrl: string;
   activeColor: string;
   activeOpacity: number;
   activeLayerId: string;
@@ -29,6 +33,9 @@ interface EditorState {
 
 interface EditorActions {
   setDrawMode: (mode: DrawMode) => void;
+  setActiveLabel: (label: string) => void;
+  setActiveSourceText: (text: string) => void;
+  setActiveSourceUrl: (url: string) => void;
   setActiveColor: (color: string) => void;
   setActiveOpacity: (opacity: number) => void;
   setActiveLayerId: (id: string) => void;
@@ -43,6 +50,9 @@ interface EditorActions {
   toggleLayer: (id: string) => void;
   deleteLayer: (id: string) => void;
   updateMap: (updates: Partial<MapData>) => void;
+  finishDrawing: () => void;
+  cancelDrawing: () => void;
+  registerDrawingControls: (controls: { finishDrawing: () => void; cancelDrawing: () => void }) => void;
 }
 
 type EditorContextValue = EditorState & EditorActions;
@@ -60,6 +70,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [layers, setLayers] = useState<LayerData[]>([DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>([]);
   const [drawMode, setDrawMode] = useState<DrawMode>("select");
+  const [activeLabel, setActiveLabel] = useState("");
+  const [activeSourceText, setActiveSourceText] = useState("");
+  const [activeSourceUrl, setActiveSourceUrl] = useState("");
   const [activeColor, setActiveColor] = useState("#1a1a1a");
   const [activeOpacity, setActiveOpacity] = useState(1);
   const [activeLayerId, setActiveLayerId] = useState(DEFAULT_LAYER.id);
@@ -82,20 +95,24 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         id: uuid(),
         layerId: activeLayerId,
         type: geometryTypeToFeatureType(geometry.type),
-        label: "",
+        label: activeLabel,
         color: activeColor,
         opacity: activeOpacity,
         size: isPoint ? activeSize : undefined,
         shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
         icon: isPoint ? (activeIcon ?? undefined) : undefined,
-        sourceText: "",
+        sourceText: activeSourceText,
+        sourceUrl: activeSourceUrl || undefined,
         geometry: JSON.stringify(geometry),
       };
       setFeatures((prev) => [...prev, newFeature]);
       setSelectedFeatureId(newFeature.id);
       setDrawMode("select");
+      setActiveLabel("");
+      setActiveSourceText("");
+      setActiveSourceUrl("");
     },
-    [activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon]
+    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon]
   );
 
   const updateFeature = useCallback(
@@ -153,12 +170,27 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setSelectedFeatureId(id);
   }, []);
 
+  const drawingControlsRef = useRef<{ finishDrawing: () => void; cancelDrawing: () => void }>({
+    finishDrawing: () => {},
+    cancelDrawing: () => {},
+  });
+
+  const registerDrawingControls = useCallback((controls: { finishDrawing: () => void; cancelDrawing: () => void }) => {
+    drawingControlsRef.current = controls;
+  }, []);
+
+  const finishDrawing = useCallback(() => drawingControlsRef.current.finishDrawing(), []);
+  const cancelDrawing = useCallback(() => drawingControlsRef.current.cancelDrawing(), []);
+
   const value = useMemo<EditorContextValue>(
     () => ({
       map,
       layers,
       features,
       drawMode,
+      activeLabel,
+      activeSourceText,
+      activeSourceUrl,
       activeColor,
       activeOpacity,
       activeLayerId,
@@ -167,6 +199,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeIcon,
       selectedFeature,
       setDrawMode,
+      setActiveLabel,
+      setActiveSourceText,
+      setActiveSourceUrl,
       setActiveColor,
       setActiveOpacity,
       setActiveLayerId,
@@ -181,12 +216,18 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       toggleLayer,
       deleteLayer,
       updateMap,
+      finishDrawing,
+      cancelDrawing,
+      registerDrawingControls,
     }),
     [
       map,
       layers,
       features,
       drawMode,
+      activeLabel,
+      activeSourceText,
+      activeSourceUrl,
       activeColor,
       activeOpacity,
       activeLayerId,
@@ -202,6 +243,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       toggleLayer,
       deleteLayer,
       updateMap,
+      finishDrawing,
+      cancelDrawing,
+      registerDrawingControls,
     ]
   );
 

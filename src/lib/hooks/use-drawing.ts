@@ -11,12 +11,17 @@ import {
   clearDrawPreview,
 } from "@/lib/draw-engine";
 
+interface DrawingControls {
+  finishDrawing: () => void;
+  cancelDrawing: () => void;
+}
+
 export function useDrawing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   drawMode: DrawMode,
   onFeatureDrawn: (geometry: GeoJSON.Geometry) => void,
   onFeatureClick: (featureId: string) => void
-) {
+): DrawingControls {
   const drawStateRef = useRef<DrawState>({
     mode: "select",
     currentPoints: [],
@@ -142,4 +147,6 @@ export function useDrawing(
       }
     };
   }, [mapRef, handleClick, handleDblClick, handleMouseMove, finishDrawing, cancelDrawing]);
+
+  return { finishDrawing, cancelDrawing };
 }
