@@ -13,6 +13,8 @@ const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
   { mode: "select", label: "Select", icon: "↖" },
   { mode: "polygon", label: "Polygon", icon: "⬠" },
   { mode: "polyline", label: "Polyline", icon: "╲" },
+  { mode: "arrow", label: "Arrow", icon: "→" },
+  { mode: "double-arrow", label: "Double Arrow", icon: "↔" },
   { mode: "point", label: "Point", icon: "●" },
 ];
 

@@ -13,7 +13,7 @@ import { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
 import { DEFAULT_LAYER, DEFAULT_MAP } from "./defaults";
 import { BASE_MAPS, type BaseMap } from "./map-style";
-import type { MapData, LayerData, FeatureData, PointShape } from "./types";
+import type { MapData, LayerData, FeatureData, PointShape, LineStyle, ArrowStyle } from "./types";
 
 interface EditorState {
   map: MapData;
@@ -30,6 +30,9 @@ interface EditorState {
   activeShape: PointShape;
   activeIcon: string | null;
   activeSmoothing: number;
+  activeStrokeWidth: number;
+  activeLineStyle: LineStyle;
+  activeArrowStyle: ArrowStyle;
   activeBaseMap: BaseMap;
   selectedFeature: FeatureData | null;
 }
@@ -46,6 +49,9 @@ interface EditorActions {
   setActiveShape: (shape: PointShape) => void;
   setActiveIcon: (icon: string | null) => void;
   setActiveSmoothing: (smoothing: number) => void;
+  setActiveStrokeWidth: (width: number) => void;
+  setActiveLineStyle: (style: LineStyle) => void;
+  setActiveArrowStyle: (style: ArrowStyle) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: Partial<FeatureData>) => void;
@@ -85,6 +91,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeShape, setActiveShape] = useState<PointShape>("circle");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
   const [activeSmoothing, setActiveSmoothing] = useState(0);
+  const [activeStrokeWidth, setActiveStrokeWidth] = useState(3);
+  const [activeLineStyle, setActiveLineStyle] = useState<LineStyle>("solid");
+  const [activeArrowStyle, setActiveArrowStyle] = useState<ArrowStyle>("none");
   const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
     null
@@ -95,13 +104,20 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     [features, selectedFeatureId]
   );
 
+  const drawModeRef = useRef(drawMode);
+  drawModeRef.current = drawMode;
+
   const addFeature = useCallback(
     (geometry: GeoJSON.Geometry) => {
-      const isPoint = geometryTypeToFeatureType(geometry.type) === "point";
+      const featureType = geometryTypeToFeatureType(geometry.type);
+      const isPoint = featureType === "point";
+      const isLine = featureType === "polyline";
+      const currentMode = drawModeRef.current;
+      const arrowFromMode = currentMode === "arrow" ? "forward" : currentMode === "double-arrow" ? "both" : activeArrowStyle;
       const newFeature: FeatureData = {
         id: uuid(),
         layerId: activeLayerId,
-        type: geometryTypeToFeatureType(geometry.type),
+        type: featureType,
         label: activeLabel,
         color: activeColor,
         opacity: activeOpacity,
@@ -109,6 +125,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
         icon: isPoint ? (activeIcon ?? undefined) : undefined,
         smoothing: isPoint ? 0 : activeSmoothing,
+        strokeWidth: isPoint ? 0 : activeStrokeWidth,
+        lineStyle: isPoint ? "solid" : activeLineStyle,
+        arrowStyle: isLine ? arrowFromMode : "none",
         sourceText: activeSourceText,
         sourceUrl: activeSourceUrl || undefined,
         geometry: JSON.stringify(geometry),
@@ -120,7 +139,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSourceText("");
       setActiveSourceUrl("");
     },
-    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeSmoothing]
+    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeSmoothing, activeStrokeWidth, activeLineStyle, activeArrowStyle]
   );
 
   const updateFeature = useCallback(
@@ -206,6 +225,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeShape,
       activeIcon,
       activeSmoothing,
+      activeStrokeWidth,
+      activeLineStyle,
+      activeArrowStyle,
       activeBaseMap,
       selectedFeature,
       setDrawMode,
@@ -219,6 +241,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveShape,
       setActiveIcon,
       setActiveSmoothing,
+      setActiveStrokeWidth,
+      setActiveLineStyle,
+      setActiveArrowStyle,
       selectFeature,
       addFeature,
       updateFeature,
@@ -247,6 +272,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeShape,
       activeIcon,
       activeSmoothing,
+      activeStrokeWidth,
+      activeLineStyle,
+      activeArrowStyle,
       activeBaseMap,
       selectedFeature,
       selectFeature,

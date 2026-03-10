@@ -70,9 +70,12 @@ export function useDrawing(
       const mode = drawModeRef.current;
 
       if (mode === "select") {
-        const clicked = map.queryRenderedFeatures(e.point, {
-          layers: ["features-fill", "features-line", "features-circle"],
-        });
+        const queryLayers = [
+          "features-fill",
+          "features-line-solid", "features-line-dotted", "features-line-dash-short", "features-line-dash-medium", "features-line-dash-long",
+          "features-circle",
+        ].filter((id) => map.getLayer(id));
+        const clicked = map.queryRenderedFeatures(e.point, { layers: queryLayers });
         if (clicked.length > 0 && clicked[0].properties?.id) {
           onFeatureClick(clicked[0].properties.id);
         }

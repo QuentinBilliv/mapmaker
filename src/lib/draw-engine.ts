@@ -1,6 +1,6 @@
 import maplibregl from "maplibre-gl";
 
-export type DrawMode = "select" | "polygon" | "polyline" | "point";
+export type DrawMode = "select" | "polygon" | "polyline" | "point" | "arrow" | "double-arrow";
 
 export interface DrawState {
   mode: DrawMode;
@@ -93,7 +93,7 @@ export function updateDrawPreview(
     });
   }
 
-  if (state.mode === "polyline" && allPoints.length >= 2) {
+  if ((state.mode === "polyline" || state.mode === "arrow" || state.mode === "double-arrow") && allPoints.length >= 2) {
     features.push({
       type: "Feature",
       geometry: { type: "LineString", coordinates: allPoints },
@@ -111,7 +111,7 @@ export function buildGeometry(
   if (mode === "point" && points.length === 1) {
     return { type: "Point", coordinates: points[0] };
   }
-  if (mode === "polyline" && points.length >= 2) {
+  if ((mode === "polyline" || mode === "arrow" || mode === "double-arrow") && points.length >= 2) {
     return { type: "LineString", coordinates: points };
   }
   if (mode === "polygon" && points.length >= 3) {

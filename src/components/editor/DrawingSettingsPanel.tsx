@@ -1,6 +1,7 @@
 "use client";
 
 import { useEditor } from "@/lib/editor-context";
+import { LINE_STYLES, type LineStyle } from "@/lib/types";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -18,7 +19,11 @@ import {
 const MODE_LABELS: Record<string, string> = {
   polygon: "Drawing Polygon",
   polyline: "Drawing Polyline",
+  arrow: "Drawing Arrow",
+  "double-arrow": "Drawing Double Arrow",
 };
+
+const DRAWING_MODES = ["polygon", "polyline", "arrow", "double-arrow"];
 
 export default function DrawingSettingsPanel() {
   const {
@@ -36,6 +41,10 @@ export default function DrawingSettingsPanel() {
     setActiveOpacity,
     activeSmoothing,
     setActiveSmoothing,
+    activeStrokeWidth,
+    setActiveStrokeWidth,
+    activeLineStyle,
+    setActiveLineStyle,
     activeLayerId,
     setActiveLayerId,
     layers,
@@ -44,7 +53,9 @@ export default function DrawingSettingsPanel() {
     selectFeature,
   } = useEditor();
 
-  if (drawMode !== "polygon" && drawMode !== "polyline") return null;
+  if (!DRAWING_MODES.includes(drawMode)) return null;
+
+  const isPolygon = drawMode === "polygon";
 
   return (
     <div className="absolute left-16 top-3 z-10 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
@@ -81,6 +92,30 @@ export default function DrawingSettingsPanel() {
             />
           </Field>
         </div>
+        <div className="flex gap-3">
+          <Field label={`Stroke (${activeStrokeWidth}px)`} className="flex-1">
+            <Slider
+              min={1}
+              max={10}
+              step={1}
+              value={[activeStrokeWidth]}
+              onValueChange={(v: number[]) => setActiveStrokeWidth(v[0])}
+              className="mt-2"
+            />
+          </Field>
+          <Field label="Line style" className="flex-1">
+            <Select value={activeLineStyle} onValueChange={(v) => setActiveLineStyle(v as LineStyle)}>
+              <SelectTrigger className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {LINE_STYLES.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </Field>
+        </div>
         <Field label={`Smoothing (${Math.round(activeSmoothing * 100)}%)`}>
           <Slider
             min={0}
@@ -91,6 +126,18 @@ export default function DrawingSettingsPanel() {
             className="mt-2"
           />
         </Field>
+        {isPolygon && (
+          <Field label={`Fill opacity (${Math.round(activeOpacity * 100)}%)`}>
+            <Slider
+              min={0}
+              max={100}
+              step={5}
+              value={[Math.round(activeOpacity * 100)]}
+              onValueChange={(v: number[]) => setActiveOpacity(v[0] / 100)}
+              className="mt-2"
+            />
+          </Field>
+        )}
         <Field label="Layer">
           <Select value={activeLayerId} onValueChange={setActiveLayerId}>
             <SelectTrigger className="w-full">

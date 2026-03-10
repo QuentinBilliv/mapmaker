@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef } from "react";
 import { useEditor } from "@/lib/editor-context";
-import { POINT_SHAPES, type PointShape, type FeatureData } from "@/lib/types";
+import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, type PointShape, type LineStyle, type ArrowStyle, type FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -42,6 +42,9 @@ export default function FeatureForm() {
   const [icon, setIcon] = useState<string | undefined>();
   const [customSvg, setCustomSvg] = useState<string | undefined>();
   const [smoothing, setSmoothing] = useState(0);
+  const [strokeWidth, setStrokeWidth] = useState(3);
+  const [lineStyle, setLineStyle] = useState<LineStyle>("solid");
+  const [arrowStyle, setArrowStyle] = useState<ArrowStyle>("none");
   const [confirmOpen, setConfirmOpen] = useState(false);
   const originalRef = useRef<Partial<FeatureData> | null>(null);
 
@@ -58,12 +61,16 @@ export default function FeatureForm() {
     setIcon(selectedFeature.icon);
     setCustomSvg(selectedFeature.customSvg);
     setSmoothing(selectedFeature.smoothing ?? 0);
+    setStrokeWidth(selectedFeature.strokeWidth ?? 3);
+    setLineStyle(selectedFeature.lineStyle ?? "solid");
+    setArrowStyle(selectedFeature.arrowStyle ?? "none");
     if (!originalRef.current || originalRef.current.id !== selectedFeature.id) {
       originalRef.current = { ...selectedFeature };
     }
   }, [selectedFeature]);
 
   const isPoint = selectedFeature?.type === "point";
+  const isLine = selectedFeature?.type === "polyline";
 
   useEffect(() => {
     if (!selectedFeature) return;
@@ -76,12 +83,15 @@ export default function FeatureForm() {
       icon: isPoint ? icon : undefined,
       customSvg: isPoint ? customSvg : undefined,
       smoothing: isPoint ? 0 : smoothing,
+      strokeWidth: isPoint ? 0 : strokeWidth,
+      lineStyle: isPoint ? "solid" : lineStyle,
+      arrowStyle: isLine ? arrowStyle : "none",
       sourceText,
       sourceUrl: sourceUrl || undefined,
       layerId,
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [label, color, opacity, size, shape, icon, customSvg, smoothing, sourceText, sourceUrl, layerId]);
+  }, [label, color, opacity, size, shape, icon, customSvg, smoothing, strokeWidth, lineStyle, arrowStyle, sourceText, sourceUrl, layerId]);
 
   if (!selectedFeature) return null;
 
@@ -129,16 +139,16 @@ export default function FeatureForm() {
             </Field>
           </>
         ) : (
-          <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
-            <Slider
-              min={0}
-              max={100}
-              step={5}
-              value={[Math.round(smoothing * 100)]}
-              onValueChange={(v: number[]) => setSmoothing(v[0] / 100)}
-              className="mt-2"
-            />
-          </Field>
+          <StrokeFields
+            strokeWidth={strokeWidth}
+            lineStyle={lineStyle}
+            arrowStyle={isLine ? arrowStyle : undefined}
+            smoothing={smoothing}
+            onStrokeWidthChange={setStrokeWidth}
+            onLineStyleChange={setLineStyle}
+            onArrowStyleChange={isLine ? setArrowStyle : undefined}
+            onSmoothingChange={setSmoothing}
+          />
         )}
         <LayerSelect layers={layers} value={layerId} onChange={setLayerId} />
         <SourceFields
@@ -357,6 +367,79 @@ function SourceFields({
           value={url}
           onChange={(e) => onUrlChange(e.target.value)}
           placeholder="https://..."
+        />
+      </Field>
+    </>
+  );
+}
+
+function StrokeFields({
+  strokeWidth,
+  lineStyle,
+  arrowStyle,
+  smoothing,
+  onStrokeWidthChange,
+  onLineStyleChange,
+  onArrowStyleChange,
+  onSmoothingChange,
+}: {
+  strokeWidth: number;
+  lineStyle: LineStyle;
+  arrowStyle?: ArrowStyle;
+  smoothing: number;
+  onStrokeWidthChange: (v: number) => void;
+  onLineStyleChange: (v: LineStyle) => void;
+  onArrowStyleChange?: (v: ArrowStyle) => void;
+  onSmoothingChange: (v: number) => void;
+}) {
+  return (
+    <>
+      <div className="flex gap-3">
+        <Field label={`Stroke (${strokeWidth}px)`} className="flex-1">
+          <Slider
+            min={1}
+            max={10}
+            step={1}
+            value={[strokeWidth]}
+            onValueChange={(v: number[]) => onStrokeWidthChange(v[0])}
+            className="mt-2"
+          />
+        </Field>
+        <Field label="Line style" className="flex-1">
+          <Select value={lineStyle} onValueChange={(v) => onLineStyleChange(v as LineStyle)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LINE_STYLES.map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+      {onArrowStyleChange && arrowStyle !== undefined && (
+        <Field label="Arrows">
+          <Select value={arrowStyle} onValueChange={(v) => onArrowStyleChange!(v as ArrowStyle)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {ARROW_STYLES.map((s) => (
+                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      )}
+      <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
+        <Slider
+          min={0}
+          max={100}
+          step={5}
+          value={[Math.round(smoothing * 100)]}
+          onValueChange={(v: number[]) => onSmoothingChange(v[0] / 100)}
+          className="mt-2"
         />
       </Field>
     </>
