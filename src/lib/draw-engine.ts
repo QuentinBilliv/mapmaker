@@ -1,7 +1,7 @@
 import maplibregl from "maplibre-gl";
 import { COLORS } from "./defaults";
 
-export type DrawMode = "select" | "polygon" | "polyline" | "point" | "arrow" | "double-arrow";
+export type DrawMode = "select" | "polygon" | "rectangle" | "circle" | "polyline" | "point" | "arrow" | "double-arrow";
 
 export interface DrawState {
   mode: DrawMode;
@@ -85,6 +85,24 @@ export function updateDrawPreview(
 
   const allPoints = cursor ? [...points, cursor] : points;
 
+  if (state.mode === "rectangle" && allPoints.length === 2) {
+    const ring = rectangleRing(allPoints[0], allPoints[1]);
+    features.push({
+      type: "Feature",
+      geometry: { type: "Polygon", coordinates: [ring] },
+      properties: {},
+    });
+  }
+
+  if (state.mode === "circle" && allPoints.length === 2) {
+    const ring = circleRing(allPoints[0], allPoints[1]);
+    features.push({
+      type: "Feature",
+      geometry: { type: "Polygon", coordinates: [ring] },
+      properties: {},
+    });
+  }
+
   if (state.mode === "polygon" && allPoints.length >= 2) {
     const ring = [...allPoints, allPoints[0]];
     features.push({
@@ -115,6 +133,12 @@ export function buildGeometry(
   if ((mode === "polyline" || mode === "arrow" || mode === "double-arrow") && points.length >= 2) {
     return { type: "LineString", coordinates: points };
   }
+  if (mode === "rectangle" && points.length === 2) {
+    return { type: "Polygon", coordinates: [rectangleRing(points[0], points[1])] };
+  }
+  if (mode === "circle" && points.length === 2) {
+    return { type: "Polygon", coordinates: [circleRing(points[0], points[1])] };
+  }
   if (mode === "polygon" && points.length >= 3) {
     return {
       type: "Polygon",
@@ -122,6 +146,52 @@ export function buildGeometry(
     };
   }
   return null;
+}
+
+function rectangleRing(
+  a: [number, number],
+  b: [number, number]
+): [number, number][] {
+  return [
+    [a[0], a[1]],
+    [b[0], a[1]],
+    [b[0], b[1]],
+    [a[0], b[1]],
+    [a[0], a[1]],
+  ];
+}
+
+const CIRCLE_SEGMENTS = 64;
+
+function toMercatorY(lat: number): number {
+  const rad = (lat * Math.PI) / 180;
+  return (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + rad / 2));
+}
+
+function fromMercatorY(y: number): number {
+  return (360 / Math.PI) * Math.atan(Math.exp((y * Math.PI) / 180)) - 90;
+}
+
+function circleRing(
+  center: [number, number],
+  edge: [number, number]
+): [number, number][] {
+  const cx = center[0];
+  const cy = toMercatorY(center[1]);
+  const ex = edge[0];
+  const ey = toMercatorY(edge[1]);
+  const dx = ex - cx;
+  const dy = ey - cy;
+  const radius = Math.sqrt(dx * dx + dy * dy);
+  const ring: [number, number][] = [];
+  for (let i = 0; i <= CIRCLE_SEGMENTS; i++) {
+    const angle = (2 * Math.PI * i) / CIRCLE_SEGMENTS;
+    ring.push([
+      cx + radius * Math.cos(angle),
+      fromMercatorY(cy + radius * Math.sin(angle)),
+    ]);
+  }
+  return ring;
 }
 
 export function clearDrawPreview(map: maplibregl.Map) {

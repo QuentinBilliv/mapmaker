@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef, useEffect, useCallback } from "react";
+import { useRef, useEffect, useMemo, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
 import { useMapInit } from "@/lib/hooks/use-map-init";
 import { useDrawing } from "@/lib/hooks/use-drawing";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useVertexEditing } from "@/lib/hooks/use-vertex-editing";
+import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 
 export default function MapCanvas() {
   const { map, features, layers, selectedFeature } = useEditorData();
@@ -21,8 +22,14 @@ export default function MapCanvas() {
     [selectFeature]
   );
 
-  const vertexInteractingRef = useVertexEditing(mapRef, drawMode === "select" ? selectedFeature : null, updateFeature);
-  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, vertexInteractingRef);
+  const selectTarget = drawMode === "select" ? selectedFeature : null;
+  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature);
+  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature);
+  const combinedRef = useMemo(() => ({
+    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current); },
+    set current(_v: boolean) {},
+  }), [vertexInteractingRef, shapeInteractingRef]);
+  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useFeatureRendering(mapRef, features, layers);
   useMoveListener(mapRef, updateMap);

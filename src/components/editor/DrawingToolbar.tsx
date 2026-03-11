@@ -12,6 +12,8 @@ import { Separator } from "@/components/ui/separator";
 const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
   { mode: "select", label: "Select", icon: "↖" },
   { mode: "polygon", label: "Polygon", icon: "⬠" },
+  { mode: "rectangle", label: "Rectangle", icon: "▭" },
+  { mode: "circle", label: "Circle", icon: "◯" },
   { mode: "polyline", label: "Polyline", icon: "╲" },
   { mode: "arrow", label: "Arrow", icon: "→" },
   { mode: "double-arrow", label: "Double Arrow", icon: "↔" },

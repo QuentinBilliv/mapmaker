@@ -56,10 +56,13 @@ export const FILL_PATTERNS: { value: FillPattern; label: string }[] = [
   { value: "dots", label: "Dots" },
 ];
 
+export type ShapeOrigin = "rectangle" | "circle";
+
 export interface FeatureData {
   id: string;
   layerId: string;
   type: "polygon" | "polyline" | "point";
+  shapeOrigin?: ShapeOrigin;
   label: string;
   color: string;
   opacity: number;

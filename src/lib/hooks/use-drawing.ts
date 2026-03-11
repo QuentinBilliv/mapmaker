@@ -94,6 +94,19 @@ export function useDrawing(
         return;
       }
 
+      if (mode === "rectangle" || mode === "circle") {
+        state.currentPoints.push(point);
+        if (state.currentPoints.length === 2) {
+          const geometry = buildGeometry(mode, state.currentPoints);
+          if (geometry) onFeatureDrawn(geometry);
+          state.currentPoints = [];
+          clearDrawPreview(map);
+        } else {
+          updateDrawPreview(map, state);
+        }
+        return;
+      }
+
       state.currentPoints.push(point);
       updateDrawPreview(map, state);
     },

@@ -207,10 +207,15 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         : currentMode === "double-arrow"
           ? "both"
           : s.activeArrowStyle;
+    const shapeOrigin =
+      currentMode === "rectangle" ? "rectangle" as const
+      : currentMode === "circle" ? "circle" as const
+      : undefined;
     const newFeature: FeatureData = {
       id: uuid(),
       layerId: s.activeLayerId,
       type: featureType,
+      shapeOrigin,
       label: s.activeLabel,
       color: s.activeColor,
       opacity: s.activeOpacity,

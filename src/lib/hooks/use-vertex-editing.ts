@@ -88,13 +88,13 @@ export function useVertexEditing(
       if (!map.isStyleLoaded()) return;
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || f.type === "point") { setOverlay(map, EMPTY); return; }
+      if (!f || f.type === "point" || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
       setOverlay(map, buildFC(getCoords(f), f.type === "polygon"));
     }
 
     function onMouseDown(e: maplibregl.MapMouseEvent) {
       const f = featRef.current;
-      if (!f || f.type === "point") return;
+      if (!f || f.type === "point" || f.shapeOrigin) return;
       if (!map.getLayer(LAYER_VERTEX)) return;
 
       const vHits = map.queryRenderedFeatures(e.point, { layers: [LAYER_VERTEX] });
@@ -132,7 +132,7 @@ export function useVertexEditing(
         return;
       }
       const f = featRef.current;
-      if (!f || f.type === "point" || !map.getLayer(LAYER_VERTEX)) return;
+      if (!f || f.type === "point" || f.shapeOrigin || !map.getLayer(LAYER_VERTEX)) return;
       const hits = map.queryRenderedFeatures(e.point, { layers: [LAYER_VERTEX, LAYER_MID] });
       map.getCanvas().style.cursor = hits.length > 0 ? "grab" : "";
     }
@@ -184,7 +184,7 @@ export function useVertexEditing(
       }
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || f.type === "point") { setOverlay(map, EMPTY); return; }
+      if (!f || f.type === "point" || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
       setOverlay(map, buildFC(getCoords(f), f.type === "polygon"));
     };
 

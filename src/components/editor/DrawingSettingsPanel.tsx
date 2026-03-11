@@ -18,12 +18,14 @@ import {
 
 const MODE_LABELS: Record<string, string> = {
   polygon: "Drawing Polygon",
+  rectangle: "Drawing Rectangle",
+  circle: "Drawing Circle",
   polyline: "Drawing Polyline",
   arrow: "Drawing Arrow",
   "double-arrow": "Drawing Double Arrow",
 };
 
-const DRAWING_MODES = ["polygon", "polyline", "arrow", "double-arrow"];
+const DRAWING_MODES = ["polygon", "rectangle", "circle", "polyline", "arrow", "double-arrow"];
 
 export default function DrawingSettingsPanel() {
   const { layers } = useEditorData();
@@ -59,7 +61,7 @@ export default function DrawingSettingsPanel() {
 
   if (!DRAWING_MODES.includes(drawMode)) return null;
 
-  const isPolygon = drawMode === "polygon";
+  const isPolygon = drawMode === "polygon" || drawMode === "rectangle" || drawMode === "circle";
 
   return (
     <div className="absolute left-16 top-3 z-10 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
