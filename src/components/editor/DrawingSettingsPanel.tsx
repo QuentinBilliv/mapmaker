@@ -1,7 +1,7 @@
 "use client";
 
 import { useEditor } from "@/lib/editor-context";
-import { LINE_STYLES, type LineStyle } from "@/lib/types";
+import { LINE_STYLES, FILL_PATTERNS, type LineStyle, type FillPattern } from "@/lib/types";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -47,6 +47,8 @@ export default function DrawingSettingsPanel() {
     setActiveLineStyle,
     activeLayerId,
     setActiveLayerId,
+    activeFillPattern,
+    setActiveFillPattern,
     layers,
     finishDrawing,
     cancelDrawing,
@@ -126,6 +128,22 @@ export default function DrawingSettingsPanel() {
             className="mt-2"
           />
         </Field>
+        {isPolygon && (
+          <Field label="Fill pattern">
+            <div className="flex gap-1 flex-wrap">
+              {FILL_PATTERNS.map((p) => (
+                <Button
+                  key={p.value}
+                  variant={activeFillPattern === p.value ? "default" : "outline"}
+                  size="xs"
+                  onClick={() => setActiveFillPattern(p.value as FillPattern)}
+                >
+                  {p.label}
+                </Button>
+              ))}
+            </div>
+          </Field>
+        )}
         {isPolygon && (
           <Field label={`Fill opacity (${Math.round(activeOpacity * 100)}%)`}>
             <Slider

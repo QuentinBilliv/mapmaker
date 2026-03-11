@@ -5,7 +5,7 @@ import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditor } from "@/lib/editor-context";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
-import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, type LineStyle, type ArrowStyle, type FeatureData } from "@/lib/types";
+import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, FILL_PATTERNS, type LineStyle, type ArrowStyle, type FillPattern, type FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -45,6 +45,7 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     strokeWidth: f.strokeWidth ?? 3,
     lineStyle: f.lineStyle ?? "solid",
     arrowStyle: f.arrowStyle ?? "none",
+    fillPattern: f.fillPattern ?? "none",
     sourceText: f.sourceText,
     sourceUrl: f.sourceUrl ?? "",
     layerId: f.layerId,
@@ -63,14 +64,13 @@ export default function FeatureForm() {
     defaultValues: selectedFeature ? featureToFormValues(selectedFeature) : undefined,
   });
 
+  const featureId = selectedFeature?.id;
   useEffect(() => {
     if (!selectedFeature) return;
     methods.reset(featureToFormValues(selectedFeature));
-    if (!originalRef.current || originalRef.current.id !== selectedFeature.id) {
-      originalRef.current = { ...selectedFeature };
-    }
+    originalRef.current = { ...selectedFeature };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFeature]);
+  }, [featureId]);
 
   const isPoint = selectedFeature?.type === "point";
   const isLine = selectedFeature?.type === "polyline";
@@ -98,6 +98,7 @@ export default function FeatureForm() {
         strokeWidth: isPoint ? 0 : v.strokeWidth,
         lineStyle: isPoint ? "solid" : v.lineStyle,
         arrowStyle: isLine ? v.arrowStyle : "none",
+        fillPattern: (!isPoint && !isLine) ? v.fillPattern : "none",
         sourceText: v.sourceText,
         sourceUrl: v.sourceUrl || undefined,
         layerId: v.layerId,
@@ -128,7 +129,10 @@ export default function FeatureForm() {
           {selectedFeature.type === "point" ? (
             <PointFields />
           ) : (
-            <StrokeFields showArrows={isLine} />
+            <>
+              <StrokeFields showArrows={isLine} />
+              {selectedFeature.type === "polygon" && <FillPatternSelect />}
+            </>
           )}
           <LayerSelect layers={layers} />
           <SourceFields />
@@ -383,6 +387,28 @@ function SourceFields() {
         />
       </Field>
     </>
+  );
+}
+
+function FillPatternSelect() {
+  const { watch, setValue } = useFormContext<FeatureFormValues>();
+  const fillPattern = watch("fillPattern");
+
+  return (
+    <Field label="Fill pattern">
+      <div className="flex gap-1 flex-wrap">
+        {FILL_PATTERNS.map((p) => (
+          <Button
+            key={p.value}
+            variant={fillPattern === p.value ? "default" : "outline"}
+            size="xs"
+            onClick={() => setValue("fillPattern", p.value as FillPattern)}
+          >
+            {p.label}
+          </Button>
+        ))}
+      </div>
+    </Field>
   );
 }
 

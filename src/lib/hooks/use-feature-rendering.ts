@@ -11,6 +11,7 @@ import {
   ensureCustomSvgIcon,
   ICON_SCALE,
 } from "@/lib/shape-icons";
+import { ensurePatternImage } from "@/lib/fill-patterns";
 import { smoothGeometry } from "@/lib/smooth-geometry";
 
 const FEATURES_SOURCE = "map-features";
@@ -57,8 +58,8 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     type: "fill",
     source: FEATURES_SOURCE,
     paint: {
-      "fill-color": ["get", "color"],
-      "fill-opacity": ["get", "opacity"],
+      "fill-pattern": ["get", "patternId"],
+      "fill-opacity": 1,
     },
     filter: ["==", "$type", "Polygon"],
   });
@@ -229,6 +230,12 @@ function buildGeoJSON(
         }
       }
 
+      let patternId = "";
+      if (f.type === "polygon") {
+        const pattern = f.fillPattern ?? "none";
+        patternId = ensurePatternImage(map, pattern, f.color, f.opacity);
+      }
+
       return {
         type: "Feature" as const,
         geometry: displayGeometry,
@@ -241,6 +248,7 @@ function buildGeoJSON(
           featureType: f.type,
           layerId: f.layerId,
           iconId,
+          patternId,
           strokeWidth: f.strokeWidth ?? 3,
           lineStyle: f.lineStyle ?? "solid",
         },

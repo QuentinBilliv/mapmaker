@@ -45,6 +45,17 @@ export const ARROW_STYLES: { value: ArrowStyle; label: string }[] = [
   { value: "both", label: "Arrow ↔" },
 ];
 
+export type FillPattern = "none" | "stripes-diagonal" | "stripes-horizontal" | "stripes-vertical" | "crosshatch" | "dots";
+
+export const FILL_PATTERNS: { value: FillPattern; label: string }[] = [
+  { value: "none", label: "Solid" },
+  { value: "stripes-diagonal", label: "Diagonal" },
+  { value: "stripes-horizontal", label: "Horizontal" },
+  { value: "stripes-vertical", label: "Vertical" },
+  { value: "crosshatch", label: "Crosshatch" },
+  { value: "dots", label: "Dots" },
+];
+
 export interface FeatureData {
   id: string;
   layerId: string;
@@ -62,6 +73,7 @@ export interface FeatureData {
   strokeWidth: number;
   lineStyle: LineStyle;
   arrowStyle: ArrowStyle;
+  fillPattern: FillPattern;
   sourceText: string;
   sourceUrl?: string;
   geometry: string;

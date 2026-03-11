@@ -13,7 +13,7 @@ import { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
 import { DEFAULT_LAYER, DEFAULT_MAP } from "./defaults";
 import { BASE_MAPS, type BaseMap } from "./map-style";
-import type { MapData, LayerData, FeatureData, PointShape, LineStyle, ArrowStyle } from "./types";
+import type { MapData, LayerData, FeatureData, PointShape, LineStyle, ArrowStyle, FillPattern } from "./types";
 
 interface EditorState {
   map: MapData;
@@ -35,6 +35,7 @@ interface EditorState {
   activeStrokeWidth: number;
   activeLineStyle: LineStyle;
   activeArrowStyle: ArrowStyle;
+  activeFillPattern: FillPattern;
   activeBaseMap: BaseMap;
   selectedFeature: FeatureData | null;
 }
@@ -56,6 +57,7 @@ interface EditorActions {
   setActiveStrokeWidth: (width: number) => void;
   setActiveLineStyle: (style: LineStyle) => void;
   setActiveArrowStyle: (style: ArrowStyle) => void;
+  setActiveFillPattern: (pattern: FillPattern) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: Partial<FeatureData>) => void;
@@ -100,6 +102,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(3);
   const [activeLineStyle, setActiveLineStyle] = useState<LineStyle>("solid");
   const [activeArrowStyle, setActiveArrowStyle] = useState<ArrowStyle>("none");
+  const [activeFillPattern, setActiveFillPattern] = useState<FillPattern>("none");
   const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
   const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
     null
@@ -136,6 +139,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         strokeWidth: isPoint ? 0 : activeStrokeWidth,
         lineStyle: isPoint ? "solid" : activeLineStyle,
         arrowStyle: isLine ? arrowFromMode : "none",
+        fillPattern: featureType === "polygon" ? activeFillPattern : "none",
         sourceText: activeSourceText,
         sourceUrl: activeSourceUrl || undefined,
         geometry: JSON.stringify(geometry),
@@ -147,7 +151,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSourceText("");
       setActiveSourceUrl("");
     },
-    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeBorderColor, activeBorderWidth, activeSmoothing, activeStrokeWidth, activeLineStyle, activeArrowStyle]
+    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeBorderColor, activeBorderWidth, activeSmoothing, activeStrokeWidth, activeLineStyle, activeArrowStyle, activeFillPattern]
   );
 
   const updateFeature = useCallback(
@@ -238,6 +242,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeStrokeWidth,
       activeLineStyle,
       activeArrowStyle,
+      activeFillPattern,
       activeBaseMap,
       selectedFeature,
       setDrawMode,
@@ -256,6 +261,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveStrokeWidth,
       setActiveLineStyle,
       setActiveArrowStyle,
+      setActiveFillPattern,
       selectFeature,
       addFeature,
       updateFeature,
@@ -289,6 +295,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeStrokeWidth,
       activeLineStyle,
       activeArrowStyle,
+      activeFillPattern,
       activeBaseMap,
       selectedFeature,
       selectFeature,
