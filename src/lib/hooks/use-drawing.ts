@@ -20,7 +20,8 @@ export function useDrawing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   drawMode: DrawMode,
   onFeatureDrawn: (geometry: GeoJSON.Geometry) => void,
-  onFeatureClick: (featureId: string) => void
+  onFeatureClick: (featureId: string) => void,
+  vertexInteractingRef?: React.RefObject<boolean>
 ): DrawingControls {
   const drawStateRef = useRef<DrawState>({
     mode: "select",
@@ -65,6 +66,7 @@ export function useDrawing(
 
   const handleClick = useCallback(
     (e: maplibregl.MapMouseEvent) => {
+      if (vertexInteractingRef?.current) return;
       const map = mapRef.current;
       if (!map) return;
       const mode = drawModeRef.current;

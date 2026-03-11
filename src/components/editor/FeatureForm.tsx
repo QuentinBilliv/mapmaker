@@ -428,8 +428,8 @@ function SliderField({
   className?: string;
 }) {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
-  const raw = watch(name) as number;
-  const displayed = scale ? Math.round(raw * scale) : raw;
+  const raw = watch(name) as number | undefined;
+  const displayed = scale ? Math.round((raw ?? 0) * scale) : (raw ?? 0);
 
   return (
     <Slider

@@ -6,9 +6,10 @@ import { useEditor } from "@/lib/editor-context";
 import { useMapInit } from "@/lib/hooks/use-map-init";
 import { useDrawing } from "@/lib/hooks/use-drawing";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
+import { useVertexEditing } from "@/lib/hooks/use-vertex-editing";
 
 export default function MapCanvas() {
-  const { map, features, layers, drawMode, addFeature, selectFeature, updateMap, registerDrawingControls, activeBaseMap } =
+  const { map, features, layers, drawMode, addFeature, selectFeature, updateFeature, selectedFeature, updateMap, registerDrawingControls, activeBaseMap } =
     useEditor();
 
   const containerRef = useRef<HTMLDivElement>(null);
@@ -19,7 +20,8 @@ export default function MapCanvas() {
     [selectFeature]
   );
 
-  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick);
+  const vertexInteractingRef = useVertexEditing(mapRef, drawMode === "select" ? selectedFeature : null, updateFeature);
+  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, vertexInteractingRef);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useFeatureRendering(mapRef, features, layers);
   useMoveListener(mapRef, updateMap);
