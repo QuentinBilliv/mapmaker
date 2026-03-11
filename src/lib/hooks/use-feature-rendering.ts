@@ -195,7 +195,7 @@ export function useFeatureRendering(
     const isCancelled = () => dead;
 
     const onReady = () => {
-      if (dead || !map.isStyleLoaded()) return;
+      if (dead || !map.isStyleLoaded() || !map.getSource(FEATURES_SOURCE)) return;
       applyUpdate(map, features, layers, isCancelled);
     };
 
@@ -204,10 +204,12 @@ export function useFeatureRendering(
     }
 
     map.on("styledata", onReady);
+    map.on("sourcedata", onReady);
 
     return () => {
       dead = true;
       map.off("styledata", onReady);
+      map.off("sourcedata", onReady);
     };
   }, [mapRef, features, layers]);
 }
