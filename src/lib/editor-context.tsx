@@ -22,6 +22,7 @@ import type {
   ArrowStyle,
   FillPattern,
 } from "./types";
+import type { DeserializedMap } from "./mapmaker-format";
 
 interface EditorDataState {
   map: MapData;
@@ -78,6 +79,7 @@ interface EditorActions {
   deleteLayer: (id: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
   updateMap: (updates: Partial<MapData>) => void;
+  importMapData: (data: DeserializedMap) => void;
   finishDrawing: () => void;
   cancelDrawing: () => void;
   registerDrawingControls: (controls: {
@@ -288,6 +290,18 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setMap((prev) => ({ ...prev, ...updates }));
   }, []);
 
+  const importMapData = useCallback((data: DeserializedMap) => {
+    setMap((prev) => ({ ...prev, ...data.map }));
+    setLayers(data.layers);
+    setFeatures(
+      data.features.map((f) => ({ ...f, id: uuid() }))
+    );
+    setActiveLayerId(data.layers[0]?.id ?? DEFAULT_LAYER.id);
+    setSelectedFeatureId(null);
+    const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
+    if (bm) setActiveBaseMap(bm);
+  }, []);
+
   const selectFeature = useCallback((id: string | null) => {
     setSelectedFeatureId(id);
   }, []);
@@ -384,6 +398,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       deleteLayer,
       setActiveBaseMap,
       updateMap,
+      importMapData,
       finishDrawing,
       cancelDrawing,
       registerDrawingControls,
@@ -397,6 +412,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       toggleLayer,
       deleteLayer,
       updateMap,
+      importMapData,
       finishDrawing,
       cancelDrawing,
       registerDrawingControls,
