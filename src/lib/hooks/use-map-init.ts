@@ -12,7 +12,6 @@ export function useMapInit(
   baseMap: BaseMap
 ) {
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const prevBaseMapRef = useRef<BaseMap>(baseMap);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -39,8 +38,7 @@ export function useMapInit(
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map || baseMap === prevBaseMapRef.current) return;
-    prevBaseMapRef.current = baseMap;
+    if (!map) return;
     map.setStyle(baseMap.style);
   }, [baseMap]);
 

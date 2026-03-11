@@ -9,13 +9,15 @@ import {
   ensureCatalogIcon,
   customSvgIconId,
   ensureCustomSvgIcon,
+  ICON_SCALE,
 } from "@/lib/shape-icons";
 import { ensurePatternImage } from "@/lib/fill-patterns";
 import { parseGeometry } from "@/lib/geojson";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { smoothGeometry } from "@/lib/smooth-geometry";
-import { FEATURES_SOURCE, ARROW_SOURCE } from "@/lib/map-style";
 
+const FEATURES_SOURCE = "map-features";
+const ARROW_SOURCE = "arrow-heads";
 const ARROW_ICON_ID = "arrowhead";
 const ARROW_SIZE = 48;
 
@@ -36,6 +38,119 @@ function ensureArrowIcon(map: maplibregl.Map) {
   ctx.closePath();
   ctx.fill();
   map.addImage(ARROW_ICON_ID, ctx.getImageData(0, 0, ARROW_SIZE, ARROW_SIZE), { sdf: true });
+}
+
+function ensureSourceAndLayers(map: maplibregl.Map) {
+  if (map.getSource(FEATURES_SOURCE)) return;
+
+  ensureArrowIcon(map);
+
+  map.addSource(FEATURES_SOURCE, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+
+  map.addSource(ARROW_SOURCE, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+
+  map.addLayer({
+    id: "features-fill",
+    type: "fill",
+    source: FEATURES_SOURCE,
+    paint: {
+      "fill-pattern": ["get", "patternId"],
+      "fill-opacity": 1,
+    },
+    filter: ["==", "$type", "Polygon"],
+  });
+
+  const DASH_STYLES: { id: string; dash?: number[] }[] = [
+    { id: "solid" },
+    { id: "dotted", dash: [1, 2] },
+    { id: "dash-short", dash: [2, 2] },
+    { id: "dash-medium", dash: [4, 3] },
+    { id: "dash-long", dash: [8, 4] },
+  ];
+
+  for (const style of DASH_STYLES) {
+    map.addLayer({
+      id: `features-outline-${style.id}`,
+      type: "line",
+      source: FEATURES_SOURCE,
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": ["get", "strokeWidth"],
+        ...(style.dash ? { "line-dasharray": style.dash } : {}),
+      },
+      filter: ["all", ["==", "$type", "Polygon"], ["==", "lineStyle", style.id]],
+    });
+
+    map.addLayer({
+      id: `features-line-${style.id}`,
+      type: "line",
+      source: FEATURES_SOURCE,
+      paint: {
+        "line-color": ["get", "color"],
+        "line-width": ["get", "strokeWidth"],
+        "line-opacity": ["get", "opacity"],
+        ...(style.dash ? { "line-dasharray": style.dash } : {}),
+      },
+      filter: ["all", ["==", "$type", "LineString"], ["==", "lineStyle", style.id]],
+    });
+  }
+
+  map.addLayer({
+    id: "features-circle",
+    type: "symbol",
+    source: FEATURES_SOURCE,
+    layout: {
+      "icon-image": ["get", "iconId"],
+      "icon-size": ["*", ["get", "size"], ICON_SCALE],
+      "icon-allow-overlap": true,
+      "icon-anchor": "center",
+    },
+    paint: {
+      "icon-opacity": ["get", "opacity"],
+    },
+    filter: ["==", "$type", "Point"],
+  });
+
+  map.addLayer({
+    id: "features-arrows",
+    type: "symbol",
+    source: ARROW_SOURCE,
+    layout: {
+      "icon-image": ARROW_ICON_ID,
+      "icon-size": ["*", ["get", "strokeWidth"], 0.15],
+      "icon-rotate": ["get", "bearing"],
+      "icon-allow-overlap": true,
+      "icon-rotation-alignment": "map",
+    },
+    paint: {
+      "icon-color": ["get", "color"],
+      "icon-opacity": ["get", "opacity"],
+    },
+  });
+
+  map.addLayer({
+    id: "features-labels",
+    type: "symbol",
+    source: FEATURES_SOURCE,
+    layout: {
+      "text-field": ["get", "label"],
+      "text-size": 12,
+      "text-offset": [0, 1.5],
+      "text-anchor": "top",
+      "text-allow-overlap": false,
+    },
+    paint: {
+      "text-color": COLORS.primary,
+      "text-halo-color": COLORS.white,
+      "text-halo-width": 1,
+    },
+  });
 }
 
 function bearing(a: number[], b: number[]): number {
@@ -151,7 +266,7 @@ function buildGeoJSON(
   };
 }
 
-function updateSources(
+function setSourceData(
   map: maplibregl.Map,
   features: FeatureData[],
   layers: LayerData[]
@@ -159,26 +274,24 @@ function updateSources(
   const source = map.getSource(FEATURES_SOURCE) as maplibregl.GeoJSONSource;
   const arrowSource = map.getSource(ARROW_SOURCE) as maplibregl.GeoJSONSource;
   if (!source) return [];
-
-  ensureArrowIcon(map);
-
   const { geojson, arrows, pendingSvgs } = buildGeoJSON(map, features, layers);
   source.setData(geojson);
   if (arrowSource) arrowSource.setData(arrows);
   return pendingSvgs;
 }
 
-function applyUpdate(
+function fullUpdate(
   map: maplibregl.Map,
   features: FeatureData[],
   layers: LayerData[],
   cancelled: () => boolean
 ) {
-  const pending = updateSources(map, features, layers);
+  ensureSourceAndLayers(map);
+  const pending = setSourceData(map, features, layers);
   if (pending.length > 0) {
     Promise.all(pending).then(() => {
       if (cancelled()) return;
-      updateSources(map, features, layers);
+      setSourceData(map, features, layers);
     });
   }
 }
@@ -194,22 +307,32 @@ export function useFeatureRendering(
     let dead = false;
     const isCancelled = () => dead;
 
-    const onReady = () => {
-      if (dead || !map.isStyleLoaded() || !map.getSource(FEATURES_SOURCE)) return;
-      applyUpdate(map, features, layers, isCancelled);
+    const applyFeatures = () => {
+      if (dead || !map.isStyleLoaded()) return;
+      fullUpdate(map, features, layers, isCancelled);
     };
 
-    if (map.isStyleLoaded() && map.getSource(FEATURES_SOURCE)) {
-      applyUpdate(map, features, layers, isCancelled);
+    if (map.getSource(FEATURES_SOURCE)) {
+      const pending = setSourceData(map, features, layers);
+      if (pending.length > 0) {
+        Promise.all(pending).then(() => {
+          if (dead) return;
+          setSourceData(map, features, layers);
+        });
+      }
+    } else if (map.isStyleLoaded()) {
+      fullUpdate(map, features, layers, isCancelled);
+    } else {
+      map.once("load", applyFeatures);
     }
 
-    map.on("styledata", onReady);
-    map.on("sourcedata", onReady);
+    map.on("styledata", applyFeatures);
 
     return () => {
       dead = true;
-      map.off("styledata", onReady);
-      map.off("sourcedata", onReady);
+      map.off("styledata", applyFeatures);
     };
   }, [mapRef, features, layers]);
 }
+
+export { FEATURES_SOURCE };
