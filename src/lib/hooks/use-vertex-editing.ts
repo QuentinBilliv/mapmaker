@@ -5,42 +5,61 @@ import maplibregl from "maplibre-gl";
 import type { FeatureData } from "@/lib/types";
 import { parseGeometry } from "@/lib/geojson";
 import { COLORS } from "@/lib/defaults";
+import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 
 const SRC = "vertex-edit";
 const LAYER_VERTEX = "vertex-edit-points";
 const LAYER_MID = "vertex-edit-midpoints";
 const LAYER_EDGE = "vertex-edit-edges";
+const LAYER_MOVE_HIT = "vertex-edit-move-hit";
+const LAYER_MOVE_ICON = "vertex-edit-move-icon";
 
 type Coord = [number, number];
 
 function getCoords(f: FeatureData): Coord[] {
   const g = parseGeometry(f.geometry);
   if (!g) return [];
+  if (g.type === "Point") return [(g as GeoJSON.Point).coordinates as Coord];
   if (g.type === "LineString") return (g as GeoJSON.LineString).coordinates as Coord[];
   if (g.type === "Polygon") return ((g as GeoJSON.Polygon).coordinates[0].slice(0, -1)) as Coord[];
   return [];
 }
 
-function toGeometryStr(coords: Coord[], isPoly: boolean): string {
-  return isPoly
-    ? JSON.stringify({ type: "Polygon", coordinates: [[...coords, coords[0]]] })
-    : JSON.stringify({ type: "LineString", coordinates: coords });
+function centroid(coords: Coord[]): Coord {
+  let x = 0, y = 0;
+  for (const c of coords) { x += c[0]; y += c[1]; }
+  return [x / coords.length, y / coords.length];
 }
 
-function buildFC(coords: Coord[], isPoly: boolean): GeoJSON.FeatureCollection {
+function toGeometryStr(coords: Coord[], f: FeatureData): string {
+  if (f.type === "point") return JSON.stringify({ type: "Point", coordinates: coords[0] });
+  if (f.type === "polygon") return JSON.stringify({ type: "Polygon", coordinates: [[...coords, coords[0]]] });
+  return JSON.stringify({ type: "LineString", coordinates: coords });
+}
+
+function buildFC(coords: Coord[], f: FeatureData): GeoJSON.FeatureCollection {
   const feats: GeoJSON.Feature[] = [];
-  for (let i = 0; i < coords.length; i++) {
-    feats.push({ type: "Feature", geometry: { type: "Point", coordinates: coords[i] }, properties: { t: "v", index: i } });
+  const isPoint = f.type === "point";
+  const isPoly = f.type === "polygon";
+
+  if (!isPoint) {
+    for (let i = 0; i < coords.length; i++) {
+      feats.push({ type: "Feature", geometry: { type: "Point", coordinates: coords[i] }, properties: { t: "v", index: i } });
+    }
+    const edges: [Coord, Coord][] = isPoly
+      ? coords.map((c, i) => [c, coords[(i + 1) % coords.length]])
+      : coords.slice(0, -1).map((c, i) => [c, coords[i + 1]]);
+    for (let i = 0; i < edges.length; i++) {
+      const [a, b] = edges[i];
+      feats.push({ type: "Feature", geometry: { type: "Point", coordinates: [(a[0]+b[0])/2, (a[1]+b[1])/2] }, properties: { t: "m", index: i } });
+    }
+    const line = isPoly ? [...coords, coords[0]] : coords;
+    if (line.length >= 2) feats.push({ type: "Feature", geometry: { type: "LineString", coordinates: line }, properties: { t: "e" } });
   }
-  const edges: [Coord, Coord][] = isPoly
-    ? coords.map((c, i) => [c, coords[(i + 1) % coords.length]])
-    : coords.slice(0, -1).map((c, i) => [c, coords[i + 1]]);
-  for (let i = 0; i < edges.length; i++) {
-    const [a, b] = edges[i];
-    feats.push({ type: "Feature", geometry: { type: "Point", coordinates: [(a[0]+b[0])/2, (a[1]+b[1])/2] }, properties: { t: "m", index: i } });
-  }
-  const line = isPoly ? [...coords, coords[0]] : coords;
-  if (line.length >= 2) feats.push({ type: "Feature", geometry: { type: "LineString", coordinates: line }, properties: { t: "e" } });
+
+  const center = centroid(coords);
+  feats.push({ type: "Feature", geometry: { type: "Point", coordinates: center }, properties: { t: "center" } });
+
   return { type: "FeatureCollection", features: feats };
 }
 
@@ -48,6 +67,7 @@ const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: 
 
 function ensureLayers(map: maplibregl.Map) {
   if (!map.getSource(SRC)) map.addSource(SRC, { type: "geojson", data: EMPTY });
+  ensureMoveIcon(map);
   if (!map.getLayer(LAYER_EDGE)) {
     map.addLayer({ id: LAYER_EDGE, type: "line", source: SRC, paint: { "line-color": COLORS.accent, "line-width": 2, "line-dasharray": [3, 2] }, filter: ["==", ["get", "t"], "e"] });
   }
@@ -57,9 +77,25 @@ function ensureLayers(map: maplibregl.Map) {
   if (!map.getLayer(LAYER_VERTEX)) {
     map.addLayer({ id: LAYER_VERTEX, type: "circle", source: SRC, paint: { "circle-radius": 6, "circle-color": COLORS.accent, "circle-stroke-color": COLORS.white, "circle-stroke-width": 2 }, filter: ["==", ["get", "t"], "v"] });
   }
+  if (!map.getLayer(LAYER_MOVE_HIT)) {
+    map.addLayer({
+      id: LAYER_MOVE_HIT, type: "circle", source: SRC,
+      paint: { "circle-radius": 12, "circle-color": "transparent", "circle-stroke-color": "transparent", "circle-stroke-width": 0 },
+      filter: ["==", ["get", "t"], "center"],
+    });
+  }
+  if (!map.getLayer(LAYER_MOVE_ICON)) {
+    map.addLayer({
+      id: LAYER_MOVE_ICON, type: "symbol", source: SRC,
+      layout: { "icon-image": MOVE_ICON_ID, "icon-allow-overlap": true, "icon-size": 1 },
+      filter: ["==", ["get", "t"], "center"],
+    });
+  }
   if (map.getLayer(LAYER_EDGE)) map.moveLayer(LAYER_EDGE);
   if (map.getLayer(LAYER_MID)) map.moveLayer(LAYER_MID);
   if (map.getLayer(LAYER_VERTEX)) map.moveLayer(LAYER_VERTEX);
+  if (map.getLayer(LAYER_MOVE_HIT)) map.moveLayer(LAYER_MOVE_HIT);
+  if (map.getLayer(LAYER_MOVE_ICON)) map.moveLayer(LAYER_MOVE_ICON);
 }
 
 function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
@@ -67,13 +103,17 @@ function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
   if (s) s.setData(data);
 }
 
+type VertexDrag = { kind: "vertex"; idx: number; id: string; coords: Coord[]; feat: FeatureData };
+type MoveDrag = { kind: "move"; id: string; coords: Coord[]; feat: FeatureData; startLng: number; startLat: number };
+type DragState = VertexDrag | MoveDrag;
+
 export function useVertexEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
   updateFeature: (id: string, updates: Partial<FeatureData>) => void
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
-  const dragRef = useRef<{ idx: number; id: string; coords: Coord[]; poly: boolean } | null>(null);
+  const dragRef = useRef<DragState | null>(null);
   const featRef = useRef(selectedFeature);
   featRef.current = selectedFeature;
   const updateRef = useRef(updateFeature);
@@ -88,13 +128,30 @@ export function useVertexEditing(
       if (!map.isStyleLoaded()) return;
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || f.type === "point" || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
-      setOverlay(map, buildFC(getCoords(f), f.type === "polygon"));
+      if (!f || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
+      setOverlay(map, buildFC(getCoords(f), f));
     }
 
     function onMouseDown(e: maplibregl.MapMouseEvent) {
       const f = featRef.current;
-      if (!f || f.type === "point" || f.shapeOrigin) return;
+      if (!f || f.shapeOrigin) return;
+
+      const moveHits = map.getLayer(LAYER_MOVE_HIT)
+        ? map.queryRenderedFeatures(e.point, { layers: [LAYER_MOVE_HIT] })
+        : [];
+      if (moveHits.length > 0) {
+        e.preventDefault();
+        interactingRef.current = true;
+        map.dragPan.disable();
+        map.getCanvas().style.cursor = "grabbing";
+        dragRef.current = {
+          kind: "move", id: f.id, coords: [...getCoords(f)], feat: f,
+          startLng: e.lngLat.lng, startLat: e.lngLat.lat,
+        };
+        return;
+      }
+
+      if (f.type === "point") return;
       if (!map.getLayer(LAYER_VERTEX)) return;
 
       const vHits = map.queryRenderedFeatures(e.point, { layers: [LAYER_VERTEX] });
@@ -104,7 +161,7 @@ export function useVertexEditing(
         e.preventDefault();
         interactingRef.current = true;
         map.dragPan.disable();
-        dragRef.current = { idx, id: f.id, coords: [...getCoords(f)], poly: f.type === "polygon" };
+        dragRef.current = { kind: "vertex", idx, id: f.id, coords: [...getCoords(f)], feat: f };
         map.getCanvas().style.cursor = "grabbing";
         return;
       }
@@ -119,7 +176,7 @@ export function useVertexEditing(
         map.dragPan.disable();
         const coords = [...getCoords(f)];
         coords.splice(idx + 1, 0, [e.lngLat.lng, e.lngLat.lat]);
-        dragRef.current = { idx: idx + 1, id: f.id, coords, poly: f.type === "polygon" };
+        dragRef.current = { kind: "vertex", idx: idx + 1, id: f.id, coords, feat: f };
         map.getCanvas().style.cursor = "grabbing";
       }
     }
@@ -127,13 +184,24 @@ export function useVertexEditing(
     function onMouseMove(e: maplibregl.MapMouseEvent) {
       const d = dragRef.current;
       if (d) {
-        d.coords[d.idx] = [e.lngLat.lng, e.lngLat.lat];
-        setOverlay(map, buildFC(d.coords, d.poly));
+        if (d.kind === "vertex") {
+          d.coords[d.idx] = [e.lngLat.lng, e.lngLat.lat];
+        } else {
+          const dlng = e.lngLat.lng - d.startLng;
+          const dlat = e.lngLat.lat - d.startLat;
+          for (let i = 0; i < d.coords.length; i++) {
+            d.coords[i] = [d.coords[i][0] + dlng, d.coords[i][1] + dlat];
+          }
+          d.startLng = e.lngLat.lng;
+          d.startLat = e.lngLat.lat;
+        }
+        setOverlay(map, buildFC(d.coords, d.feat));
         return;
       }
       const f = featRef.current;
-      if (!f || f.type === "point" || f.shapeOrigin || !map.getLayer(LAYER_VERTEX)) return;
-      const hits = map.queryRenderedFeatures(e.point, { layers: [LAYER_VERTEX, LAYER_MID] });
+      if (!f || f.shapeOrigin) return;
+      const queryLayers = [LAYER_MOVE_HIT, LAYER_VERTEX, LAYER_MID].filter(id => map.getLayer(id));
+      const hits = map.queryRenderedFeatures(e.point, { layers: queryLayers });
       map.getCanvas().style.cursor = hits.length > 0 ? "grab" : "";
     }
 
@@ -144,7 +212,7 @@ export function useVertexEditing(
       map.dragPan.enable();
       map.getCanvas().style.cursor = "";
       setTimeout(() => { interactingRef.current = false; }, 0);
-      updateRef.current(d.id, { geometry: toGeometryStr(d.coords, d.poly) });
+      updateRef.current(d.id, { geometry: toGeometryStr(d.coords, d.feat) });
     }
 
     const setup = () => {
@@ -184,8 +252,8 @@ export function useVertexEditing(
       }
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || f.type === "point" || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
-      setOverlay(map, buildFC(getCoords(f), f.type === "polygon"));
+      if (!f || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
+      setOverlay(map, buildFC(getCoords(f), f));
     };
 
     update();
