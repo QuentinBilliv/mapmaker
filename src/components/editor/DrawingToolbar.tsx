@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useEditor } from "@/lib/editor-context";
+import { useDrawingState, useEditorActions } from "@/lib/editor-context";
 import { DrawMode } from "@/lib/draw-engine";
 import { POINT_SHAPES } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
@@ -19,7 +19,7 @@ const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
 ];
 
 export default function DrawingToolbar() {
-  const { drawMode } = useEditor();
+  const { drawMode } = useDrawingState();
 
   return (
     <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-2">
@@ -35,7 +35,8 @@ export default function DrawingToolbar() {
 }
 
 function ToolButtons() {
-  const { drawMode, setDrawMode } = useEditor();
+  const { drawMode } = useDrawingState();
+  const { setDrawMode } = useEditorActions();
 
   return (
     <>
@@ -56,7 +57,8 @@ function ToolButtons() {
 }
 
 function MarkerPicker() {
-  const { activeShape, setActiveShape, activeIcon, setActiveIcon } = useEditor();
+  const { activeShape, activeIcon } = useDrawingState();
+  const { setActiveShape, setActiveIcon } = useEditorActions();
   const [pickerOpen, setPickerOpen] = useState(false);
 
   return (
@@ -91,4 +93,3 @@ function MarkerPicker() {
     </div>
   );
 }
-

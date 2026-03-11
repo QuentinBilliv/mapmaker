@@ -12,6 +12,8 @@ import {
   ICON_SCALE,
 } from "@/lib/shape-icons";
 import { ensurePatternImage } from "@/lib/fill-patterns";
+import { parseGeometry } from "@/lib/geojson";
+import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { smoothGeometry } from "@/lib/smooth-geometry";
 
 const FEATURES_SOURCE = "map-features";
@@ -27,7 +29,7 @@ function ensureArrowIcon(map: maplibregl.Map) {
   const ctx = canvas.getContext("2d")!;
   const H = ARROW_SIZE;
   const W = ARROW_SIZE;
-  ctx.fillStyle = "#ffffff";
+  ctx.fillStyle = COLORS.white;
   ctx.beginPath();
   ctx.moveTo(W / 2, 0);
   ctx.lineTo(W, H);
@@ -144,8 +146,8 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       "text-allow-overlap": false,
     },
     paint: {
-      "text-color": "#1a1a1a",
-      "text-halo-color": "#fff",
+      "text-color": COLORS.primary,
+      "text-halo-color": COLORS.white,
       "text-halo-width": 1,
     },
   });
@@ -180,7 +182,10 @@ function buildGeoJSON(
 
   const geojsonFeatures: GeoJSON.Feature[] = features
     .filter((f) => visibleLayerIds.has(f.layerId))
-    .map((f) => {
+    .flatMap((f) => {
+      const rawGeometry = parseGeometry(f.geometry);
+      if (!rawGeometry) return [];
+
       let iconId = "";
 
       if (f.type === "point") {
@@ -196,11 +201,10 @@ function buildGeoJSON(
           }
         } else {
           const shape: PointShape = f.shape ?? "circle";
-          iconId = ensureShapeIcon(map, shape, f.color, f.borderColor ?? "#ffffff", f.borderWidth ?? 6);
+          iconId = ensureShapeIcon(map, shape, f.color, f.borderColor ?? COLORS.white, f.borderWidth ?? DEFAULT_BORDER_WIDTH);
         }
       }
 
-      const rawGeometry = JSON.parse(f.geometry);
       const displayGeometry =
         f.type !== "point" && f.smoothing > 0
           ? smoothGeometry(rawGeometry, f.smoothing)
@@ -236,7 +240,7 @@ function buildGeoJSON(
         patternId = ensurePatternImage(map, pattern, f.color, f.opacity);
       }
 
-      return {
+      return [{
         type: "Feature" as const,
         geometry: displayGeometry,
         properties: {
@@ -252,7 +256,7 @@ function buildGeoJSON(
           strokeWidth: f.strokeWidth ?? 3,
           lineStyle: f.lineStyle ?? "solid",
         },
-      };
+      }];
     });
 
   return {

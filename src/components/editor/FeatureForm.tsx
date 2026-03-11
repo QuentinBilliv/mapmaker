@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEditor } from "@/lib/editor-context";
+import { useEditorData, useEditorActions } from "@/lib/editor-context";
+import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
 import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, FILL_PATTERNS, type LineStyle, type ArrowStyle, type FillPattern, type FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
@@ -39,8 +40,8 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     shape: f.shape ?? "circle",
     icon: f.icon,
     customSvg: f.customSvg,
-    borderColor: f.borderColor ?? "#ffffff",
-    borderWidth: f.borderWidth ?? 6,
+    borderColor: f.borderColor ?? COLORS.white,
+    borderWidth: f.borderWidth ?? DEFAULT_BORDER_WIDTH,
     smoothing: f.smoothing ?? 0,
     strokeWidth: f.strokeWidth ?? 3,
     lineStyle: f.lineStyle ?? "solid",
@@ -53,8 +54,8 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
 }
 
 export default function FeatureForm() {
-  const { selectedFeature, layers, updateFeature, deleteFeature, selectFeature } =
-    useEditor();
+  const { selectedFeature, layers } = useEditorData();
+  const { updateFeature, deleteFeature, selectFeature } = useEditorActions();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const originalRef = useRef<Partial<FeatureData> | null>(null);
@@ -106,7 +107,7 @@ export default function FeatureForm() {
     });
     return () => sub.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFeature?.id, isPoint, isLine]);
+  }, [selectedFeature?.id, isPoint, isLine, updateFeature]);
 
   if (!selectedFeature) return null;
 
@@ -215,6 +216,7 @@ function MarkerSelect() {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
   const fileRef = useRef<HTMLInputElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [svgError, setSvgError] = useState<string | null>(null);
   const shape = watch("shape");
   const icon = watch("icon");
   const customSvg = watch("customSvg");
@@ -222,6 +224,7 @@ function MarkerSelect() {
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    setSvgError(null);
     const reader = new FileReader();
     reader.onload = () => {
       try {
@@ -229,7 +232,7 @@ function MarkerSelect() {
         setValue("customSvg", sanitized);
         setValue("icon", undefined);
       } catch {
-        alert("Invalid SVG file");
+        setSvgError("Invalid SVG file");
       }
     };
     reader.readAsText(file);
@@ -285,6 +288,9 @@ function MarkerSelect() {
             className="hidden"
           />
         </div>
+        {svgError && (
+          <p className="text-xs text-destructive">{svgError}</p>
+        )}
       </div>
       <IconPickerDialog
         open={pickerOpen}

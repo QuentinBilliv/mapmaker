@@ -1,6 +1,5 @@
 import { z } from "zod";
-
-const LICENSES = ["CC BY", "CC BY-SA", "CC BY-NC", "Public domain"] as const;
+import { LICENSES } from "./defaults";
 
 export const mapMetadataSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),

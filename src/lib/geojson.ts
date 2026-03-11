@@ -25,11 +25,20 @@ export interface ExportedMap {
   features: GeoJSON.Feature[];
 }
 
+export function parseGeometry(raw: string): GeoJSON.Geometry | null {
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return null;
+  }
+}
+
 export function featureToGeoJSON(
   feature: Doc<"features">,
   layerName: string
-): GeoJSON.Feature {
-  const geometry = JSON.parse(feature.geometry);
+): GeoJSON.Feature | null {
+  const geometry = parseGeometry(feature.geometry);
+  if (!geometry) return null;
   return {
     type: "Feature",
     geometry,
@@ -64,9 +73,9 @@ export function exportMap(
       exportedAt: new Date().toISOString(),
       generator: "mapmaker",
     },
-    features: features.map((f) =>
-      featureToGeoJSON(f, layerMap.get(f.layerId) ?? "Unnamed")
-    ),
+    features: features
+      .map((f) => featureToGeoJSON(f, layerMap.get(f.layerId) ?? "Unnamed"))
+      .filter((f): f is GeoJSON.Feature => f !== null),
   };
 }
 

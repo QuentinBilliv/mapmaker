@@ -3,6 +3,8 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import type { FeatureData } from "@/lib/types";
+import { parseGeometry } from "@/lib/geojson";
+import { COLORS } from "@/lib/defaults";
 
 const SRC = "vertex-edit";
 const LAYER_VERTEX = "vertex-edit-points";
@@ -12,9 +14,10 @@ const LAYER_EDGE = "vertex-edit-edges";
 type Coord = [number, number];
 
 function getCoords(f: FeatureData): Coord[] {
-  const g = JSON.parse(f.geometry);
-  if (g.type === "LineString") return g.coordinates;
-  if (g.type === "Polygon") return g.coordinates[0].slice(0, -1);
+  const g = parseGeometry(f.geometry);
+  if (!g) return [];
+  if (g.type === "LineString") return (g as GeoJSON.LineString).coordinates as Coord[];
+  if (g.type === "Polygon") return ((g as GeoJSON.Polygon).coordinates[0].slice(0, -1)) as Coord[];
   return [];
 }
 
@@ -46,13 +49,13 @@ const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: 
 function ensureLayers(map: maplibregl.Map) {
   if (!map.getSource(SRC)) map.addSource(SRC, { type: "geojson", data: EMPTY });
   if (!map.getLayer(LAYER_EDGE)) {
-    map.addLayer({ id: LAYER_EDGE, type: "line", source: SRC, paint: { "line-color": "#3b82f6", "line-width": 2, "line-dasharray": [3, 2] }, filter: ["==", ["get", "t"], "e"] });
+    map.addLayer({ id: LAYER_EDGE, type: "line", source: SRC, paint: { "line-color": COLORS.accent, "line-width": 2, "line-dasharray": [3, 2] }, filter: ["==", ["get", "t"], "e"] });
   }
   if (!map.getLayer(LAYER_MID)) {
-    map.addLayer({ id: LAYER_MID, type: "circle", source: SRC, paint: { "circle-radius": 4, "circle-color": "#fff", "circle-stroke-color": "#3b82f6", "circle-stroke-width": 2, "circle-opacity": 0.7 }, filter: ["==", ["get", "t"], "m"] });
+    map.addLayer({ id: LAYER_MID, type: "circle", source: SRC, paint: { "circle-radius": 4, "circle-color": COLORS.white, "circle-stroke-color": COLORS.accent, "circle-stroke-width": 2, "circle-opacity": 0.7 }, filter: ["==", ["get", "t"], "m"] });
   }
   if (!map.getLayer(LAYER_VERTEX)) {
-    map.addLayer({ id: LAYER_VERTEX, type: "circle", source: SRC, paint: { "circle-radius": 6, "circle-color": "#3b82f6", "circle-stroke-color": "#fff", "circle-stroke-width": 2 }, filter: ["==", ["get", "t"], "v"] });
+    map.addLayer({ id: LAYER_VERTEX, type: "circle", source: SRC, paint: { "circle-radius": 6, "circle-color": COLORS.accent, "circle-stroke-color": COLORS.white, "circle-stroke-width": 2 }, filter: ["==", ["get", "t"], "v"] });
   }
   if (map.getLayer(LAYER_EDGE)) map.moveLayer(LAYER_EDGE);
   if (map.getLayer(LAYER_MID)) map.moveLayer(LAYER_MID);

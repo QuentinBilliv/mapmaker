@@ -1,4 +1,5 @@
 import type { StyleSpecification } from "@maplibre/maplibre-gl-style-spec";
+import { COLORS } from "./defaults";
 
 export interface BaseMap {
   id: string;
@@ -22,7 +23,7 @@ function rasterStyle(
       basemap: { type: "raster", tiles, tileSize: 256, attribution, maxzoom },
     },
     layers: [
-      { id: "background", type: "background", paint: { "background-color": "#f8f4f0" } },
+      { id: "background", type: "background", paint: { "background-color": COLORS.mapBackground } },
       { id: "basemap", type: "raster", source: "basemap" },
     ],
   };

@@ -3,6 +3,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import type { PointShape } from "./types";
 import { loadCatalogEntry } from "./icon-catalog";
+import { COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
 import { sanitizeSvg } from "./svg-sanitizer";
 
 const SIZE = 128;
@@ -89,8 +90,8 @@ const SHAPE_PATHS: Record<PointShape, Drawer> = {
 function renderDrawer(
   drawer: Drawer,
   color: string,
-  borderColor = "#ffffff",
-  borderWidth = 6
+  borderColor = COLORS.white,
+  borderWidth = DEFAULT_BORDER_WIDTH
 ): ImageData {
   const canvas = document.createElement("canvas");
   canvas.width = SIZE;
@@ -120,8 +121,8 @@ export function ensureShapeIcon(
   map: maplibregl.Map,
   shape: PointShape,
   color: string,
-  borderColor = "#ffffff",
-  borderWidth = 6
+  borderColor = COLORS.white,
+  borderWidth = DEFAULT_BORDER_WIDTH
 ) {
   const bc = borderColor.replace("#", "");
   const id = `shape-${shape}-${color.replace("#", "")}-${bc}-${borderWidth}`;
@@ -212,7 +213,7 @@ export async function ensureCustomSvgIcon(
     ctx.fillRect(0, 0, SIZE, SIZE);
 
     ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = "#ffffff";
+    ctx.strokeStyle = COLORS.white;
     ctx.lineWidth = 1;
     ctx.globalCompositeOperation = "destination-over";
 

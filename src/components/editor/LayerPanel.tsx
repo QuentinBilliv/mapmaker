@@ -1,14 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { useEditor } from "@/lib/editor-context";
+import { useEditorData, useEditorActions, useDrawingState } from "@/lib/editor-context";
 import type { LayerData } from "@/lib/types";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 
 export default function LayerPanel() {
-  const { layers, features, addLayer } = useEditor();
+  const { layers, features } = useEditorData();
+  const { addLayer } = useEditorActions();
   const [newLayerName, setNewLayerName] = useState("");
   const [isAdding, setIsAdding] = useState(false);
 
@@ -95,7 +96,8 @@ function LayerRow({
   count: number;
   canDelete: boolean;
 }) {
-  const { activeLayerId, setActiveLayerId, toggleLayer, deleteLayer } = useEditor();
+  const { activeLayerId } = useDrawingState();
+  const { setActiveLayerId, toggleLayer, deleteLayer } = useEditorActions();
   const [confirmOpen, setConfirmOpen] = useState(false);
 
   return (

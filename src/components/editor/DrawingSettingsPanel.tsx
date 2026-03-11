@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor } from "@/lib/editor-context";
+import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
 import { LINE_STYLES, FILL_PATTERNS, type LineStyle, type FillPattern } from "@/lib/types";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
@@ -26,34 +26,36 @@ const MODE_LABELS: Record<string, string> = {
 const DRAWING_MODES = ["polygon", "polyline", "arrow", "double-arrow"];
 
 export default function DrawingSettingsPanel() {
+  const { layers } = useEditorData();
   const {
     drawMode,
-    setDrawMode,
     activeLabel,
-    setActiveLabel,
     activeSourceText,
-    setActiveSourceText,
     activeSourceUrl,
-    setActiveSourceUrl,
     activeColor,
-    setActiveColor,
     activeOpacity,
-    setActiveOpacity,
     activeSmoothing,
-    setActiveSmoothing,
     activeStrokeWidth,
-    setActiveStrokeWidth,
     activeLineStyle,
-    setActiveLineStyle,
     activeLayerId,
-    setActiveLayerId,
     activeFillPattern,
+  } = useDrawingState();
+  const {
+    setDrawMode,
+    setActiveLabel,
+    setActiveSourceText,
+    setActiveSourceUrl,
+    setActiveColor,
+    setActiveOpacity,
+    setActiveSmoothing,
+    setActiveStrokeWidth,
+    setActiveLineStyle,
+    setActiveLayerId,
     setActiveFillPattern,
-    layers,
     finishDrawing,
     cancelDrawing,
     selectFeature,
-  } = useEditor();
+  } = useEditorActions();
 
   if (!DRAWING_MODES.includes(drawMode)) return null;
 

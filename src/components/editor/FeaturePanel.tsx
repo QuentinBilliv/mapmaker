@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditor } from "@/lib/editor-context";
+import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import type { FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 
@@ -26,7 +26,8 @@ function FeatureIcon({ feature }: { feature: FeatureData }) {
 }
 
 export default function FeaturePanel() {
-  const { features, layers, selectedFeature, selectFeature } = useEditor();
+  const { features, layers, selectedFeature } = useEditorData();
+  const { selectFeature } = useEditorActions();
 
   const layerMap = new Map(layers.map((l) => [l.id, l]));
 

@@ -1,4 +1,5 @@
 import maplibregl from "maplibre-gl";
+import { COLORS } from "./defaults";
 
 export type DrawMode = "select" | "polygon" | "polyline" | "point" | "arrow" | "double-arrow";
 
@@ -26,7 +27,7 @@ export function initDrawLayers(map: maplibregl.Map) {
     type: "fill",
     source: DRAW_SOURCE,
     paint: {
-      "fill-color": "#3b82f6",
+      "fill-color": COLORS.accent,
       "fill-opacity": 0.15,
     },
     filter: ["==", "$type", "Polygon"],
@@ -37,7 +38,7 @@ export function initDrawLayers(map: maplibregl.Map) {
     type: "line",
     source: DRAW_SOURCE,
     paint: {
-      "line-color": "#3b82f6",
+      "line-color": COLORS.accent,
       "line-width": 2,
       "line-dasharray": [3, 2],
     },
@@ -49,8 +50,8 @@ export function initDrawLayers(map: maplibregl.Map) {
     source: DRAW_SOURCE,
     paint: {
       "circle-radius": 5,
-      "circle-color": "#3b82f6",
-      "circle-stroke-color": "#fff",
+      "circle-color": COLORS.accent,
+      "circle-stroke-color": COLORS.white,
       "circle-stroke-width": 2,
     },
     filter: ["==", "$type", "Point"],

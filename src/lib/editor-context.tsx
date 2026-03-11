@@ -9,16 +9,28 @@ import {
   useState,
 } from "react";
 import { v4 as uuid } from "uuid";
-import { DrawMode } from "./draw-engine";
+import type { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
-import { DEFAULT_LAYER, DEFAULT_MAP } from "./defaults";
+import { DEFAULT_LAYER, DEFAULT_MAP, COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
 import { BASE_MAPS, type BaseMap } from "./map-style";
-import type { MapData, LayerData, FeatureData, PointShape, LineStyle, ArrowStyle, FillPattern } from "./types";
+import type {
+  MapData,
+  LayerData,
+  FeatureData,
+  PointShape,
+  LineStyle,
+  ArrowStyle,
+  FillPattern,
+} from "./types";
 
-interface EditorState {
+interface EditorDataState {
   map: MapData;
   layers: LayerData[];
   features: FeatureData[];
+  selectedFeature: FeatureData | null;
+}
+
+interface DrawingState {
   drawMode: DrawMode;
   activeLabel: string;
   activeSourceText: string;
@@ -37,7 +49,6 @@ interface EditorState {
   activeArrowStyle: ArrowStyle;
   activeFillPattern: FillPattern;
   activeBaseMap: BaseMap;
-  selectedFeature: FeatureData | null;
 }
 
 interface EditorActions {
@@ -69,44 +80,67 @@ interface EditorActions {
   updateMap: (updates: Partial<MapData>) => void;
   finishDrawing: () => void;
   cancelDrawing: () => void;
-  registerDrawingControls: (controls: { finishDrawing: () => void; cancelDrawing: () => void }) => void;
+  registerDrawingControls: (controls: {
+    finishDrawing: () => void;
+    cancelDrawing: () => void;
+  }) => void;
 }
 
-type EditorContextValue = EditorState & EditorActions;
+const DataContext = createContext<EditorDataState | null>(null);
+const DrawingCtx = createContext<DrawingState | null>(null);
+const ActionsCtx = createContext<EditorActions | null>(null);
 
-const EditorContext = createContext<EditorContextValue | null>(null);
+export function useEditorData() {
+  const ctx = useContext(DataContext);
+  if (!ctx) throw new Error("useEditorData must be used within EditorProvider");
+  return ctx;
+}
+
+export function useDrawingState() {
+  const ctx = useContext(DrawingCtx);
+  if (!ctx)
+    throw new Error("useDrawingState must be used within EditorProvider");
+  return ctx;
+}
+
+export function useEditorActions() {
+  const ctx = useContext(ActionsCtx);
+  if (!ctx)
+    throw new Error("useEditorActions must be used within EditorProvider");
+  return ctx;
+}
 
 export function useEditor() {
-  const ctx = useContext(EditorContext);
-  if (!ctx) throw new Error("useEditor must be used within EditorProvider");
-  return ctx;
+  return { ...useEditorData(), ...useDrawingState(), ...useEditorActions() };
 }
 
 export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [map, setMap] = useState<MapData>(DEFAULT_MAP);
   const [layers, setLayers] = useState<LayerData[]>([DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>([]);
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
+    null
+  );
+
   const [drawMode, setDrawMode] = useState<DrawMode>("select");
   const [activeLabel, setActiveLabel] = useState("");
   const [activeSourceText, setActiveSourceText] = useState("");
   const [activeSourceUrl, setActiveSourceUrl] = useState("");
-  const [activeColor, setActiveColor] = useState("#1a1a1a");
+  const [activeColor, setActiveColor] = useState(COLORS.primary);
   const [activeOpacity, setActiveOpacity] = useState(1);
   const [activeLayerId, setActiveLayerId] = useState(DEFAULT_LAYER.id);
   const [activeSize, setActiveSize] = useState(1);
   const [activeShape, setActiveShape] = useState<PointShape>("circle");
   const [activeIcon, setActiveIcon] = useState<string | null>(null);
-  const [activeBorderColor, setActiveBorderColor] = useState("#ffffff");
-  const [activeBorderWidth, setActiveBorderWidth] = useState(6);
+  const [activeBorderColor, setActiveBorderColor] = useState(COLORS.white);
+  const [activeBorderWidth, setActiveBorderWidth] = useState(DEFAULT_BORDER_WIDTH);
   const [activeSmoothing, setActiveSmoothing] = useState(0);
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(3);
   const [activeLineStyle, setActiveLineStyle] = useState<LineStyle>("solid");
   const [activeArrowStyle, setActiveArrowStyle] = useState<ArrowStyle>("none");
-  const [activeFillPattern, setActiveFillPattern] = useState<FillPattern>("none");
+  const [activeFillPattern, setActiveFillPattern] =
+    useState<FillPattern>("none");
   const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
-  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
-    null
-  );
 
   const selectedFeature = useMemo(
     () => features.find((f) => f.id === selectedFeatureId) ?? null,
@@ -116,43 +150,95 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const drawModeRef = useRef(drawMode);
   drawModeRef.current = drawMode;
 
-  const addFeature = useCallback(
-    (geometry: GeoJSON.Geometry) => {
-      const featureType = geometryTypeToFeatureType(geometry.type);
-      const isPoint = featureType === "point";
-      const isLine = featureType === "polyline";
-      const currentMode = drawModeRef.current;
-      const arrowFromMode = currentMode === "arrow" ? "forward" : currentMode === "double-arrow" ? "both" : activeArrowStyle;
-      const newFeature: FeatureData = {
-        id: uuid(),
-        layerId: activeLayerId,
-        type: featureType,
-        label: activeLabel,
-        color: activeColor,
-        opacity: activeOpacity,
-        size: isPoint ? activeSize : undefined,
-        shape: isPoint ? (activeIcon ? undefined : activeShape) : undefined,
-        icon: isPoint ? (activeIcon ?? undefined) : undefined,
-        borderColor: isPoint ? activeBorderColor : undefined,
-        borderWidth: isPoint ? activeBorderWidth : undefined,
-        smoothing: isPoint ? 0 : activeSmoothing,
-        strokeWidth: isPoint ? 0 : activeStrokeWidth,
-        lineStyle: isPoint ? "solid" : activeLineStyle,
-        arrowStyle: isLine ? arrowFromMode : "none",
-        fillPattern: featureType === "polygon" ? activeFillPattern : "none",
-        sourceText: activeSourceText,
-        sourceUrl: activeSourceUrl || undefined,
-        geometry: JSON.stringify(geometry),
-      };
-      setFeatures((prev) => [...prev, newFeature]);
-      setSelectedFeatureId(newFeature.id);
-      setDrawMode("select");
-      setActiveLabel("");
-      setActiveSourceText("");
-      setActiveSourceUrl("");
-    },
-    [activeLabel, activeSourceText, activeSourceUrl, activeLayerId, activeColor, activeOpacity, activeSize, activeShape, activeIcon, activeBorderColor, activeBorderWidth, activeSmoothing, activeStrokeWidth, activeLineStyle, activeArrowStyle, activeFillPattern]
-  );
+  const drawingRef = useRef({
+    activeLabel,
+    activeSourceText,
+    activeSourceUrl,
+    activeLayerId,
+    activeColor,
+    activeOpacity,
+    activeSize,
+    activeShape,
+    activeIcon,
+    activeBorderColor,
+    activeBorderWidth,
+    activeSmoothing,
+    activeStrokeWidth,
+    activeLineStyle,
+    activeArrowStyle,
+    activeFillPattern,
+  });
+  drawingRef.current = {
+    activeLabel,
+    activeSourceText,
+    activeSourceUrl,
+    activeLayerId,
+    activeColor,
+    activeOpacity,
+    activeSize,
+    activeShape,
+    activeIcon,
+    activeBorderColor,
+    activeBorderWidth,
+    activeSmoothing,
+    activeStrokeWidth,
+    activeLineStyle,
+    activeArrowStyle,
+    activeFillPattern,
+  };
+
+  const drawingControlsRef = useRef<{
+    finishDrawing: () => void;
+    cancelDrawing: () => void;
+  }>({
+    finishDrawing: () => {},
+    cancelDrawing: () => {},
+  });
+
+  const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
+    const s = drawingRef.current;
+    const featureType = geometryTypeToFeatureType(geometry.type);
+    const isPoint = featureType === "point";
+    const isLine = featureType === "polyline";
+    const currentMode = drawModeRef.current;
+    const arrowFromMode =
+      currentMode === "arrow"
+        ? "forward"
+        : currentMode === "double-arrow"
+          ? "both"
+          : s.activeArrowStyle;
+    const newFeature: FeatureData = {
+      id: uuid(),
+      layerId: s.activeLayerId,
+      type: featureType,
+      label: s.activeLabel,
+      color: s.activeColor,
+      opacity: s.activeOpacity,
+      size: isPoint ? s.activeSize : undefined,
+      shape: isPoint
+        ? s.activeIcon
+          ? undefined
+          : s.activeShape
+        : undefined,
+      icon: isPoint ? (s.activeIcon ?? undefined) : undefined,
+      borderColor: isPoint ? s.activeBorderColor : undefined,
+      borderWidth: isPoint ? s.activeBorderWidth : undefined,
+      smoothing: isPoint ? 0 : s.activeSmoothing,
+      strokeWidth: isPoint ? 0 : s.activeStrokeWidth,
+      lineStyle: isPoint ? "solid" : s.activeLineStyle,
+      arrowStyle: isLine ? arrowFromMode : "none",
+      fillPattern: featureType === "polygon" ? s.activeFillPattern : "none",
+      sourceText: s.activeSourceText,
+      sourceUrl: s.activeSourceUrl || undefined,
+      geometry: JSON.stringify(geometry),
+    };
+    setFeatures((prev) => [...prev, newFeature]);
+    setSelectedFeatureId(newFeature.id);
+    setDrawMode("select");
+    setActiveLabel("");
+    setActiveSourceText("");
+    setActiveSourceUrl("");
+  }, []);
 
   const updateFeature = useCallback(
     (id: string, updates: Partial<FeatureData>) => {
@@ -169,12 +255,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addLayer = useCallback((name: string) => {
-    const newLayer: LayerData = {
-      id: uuid(),
-      name,
-      visible: true,
-      order: 0,
-    };
+    const newLayer: LayerData = { id: uuid(), name, visible: true, order: 0 };
     setLayers((prev) => {
       newLayer.order = prev.length;
       return [...prev, newLayer];
@@ -195,10 +276,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       return remaining;
     });
     setFeatures((prev) => prev.filter((f) => f.layerId !== id));
-    setActiveLayerId((prev) => {
-      if (prev !== id) return prev;
-      return DEFAULT_LAYER.id;
-    });
+    setActiveLayerId((prev) => (prev !== id ? prev : DEFAULT_LAYER.id));
   }, []);
 
   const updateMap = useCallback((updates: Partial<MapData>) => {
@@ -209,23 +287,29 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setSelectedFeatureId(id);
   }, []);
 
-  const drawingControlsRef = useRef<{ finishDrawing: () => void; cancelDrawing: () => void }>({
-    finishDrawing: () => {},
-    cancelDrawing: () => {},
-  });
+  const registerDrawingControls = useCallback(
+    (controls: { finishDrawing: () => void; cancelDrawing: () => void }) => {
+      drawingControlsRef.current = controls;
+    },
+    []
+  );
 
-  const registerDrawingControls = useCallback((controls: { finishDrawing: () => void; cancelDrawing: () => void }) => {
-    drawingControlsRef.current = controls;
-  }, []);
+  const finishDrawing = useCallback(
+    () => drawingControlsRef.current.finishDrawing(),
+    []
+  );
+  const cancelDrawing = useCallback(
+    () => drawingControlsRef.current.cancelDrawing(),
+    []
+  );
 
-  const finishDrawing = useCallback(() => drawingControlsRef.current.finishDrawing(), []);
-  const cancelDrawing = useCallback(() => drawingControlsRef.current.cancelDrawing(), []);
+  const dataValue = useMemo<EditorDataState>(
+    () => ({ map, layers, features, selectedFeature }),
+    [map, layers, features, selectedFeature]
+  );
 
-  const value = useMemo<EditorContextValue>(
+  const drawingValue = useMemo<DrawingState>(
     () => ({
-      map,
-      layers,
-      features,
       drawMode,
       activeLabel,
       activeSourceText,
@@ -244,7 +328,31 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeArrowStyle,
       activeFillPattern,
       activeBaseMap,
-      selectedFeature,
+    }),
+    [
+      drawMode,
+      activeLabel,
+      activeSourceText,
+      activeSourceUrl,
+      activeColor,
+      activeOpacity,
+      activeLayerId,
+      activeSize,
+      activeShape,
+      activeIcon,
+      activeBorderColor,
+      activeBorderWidth,
+      activeSmoothing,
+      activeStrokeWidth,
+      activeLineStyle,
+      activeArrowStyle,
+      activeFillPattern,
+      activeBaseMap,
+    ]
+  );
+
+  const actionsValue = useMemo<EditorActions>(
+    () => ({
       setDrawMode,
       setActiveLabel,
       setActiveSourceText,
@@ -276,28 +384,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       registerDrawingControls,
     }),
     [
-      map,
-      layers,
-      features,
-      drawMode,
-      activeLabel,
-      activeSourceText,
-      activeSourceUrl,
-      activeColor,
-      activeOpacity,
-      activeLayerId,
-      activeSize,
-      activeShape,
-      activeIcon,
-      activeBorderColor,
-      activeBorderWidth,
-      activeSmoothing,
-      activeStrokeWidth,
-      activeLineStyle,
-      activeArrowStyle,
-      activeFillPattern,
-      activeBaseMap,
-      selectedFeature,
       selectFeature,
       addFeature,
       updateFeature,
@@ -305,7 +391,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addLayer,
       toggleLayer,
       deleteLayer,
-      setActiveBaseMap,
       updateMap,
       finishDrawing,
       cancelDrawing,
@@ -314,6 +399,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   );
 
   return (
-    <EditorContext.Provider value={value}>{children}</EditorContext.Provider>
+    <ActionsCtx.Provider value={actionsValue}>
+      <DataContext.Provider value={dataValue}>
+        <DrawingCtx.Provider value={drawingValue}>
+          {children}
+        </DrawingCtx.Provider>
+      </DataContext.Provider>
+    </ActionsCtx.Provider>
   );
 }

@@ -3,8 +3,9 @@
 import { useState, useEffect } from "react";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useEditor } from "@/lib/editor-context";
+import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { mapMetadataSchema, type MapMetadataFormValues } from "@/lib/schemas";
+import { LICENSES } from "@/lib/defaults";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -18,8 +19,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-const LICENSES = ["CC BY", "CC BY-SA", "CC BY-NC", "Public domain"];
-
 export default function MapMetadata() {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -29,7 +28,7 @@ export default function MapMetadata() {
 }
 
 function MetadataToggle({ onOpen }: { onOpen: () => void }) {
-  const { map } = useEditor();
+  const { map } = useEditorData();
 
   return (
     <Button
@@ -43,7 +42,8 @@ function MetadataToggle({ onOpen }: { onOpen: () => void }) {
 }
 
 function MetadataPanel({ onClose }: { onClose: () => void }) {
-  const { map, updateMap } = useEditor();
+  const { map } = useEditorData();
+  const { updateMap } = useEditorActions();
 
   const methods = useForm<MapMetadataFormValues>({
     resolver: zodResolver(mapMetadataSchema),
