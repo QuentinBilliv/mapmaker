@@ -308,7 +308,7 @@ export function useFeatureRendering(
     const isCancelled = () => dead;
 
     const applyFeatures = () => {
-      if (dead || !map.isStyleLoaded()) return;
+      if (dead) return;
       fullUpdate(map, features, layers, isCancelled);
     };
 
