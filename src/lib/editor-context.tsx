@@ -20,6 +20,7 @@ import type {
   PointShape,
   LineStyle,
   ArrowStyle,
+  LineDecoration,
   FillPattern,
 } from "./types";
 import type { DeserializedMap } from "./mapmaker-format";
@@ -48,6 +49,8 @@ interface DrawingState {
   activeStrokeWidth: number;
   activeLineStyle: LineStyle;
   activeArrowStyle: ArrowStyle;
+  activeLineDecoration: LineDecoration;
+  activeDecorationSpacing: number;
   activeFillPattern: FillPattern;
   activeBaseMap: BaseMap;
 }
@@ -69,6 +72,8 @@ interface EditorActions {
   setActiveStrokeWidth: (width: number) => void;
   setActiveLineStyle: (style: LineStyle) => void;
   setActiveArrowStyle: (style: ArrowStyle) => void;
+  setActiveLineDecoration: (decoration: LineDecoration) => void;
+  setActiveDecorationSpacing: (spacing: number) => void;
   setActiveFillPattern: (pattern: FillPattern) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
@@ -140,6 +145,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeStrokeWidth, setActiveStrokeWidth] = useState(3);
   const [activeLineStyle, setActiveLineStyle] = useState<LineStyle>("solid");
   const [activeArrowStyle, setActiveArrowStyle] = useState<ArrowStyle>("none");
+  const [activeLineDecoration, setActiveLineDecoration] = useState<LineDecoration>("none");
+  const [activeDecorationSpacing, setActiveDecorationSpacing] = useState(50);
   const [activeFillPattern, setActiveFillPattern] =
     useState<FillPattern>("none");
   const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
@@ -168,6 +175,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     activeStrokeWidth,
     activeLineStyle,
     activeArrowStyle,
+    activeLineDecoration,
+    activeDecorationSpacing,
     activeFillPattern,
   });
   drawingRef.current = {
@@ -186,6 +195,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     activeStrokeWidth,
     activeLineStyle,
     activeArrowStyle,
+    activeLineDecoration,
+    activeDecorationSpacing,
     activeFillPattern,
   };
 
@@ -234,6 +245,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       strokeWidth: isPoint ? 0 : s.activeStrokeWidth,
       lineStyle: isPoint ? "solid" : s.activeLineStyle,
       arrowStyle: isLine ? arrowFromMode : "none",
+      lineDecoration: isPoint ? "none" : s.activeLineDecoration,
+      decorationSpacing: isPoint ? 50 : s.activeDecorationSpacing,
       fillPattern: featureType === "polygon" ? s.activeFillPattern : "none",
       sourceText: s.activeSourceText,
       sourceUrl: s.activeSourceUrl || undefined,
@@ -342,6 +355,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeStrokeWidth,
       activeLineStyle,
       activeArrowStyle,
+      activeLineDecoration,
+      activeDecorationSpacing,
       activeFillPattern,
       activeBaseMap,
     }),
@@ -362,6 +377,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeStrokeWidth,
       activeLineStyle,
       activeArrowStyle,
+      activeLineDecoration,
       activeFillPattern,
       activeBaseMap,
     ]
@@ -385,6 +401,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveStrokeWidth,
       setActiveLineStyle,
       setActiveArrowStyle,
+      setActiveLineDecoration,
+      setActiveDecorationSpacing,
       setActiveFillPattern,
       selectFeature,
       addFeature,

@@ -40,6 +40,10 @@ const mapmakerProps = z
       .enum(["solid", "dotted", "dash-short", "dash-medium", "dash-long"])
       .default("solid"),
     "mapmaker:arrowStyle": z.enum(["none", "forward", "both"]).default("none"),
+    "mapmaker:lineDecoration": z
+      .enum(["none", "crosses", "crosses-free", "ticks", "triangles-up", "triangles-down", "arrows-down", "arrows-up", "railway"])
+      .default("none"),
+    "mapmaker:decorationSpacing": z.number().min(5).max(200).default(50),
     "mapmaker:fillPattern": z
       .enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"])
       .default("none"),
@@ -90,8 +94,6 @@ export function serialize(
   features: FeatureData[],
   baseMapId: string
 ): string {
-  const layerMap = new Map(layers.map((l) => [l.id, l]));
-
   const doc = {
     type: "FeatureCollection" as const,
     mapmaker: {
@@ -118,6 +120,8 @@ export function serialize(
         "mapmaker:strokeWidth": f.strokeWidth,
         "mapmaker:lineStyle": f.lineStyle,
         "mapmaker:arrowStyle": f.arrowStyle,
+        "mapmaker:lineDecoration": f.lineDecoration,
+        "mapmaker:decorationSpacing": f.decorationSpacing,
         "mapmaker:fillPattern": f.fillPattern,
         "mapmaker:sourceText": f.sourceText,
       };
@@ -188,6 +192,8 @@ export function deserialize(raw: string): DeserializedMap {
       strokeWidth: p["mapmaker:strokeWidth"],
       lineStyle: p["mapmaker:lineStyle"],
       arrowStyle: p["mapmaker:arrowStyle"],
+      lineDecoration: p["mapmaker:lineDecoration"],
+      decorationSpacing: p["mapmaker:decorationSpacing"],
       fillPattern: p["mapmaker:fillPattern"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],

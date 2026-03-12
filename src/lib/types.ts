@@ -45,6 +45,20 @@ export const ARROW_STYLES: { value: ArrowStyle; label: string }[] = [
   { value: "both", label: "Arrow ↔" },
 ];
 
+export type LineDecoration = "none" | "crosses" | "crosses-free" | "ticks" | "triangles-up" | "triangles-down" | "arrows-down" | "arrows-up" | "railway";
+
+export const LINE_DECORATIONS: { value: LineDecoration; label: string }[] = [
+  { value: "none", label: "None" },
+  { value: "crosses", label: "Crosses ×─×" },
+  { value: "crosses-free", label: "Crosses × ×" },
+  { value: "ticks", label: "Ticks ┼┼┼" },
+  { value: "triangles-up", label: "Triangles △△" },
+  { value: "triangles-down", label: "Triangles ▽▽" },
+  { value: "arrows-down", label: "Arrows ↓↓" },
+  { value: "arrows-up", label: "Arrows ↑↑" },
+  { value: "railway", label: "Railway ╫╫" },
+];
+
 export type FillPattern = "none" | "stripes-diagonal" | "stripes-horizontal" | "stripes-vertical" | "crosshatch" | "dots";
 
 export const FILL_PATTERNS: { value: FillPattern; label: string }[] = [
@@ -76,6 +90,8 @@ export interface FeatureData {
   strokeWidth: number;
   lineStyle: LineStyle;
   arrowStyle: ArrowStyle;
+  lineDecoration: LineDecoration;
+  decorationSpacing: number;
   fillPattern: FillPattern;
   sourceText: string;
   sourceUrl?: string;

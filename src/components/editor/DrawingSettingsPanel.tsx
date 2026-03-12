@@ -1,7 +1,7 @@
 "use client";
 
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
-import { LINE_STYLES, FILL_PATTERNS, type LineStyle, type FillPattern } from "@/lib/types";
+import { LINE_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type LineDecoration, type FillPattern } from "@/lib/types";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -39,6 +39,8 @@ export default function DrawingSettingsPanel() {
     activeSmoothing,
     activeStrokeWidth,
     activeLineStyle,
+    activeLineDecoration,
+    activeDecorationSpacing,
     activeLayerId,
     activeFillPattern,
   } = useDrawingState();
@@ -52,6 +54,8 @@ export default function DrawingSettingsPanel() {
     setActiveSmoothing,
     setActiveStrokeWidth,
     setActiveLineStyle,
+    setActiveLineDecoration,
+    setActiveDecorationSpacing,
     setActiveLayerId,
     setActiveFillPattern,
     finishDrawing,
@@ -122,6 +126,30 @@ export default function DrawingSettingsPanel() {
             </Select>
           </Field>
         </div>
+        <Field label="Line decoration">
+          <Select value={activeLineDecoration} onValueChange={(v) => setActiveLineDecoration(v as LineDecoration)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {LINE_DECORATIONS.map((d) => (
+                <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+        {activeLineDecoration !== "none" && (
+          <Field label={`Decoration spacing (${activeDecorationSpacing}px)`}>
+            <Slider
+              min={5}
+              max={200}
+              step={5}
+              value={[activeDecorationSpacing]}
+              onValueChange={(v: number[]) => setActiveDecorationSpacing(v[0])}
+              className="mt-2"
+            />
+          </Field>
+        )}
         <Field label={`Smoothing (${Math.round(activeSmoothing * 100)}%)`}>
           <Slider
             min={0}

@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
-import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, FILL_PATTERNS, type LineStyle, type ArrowStyle, type FillPattern, type FeatureData } from "@/lib/types";
+import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -46,6 +46,8 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     strokeWidth: f.strokeWidth ?? 3,
     lineStyle: f.lineStyle ?? "solid",
     arrowStyle: f.arrowStyle ?? "none",
+    lineDecoration: f.lineDecoration ?? "none",
+    decorationSpacing: f.decorationSpacing ?? 50,
     fillPattern: f.fillPattern ?? "none",
     sourceText: f.sourceText,
     sourceUrl: f.sourceUrl ?? "",
@@ -99,6 +101,8 @@ export default function FeatureForm() {
         strokeWidth: isPoint ? 0 : v.strokeWidth,
         lineStyle: isPoint ? "solid" : v.lineStyle,
         arrowStyle: isLine ? v.arrowStyle : "none",
+        lineDecoration: isPoint ? "none" : v.lineDecoration,
+        decorationSpacing: isPoint ? 50 : v.decorationSpacing,
         fillPattern: (!isPoint && !isLine) ? v.fillPattern : "none",
         sourceText: v.sourceText,
         sourceUrl: v.sourceUrl || undefined,
@@ -311,6 +315,8 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
   const strokeWidth = watch("strokeWidth");
   const lineStyle = watch("lineStyle");
   const arrowStyle = watch("arrowStyle");
+  const lineDecoration = watch("lineDecoration");
+  const decorationSpacing = watch("decorationSpacing");
   const smoothing = watch("smoothing");
 
   return (
@@ -332,6 +338,23 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
           </Select>
         </Field>
       </div>
+      <Field label="Line decoration">
+        <Select value={lineDecoration} onValueChange={(v) => setValue("lineDecoration", v as LineDecoration)}>
+          <SelectTrigger className="w-full">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {LINE_DECORATIONS.map((d) => (
+              <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </Field>
+      {lineDecoration !== "none" && (
+        <Field label={`Decoration spacing (${decorationSpacing}px)`}>
+          <SliderField name="decorationSpacing" min={5} max={200} step={5} className="mt-2" />
+        </Field>
+      )}
       {showArrows && (
         <Field label="Arrows">
           <Select value={arrowStyle} onValueChange={(v) => setValue("arrowStyle", v as ArrowStyle)}>

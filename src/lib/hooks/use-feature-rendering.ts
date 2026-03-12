@@ -12,6 +12,8 @@ import {
   ICON_SCALE,
 } from "@/lib/shape-icons";
 import { ensurePatternImage } from "@/lib/fill-patterns";
+import { ensureAllDecorationIcons, decorationIconId } from "@/lib/line-decorations";
+import type { LineDecoration } from "@/lib/types";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { smoothGeometry } from "@/lib/smooth-geometry";
 
@@ -38,6 +40,24 @@ function ensureArrowIcon(map: maplibregl.Map) {
   ctx.fill();
   map.addImage(ARROW_ICON_ID, ctx.getImageData(0, 0, ARROW_SIZE, ARROW_SIZE), { sdf: true });
 }
+
+interface DecoConf {
+  id: Exclude<LineDecoration, "none">;
+  offsetY: number;
+}
+
+const DECO_CONFIGS: DecoConf[] = [
+  { id: "crosses",        offsetY: 0 },
+  { id: "crosses-free",   offsetY: 0 },
+  { id: "ticks",          offsetY: 0 },
+  { id: "triangles-up",   offsetY: -10 },
+  { id: "triangles-down", offsetY: 10 },
+  { id: "arrows-up",      offsetY: -10 },
+  { id: "arrows-down",    offsetY: 10 },
+  { id: "railway",        offsetY: 0 },
+];
+
+const DECO_LAYER_IDS = DECO_CONFIGS.map((c) => `features-deco-${c.id}`);
 
 function ensureSourceAndLayers(map: maplibregl.Map) {
   if (map.getSource(FEATURES_SOURCE)) return;
@@ -81,6 +101,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       paint: {
         "line-color": ["get", "color"],
         "line-width": ["get", "strokeWidth"],
+        "line-opacity": 1,
         ...(style.dash ? { "line-dasharray": style.dash } : {}),
       },
       filter: ["all", ["==", "$type", "Polygon"], ["==", "lineStyle", style.id]],
@@ -99,6 +120,68 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       filter: ["all", ["==", "$type", "LineString"], ["==", "lineStyle", style.id]],
     });
   }
+
+  ensureAllDecorationIcons(map);
+
+  for (const conf of DECO_CONFIGS) {
+    map.addLayer({
+      id: `features-deco-${conf.id}`,
+      type: "symbol",
+      source: FEATURES_SOURCE,
+      layout: {
+        "symbol-placement": "line",
+        "symbol-spacing": conf.id === "railway" ? 15 : 50,
+        "icon-image": decorationIconId(conf.id),
+        "icon-size": [
+          "interpolate", ["linear"], ["get", "strokeWidth"],
+          1, 0.6,
+          5, 1.2,
+          10, 2.0,
+        ],
+        "icon-offset": ["literal", [0, conf.offsetY]],
+        "icon-allow-overlap": true,
+        "icon-rotation-alignment": "map",
+        "icon-keep-upright": false,
+      },
+      paint: {
+        "icon-color": ["get", "color"],
+        "icon-opacity": 1,
+      },
+      filter: [
+        "all",
+        ["in", "$type", "LineString", "Polygon"],
+        ["==", "lineDecoration", conf.id],
+      ],
+    });
+  }
+
+  map.addLayer({
+    id: "features-railway-top",
+    type: "line",
+    source: FEATURES_SOURCE,
+    layout: { "line-cap": "butt" },
+    paint: {
+      "line-color": ["get", "color"],
+      "line-width": ["*", ["get", "strokeWidth"], 0.4],
+      "line-offset": ["*", ["get", "strokeWidth"], 1.2],
+      "line-opacity": ["get", "opacity"],
+    },
+    filter: ["all", ["in", "$type", "LineString", "Polygon"], ["==", "lineDecoration", "railway"]],
+  });
+
+  map.addLayer({
+    id: "features-railway-bottom",
+    type: "line",
+    source: FEATURES_SOURCE,
+    layout: { "line-cap": "butt" },
+    paint: {
+      "line-color": ["get", "color"],
+      "line-width": ["*", ["get", "strokeWidth"], 0.4],
+      "line-offset": ["*", ["get", "strokeWidth"], -1.2],
+      "line-opacity": ["get", "opacity"],
+    },
+    filter: ["all", ["in", "$type", "LineString", "Polygon"], ["==", "lineDecoration", "railway"]],
+  });
 
   map.addLayer({
     id: "features-circle",
@@ -252,7 +335,8 @@ function buildGeoJSON(
           iconId,
           patternId,
           strokeWidth: f.strokeWidth ?? 3,
-          lineStyle: f.lineStyle ?? "solid",
+          lineStyle: f.lineDecoration === "crosses-free" ? "__hidden" : (f.lineStyle ?? "solid"),
+          lineDecoration: f.lineDecoration ?? "none",
         },
       }];
     });
@@ -278,6 +362,17 @@ function setSourceData(
   return pendingSvgs;
 }
 
+function syncDecoSpacing(map: maplibregl.Map, features: FeatureData[]) {
+  const decoFeature = features.find((f) => f.lineDecoration && f.lineDecoration !== "none");
+  if (!decoFeature) return;
+  const spacing = decoFeature.decorationSpacing ?? 50;
+  for (const layerId of DECO_LAYER_IDS) {
+    if (map.getLayer(layerId)) {
+      map.setLayoutProperty(layerId, "symbol-spacing", spacing);
+    }
+  }
+}
+
 function fullUpdate(
   map: maplibregl.Map,
   features: FeatureData[],
@@ -286,6 +381,7 @@ function fullUpdate(
 ) {
   ensureSourceAndLayers(map);
   const pending = setSourceData(map, features, layers);
+  syncDecoSpacing(map, features);
   if (pending.length > 0) {
     Promise.all(pending).then(() => {
       if (cancelled()) return;
@@ -313,6 +409,7 @@ export function useFeatureRendering(
 
     if (map.getSource(FEATURES_SOURCE)) {
       const pending = setSourceData(map, features, layers);
+      syncDecoSpacing(map, features);
       if (pending.length > 0) {
         Promise.all(pending).then(() => {
           if (dead) return;
