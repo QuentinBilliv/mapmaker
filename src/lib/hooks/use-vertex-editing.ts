@@ -110,7 +110,8 @@ type DragState = VertexDrag | MoveDrag;
 export function useVertexEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
-  updateFeature: (id: string, updates: Partial<FeatureData>) => void
+  updateFeature: (id: string, updates: Partial<FeatureData>) => void,
+  styleVersion: number
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
@@ -262,7 +263,7 @@ export function useVertexEditing(
       cancelled = true;
       map.off("idle", update);
     };
-  }, [mapRef, selectedId, selectedGeometry]);
+  }, [mapRef, selectedId, selectedGeometry, styleVersion]);
 
   return interactingRef;
 }

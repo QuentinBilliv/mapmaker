@@ -299,7 +299,8 @@ function fullUpdate(
 export function useFeatureRendering(
   mapRef: React.RefObject<maplibregl.Map | null>,
   features: FeatureData[],
-  layers: LayerData[]
+  layers: LayerData[],
+  styleVersion: number
 ) {
   useEffect(() => {
     const map = mapRef.current;
@@ -323,16 +324,11 @@ export function useFeatureRendering(
     } else if (map.isStyleLoaded()) {
       fullUpdate(map, features, layers, isCancelled);
     } else {
-      map.once("load", applyFeatures);
+      map.once("idle", applyFeatures);
     }
 
-    map.on("styledata", applyFeatures);
-
-    return () => {
-      dead = true;
-      map.off("styledata", applyFeatures);
-    };
-  }, [mapRef, features, layers]);
+    return () => { dead = true; };
+  }, [mapRef, features, layers, styleVersion]);
 }
 
 export { FEATURES_SOURCE };

@@ -15,23 +15,23 @@ export default function MapCanvas() {
   const { addFeature, selectFeature, updateFeature, updateMap, registerDrawingControls } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef = useMapInit(containerRef, map.center, map.zoom, activeBaseMap);
+  const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap);
 
   const onFeatureClick = useCallback(
     (id: string) => selectFeature(id),
     [selectFeature]
   );
 
+  useFeatureRendering(mapRef, features, layers, styleVersion);
   const selectTarget = drawMode === "select" ? selectedFeature : null;
-  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature);
-  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature);
+  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion);
+  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion);
   const combinedRef = useMemo(() => ({
     get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current); },
     set current(_v: boolean) {},
   }), [vertexInteractingRef, shapeInteractingRef]);
-  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef);
+  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
-  useFeatureRendering(mapRef, features, layers);
   useMoveListener(mapRef, updateMap);
 
   return <div ref={containerRef} className="w-full h-full" />;

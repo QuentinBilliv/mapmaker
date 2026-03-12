@@ -171,7 +171,8 @@ type DragState = RectCornerDrag | RectCenterDrag | CircleCenterDrag | CircleEdge
 export function useShapeEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
-  updateFeature: (id: string, updates: Partial<FeatureData>) => void
+  updateFeature: (id: string, updates: Partial<FeatureData>) => void,
+  styleVersion: number
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
@@ -345,7 +346,7 @@ export function useShapeEditing(
 
     update();
     return () => { cancelled = true; map.off("idle", update); };
-  }, [mapRef, selectedId, selectedGeometry]);
+  }, [mapRef, selectedId, selectedGeometry, styleVersion]);
 
   return interactingRef;
 }

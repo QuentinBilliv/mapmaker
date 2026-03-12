@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useEffect } from "react";
+import { useRef, useEffect, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { BaseMap } from "@/lib/map-style";
@@ -12,6 +12,7 @@ export function useMapInit(
   baseMap: BaseMap
 ) {
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [styleVersion, setStyleVersion] = useState(0);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
@@ -40,7 +41,10 @@ export function useMapInit(
     const map = mapRef.current;
     if (!map) return;
     map.setStyle(baseMap.style);
+    const onReady = () => setStyleVersion(v => v + 1);
+    map.once("idle", onReady);
+    return () => { map.off("idle", onReady); };
   }, [baseMap]);
 
-  return mapRef;
+  return { mapRef, styleVersion };
 }

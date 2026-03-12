@@ -21,7 +21,8 @@ export function useDrawing(
   drawMode: DrawMode,
   onFeatureDrawn: (geometry: GeoJSON.Geometry) => void,
   onFeatureClick: (featureId: string) => void,
-  vertexInteractingRef?: React.RefObject<boolean>
+  vertexInteractingRef: React.RefObject<boolean> | undefined,
+  styleVersion: number
 ): DrawingControls {
   const drawStateRef = useRef<DrawState>({
     mode: "select",
@@ -147,7 +148,7 @@ export function useDrawing(
     if (map.isStyleLoaded()) {
       onLoad();
     } else {
-      map.on("load", onLoad);
+      map.once("idle", onLoad);
     }
 
     const onKeyDown = (e: KeyboardEvent) => {
@@ -158,13 +159,11 @@ export function useDrawing(
 
     return () => {
       document.removeEventListener("keydown", onKeyDown);
-      if (map.isStyleLoaded()) {
-        map.off("click", handleClick);
-        map.off("dblclick", handleDblClick);
-        map.off("mousemove", handleMouseMove);
-      }
+      map.off("click", handleClick);
+      map.off("dblclick", handleDblClick);
+      map.off("mousemove", handleMouseMove);
     };
-  }, [mapRef, handleClick, handleDblClick, handleMouseMove, finishDrawing, cancelDrawing]);
+  }, [mapRef, handleClick, handleDblClick, handleMouseMove, finishDrawing, cancelDrawing, styleVersion]);
 
   return { finishDrawing, cancelDrawing };
 }
