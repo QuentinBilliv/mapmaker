@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { MapData, LayerData, FeatureData } from "./types";
 import { BASE_MAPS } from "./map-style";
 import { parseGeometry, geometryTypeToFeatureType } from "./geojson";
+import { sanitizeSvg } from "./svg-sanitizer";
 
 const MAX_STRING = 10_000;
 const MAX_SVG = 50_000;
@@ -82,41 +83,6 @@ const documentSchema = z.object({
   mapmaker: mapmakerMeta,
   features: z.array(featureSchema).max(10_000),
 });
-
-function sanitizeSvg(raw: string): string {
-  const parser = new DOMParser();
-  const doc = parser.parseFromString(raw, "image/svg+xml");
-
-  const error = doc.querySelector("parsererror");
-  if (error) return "";
-
-  const dangerous = doc.querySelectorAll("script, foreignObject, iframe, embed, object");
-  dangerous.forEach((el) => el.remove());
-
-  const allElements = doc.querySelectorAll("*");
-  allElements.forEach((el) => {
-    const attrs = Array.from(el.attributes);
-    for (const attr of attrs) {
-      if (attr.name.startsWith("on")) {
-        el.removeAttribute(attr.name);
-      }
-      if (
-        attr.name === "href" ||
-        attr.name === "xlink:href" ||
-        attr.name === "src"
-      ) {
-        const val = attr.value.trim().toLowerCase();
-        if (val.startsWith("javascript:") || val.startsWith("data:text/html")) {
-          el.removeAttribute(attr.name);
-        }
-      }
-    }
-  });
-
-  const svg = doc.querySelector("svg");
-  if (!svg) return "";
-  return new XMLSerializer().serializeToString(svg);
-}
 
 export function serialize(
   map: MapData,
@@ -200,8 +166,11 @@ export function deserialize(raw: string): DeserializedMap {
 
     let customSvg = p["mapmaker:customSvg"];
     if (customSvg) {
-      customSvg = sanitizeSvg(customSvg);
-      if (!customSvg) return [];
+      try {
+        customSvg = sanitizeSvg(customSvg);
+      } catch {
+        return [];
+      }
     }
 
     return [{

@@ -262,12 +262,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const addLayer = useCallback((name: string) => {
-    const newLayer: LayerData = { id: uuid(), name, visible: true, order: 0 };
-    setLayers((prev) => {
-      newLayer.order = prev.length;
-      return [...prev, newLayer];
-    });
-    setActiveLayerId(newLayer.id);
+    const id = uuid();
+    setLayers((prev) => [...prev, { id, name, visible: true, order: prev.length }]);
+    setActiveLayerId(id);
   }, []);
 
   const toggleLayer = useCallback((id: string) => {

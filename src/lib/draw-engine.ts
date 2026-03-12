@@ -1,5 +1,6 @@
 import maplibregl from "maplibre-gl";
 import { COLORS } from "./defaults";
+import { toMercatorY, fromMercatorY } from "./geo-math";
 
 export type DrawMode = "select" | "polygon" | "rectangle" | "circle" | "polyline" | "point" | "arrow" | "double-arrow";
 
@@ -163,14 +164,6 @@ function rectangleRing(
 
 const CIRCLE_SEGMENTS = 64;
 
-function toMercatorY(lat: number): number {
-  const rad = (lat * Math.PI) / 180;
-  return (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + rad / 2));
-}
-
-function fromMercatorY(y: number): number {
-  return (360 / Math.PI) * Math.atan(Math.exp((y * Math.PI) / 180)) - 90;
-}
 
 function circleRing(
   center: [number, number],

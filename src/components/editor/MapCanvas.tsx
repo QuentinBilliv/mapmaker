@@ -60,7 +60,8 @@ function useMoveListener(
     }
 
     return () => {
-      if (map.isStyleLoaded()) map.off("moveend", onMoveEnd);
+      map.off("load", setup);
+      map.off("moveend", onMoveEnd);
     };
   }, [mapRef, onMoveEnd]);
 }

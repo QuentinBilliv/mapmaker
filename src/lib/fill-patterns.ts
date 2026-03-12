@@ -49,13 +49,14 @@ export function ensurePatternImage(
   const [r, g, b] = hexToRgb(color);
   const a = Math.round(opacity * 255);
   const test = tests[pattern];
-  const imageData = new ImageData(TILE, TILE);
+  const size = TILE * PIXEL_RATIO;
+  const imageData = new ImageData(size, size);
   const d = imageData.data;
 
-  for (let y = 0; y < TILE; y++) {
-    for (let x = 0; x < TILE; x++) {
+  for (let y = 0; y < size; y++) {
+    for (let x = 0; x < size; x++) {
       if (test(x, y)) {
-        const i = (y * TILE + x) * 4;
+        const i = (y * size + x) * 4;
         d[i] = r;
         d[i + 1] = g;
         d[i + 2] = b;

@@ -6,6 +6,7 @@ import type { FeatureData } from "@/lib/types";
 import { parseGeometry } from "@/lib/geojson";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
+import type { Coord } from "@/lib/geo-math";
 
 const SRC = "vertex-edit";
 const LAYER_VERTEX = "vertex-edit-points";
@@ -13,8 +14,6 @@ const LAYER_MID = "vertex-edit-midpoints";
 const LAYER_EDGE = "vertex-edit-edges";
 const LAYER_MOVE_HIT = "vertex-edit-move-hit";
 const LAYER_MOVE_ICON = "vertex-edit-move-icon";
-
-type Coord = [number, number];
 
 function getCoords(f: FeatureData): Coord[] {
   const g = parseGeometry(f.geometry);

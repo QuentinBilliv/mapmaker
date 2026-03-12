@@ -1,4 +1,4 @@
-type Coord = [number, number];
+import type { Coord } from "./geo-math";
 
 function dist(a: Coord, b: Coord): number {
   return Math.sqrt((a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);

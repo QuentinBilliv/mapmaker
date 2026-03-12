@@ -212,11 +212,6 @@ export async function ensureCustomSvgIcon(
     ctx.fillStyle = color;
     ctx.fillRect(0, 0, SIZE, SIZE);
 
-    ctx.globalCompositeOperation = "source-over";
-    ctx.strokeStyle = COLORS.white;
-    ctx.lineWidth = 1;
-    ctx.globalCompositeOperation = "destination-over";
-
     addIfMissing(map, id, ctx.getImageData(0, 0, SIZE, SIZE));
   } finally {
     URL.revokeObjectURL(url);

@@ -6,24 +6,14 @@ import type { FeatureData } from "@/lib/types";
 import { parseGeometry } from "@/lib/geojson";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
+import { type Coord, toMercatorY, fromMercatorY } from "@/lib/geo-math";
 
 const SRC = "shape-edit";
 const LAYER_HANDLE = "shape-edit-handles";
 const LAYER_CENTER = "shape-edit-center";
 const LAYER_OUTLINE = "shape-edit-outline";
 
-type Coord = [number, number];
-
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
-
-function toMercatorY(lat: number): number {
-  const rad = (lat * Math.PI) / 180;
-  return (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + rad / 2));
-}
-
-function fromMercatorY(y: number): number {
-  return (360 / Math.PI) * Math.atan(Math.exp((y * Math.PI) / 180)) - 90;
-}
 
 function getRingCoords(f: FeatureData): Coord[] {
   const g = parseGeometry(f.geometry);
