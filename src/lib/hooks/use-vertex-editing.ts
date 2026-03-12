@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import type { FeatureData } from "@/lib/types";
-import { parseGeometry } from "@/lib/geojson";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 import type { Coord } from "@/lib/geo-math";
@@ -16,8 +15,7 @@ const LAYER_MOVE_HIT = "vertex-edit-move-hit";
 const LAYER_MOVE_ICON = "vertex-edit-move-icon";
 
 function getCoords(f: FeatureData): Coord[] {
-  const g = parseGeometry(f.geometry);
-  if (!g) return [];
+  const g = f.geometry;
   if (g.type === "Point") return [(g as GeoJSON.Point).coordinates as Coord];
   if (g.type === "LineString") return (g as GeoJSON.LineString).coordinates as Coord[];
   if (g.type === "Polygon") return ((g as GeoJSON.Polygon).coordinates[0].slice(0, -1)) as Coord[];
@@ -30,10 +28,10 @@ function centroid(coords: Coord[]): Coord {
   return [x / coords.length, y / coords.length];
 }
 
-function toGeometryStr(coords: Coord[], f: FeatureData): string {
-  if (f.type === "point") return JSON.stringify({ type: "Point", coordinates: coords[0] });
-  if (f.type === "polygon") return JSON.stringify({ type: "Polygon", coordinates: [[...coords, coords[0]]] });
-  return JSON.stringify({ type: "LineString", coordinates: coords });
+function toGeometry(coords: Coord[], f: FeatureData): GeoJSON.Geometry {
+  if (f.type === "point") return { type: "Point", coordinates: coords[0] };
+  if (f.type === "polygon") return { type: "Polygon", coordinates: [[...coords, coords[0]]] };
+  return { type: "LineString", coordinates: coords };
 }
 
 function buildFC(coords: Coord[], f: FeatureData): GeoJSON.FeatureCollection {
@@ -212,7 +210,7 @@ export function useVertexEditing(
       map.dragPan.enable();
       map.getCanvas().style.cursor = "";
       setTimeout(() => { interactingRef.current = false; }, 0);
-      updateRef.current(d.id, { geometry: toGeometryStr(d.coords, d.feat) });
+      updateRef.current(d.id, { geometry: toGeometry(d.coords, d.feat) });
     }
 
     const setup = () => {

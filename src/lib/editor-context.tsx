@@ -237,7 +237,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       fillPattern: featureType === "polygon" ? s.activeFillPattern : "none",
       sourceText: s.activeSourceText,
       sourceUrl: s.activeSourceUrl || undefined,
-      geometry: JSON.stringify(geometry),
+      geometry,
     };
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureId(newFeature.id);

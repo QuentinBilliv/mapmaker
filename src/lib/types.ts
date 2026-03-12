@@ -79,5 +79,5 @@ export interface FeatureData {
   fillPattern: FillPattern;
   sourceText: string;
   sourceUrl?: string;
-  geometry: string;
+  geometry: GeoJSON.Geometry;
 }

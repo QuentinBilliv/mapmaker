@@ -12,7 +12,6 @@ import {
   ICON_SCALE,
 } from "@/lib/shape-icons";
 import { ensurePatternImage } from "@/lib/fill-patterns";
-import { parseGeometry } from "@/lib/geojson";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { smoothGeometry } from "@/lib/smooth-geometry";
 
@@ -183,8 +182,7 @@ function buildGeoJSON(
   const geojsonFeatures: GeoJSON.Feature[] = features
     .filter((f) => visibleLayerIds.has(f.layerId))
     .flatMap((f) => {
-      const rawGeometry = parseGeometry(f.geometry);
-      if (!rawGeometry) return [];
+      const rawGeometry = f.geometry;
 
       let iconId = "";
 

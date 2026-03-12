@@ -3,7 +3,6 @@
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import type { FeatureData } from "@/lib/types";
-import { parseGeometry } from "@/lib/geojson";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 import { type Coord, toMercatorY, fromMercatorY } from "@/lib/geo-math";
@@ -16,8 +15,8 @@ const LAYER_OUTLINE = "shape-edit-outline";
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
 function getRingCoords(f: FeatureData): Coord[] {
-  const g = parseGeometry(f.geometry);
-  if (!g || g.type !== "Polygon") return [];
+  const g = f.geometry;
+  if (g.type !== "Polygon") return [];
   return (g as GeoJSON.Polygon).coordinates[0] as Coord[];
 }
 
@@ -45,14 +44,14 @@ function circleParams(f: FeatureData): { center: Coord; radius: number } | null 
   return { center: [cx, cy], radius: Math.sqrt(dx * dx + dy * dy) };
 }
 
-function buildRectGeometry(a: Coord, b: Coord): string {
+function buildRectGeometry(a: Coord, b: Coord): GeoJSON.Geometry {
   const ring: Coord[] = [
     [a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]], [a[0], a[1]],
   ];
-  return JSON.stringify({ type: "Polygon", coordinates: [ring] });
+  return { type: "Polygon", coordinates: [ring] };
 }
 
-function buildCircleGeometry(center: Coord, radius: number): string {
+function buildCircleGeometry(center: Coord, radius: number): GeoJSON.Geometry {
   const cx = center[0];
   const mcy = toMercatorY(center[1]);
   const segments = 64;
@@ -64,7 +63,7 @@ function buildCircleGeometry(center: Coord, radius: number): string {
       fromMercatorY(mcy + radius * Math.sin(angle)),
     ]);
   }
-  return JSON.stringify({ type: "Polygon", coordinates: [ring] });
+  return { type: "Polygon", coordinates: [ring] };
 }
 
 function rectHandles(a: Coord, b: Coord): GeoJSON.FeatureCollection {

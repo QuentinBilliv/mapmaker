@@ -1,7 +1,7 @@
 import { z } from "zod";
 import type { MapData, LayerData, FeatureData } from "./types";
 import { BASE_MAPS } from "./map-style";
-import { parseGeometry, geometryTypeToFeatureType } from "./geojson";
+import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
 
 const MAX_STRING = 10_000;
@@ -107,9 +107,7 @@ export function serialize(
       baseMap: baseMapId,
       layers: layers.map(({ id, name, visible, order }) => ({ id, name, visible, order })),
     },
-    features: features.flatMap((f) => {
-      const geometry = parseGeometry(f.geometry);
-      if (!geometry) return [];
+    features: features.map((f) => {
       const props: Record<string, unknown> = {
         "mapmaker:type": f.type,
         "mapmaker:layerId": f.layerId,
@@ -131,7 +129,7 @@ export function serialize(
       if (f.borderWidth !== undefined) props["mapmaker:borderWidth"] = f.borderWidth;
       if (f.shapeOrigin) props["mapmaker:shapeOrigin"] = f.shapeOrigin;
       if (f.sourceUrl) props["mapmaker:sourceUrl"] = f.sourceUrl;
-      return [{ type: "Feature" as const, geometry, properties: props }];
+      return { type: "Feature" as const, geometry: f.geometry, properties: props };
     }),
   };
 
@@ -193,7 +191,7 @@ export function deserialize(raw: string): DeserializedMap {
       fillPattern: p["mapmaker:fillPattern"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],
-      geometry: JSON.stringify(f.geometry),
+      geometry: f.geometry,
     }];
   });
 
