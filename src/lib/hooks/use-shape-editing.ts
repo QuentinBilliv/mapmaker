@@ -29,18 +29,17 @@ function rectCorners(f: FeatureData): { a: Coord; b: Coord } | null {
 function circleParams(f: FeatureData): { center: Coord; radius: number } | null {
   const ring = getRingCoords(f);
   if (ring.length < 4) return null;
-  let cx = 0, cy = 0;
+  let cx = 0, mcy = 0;
   const n = ring.length - 1;
   for (let i = 0; i < n; i++) {
     cx += ring[i][0];
-    cy += ring[i][1];
+    mcy += toMercatorY(ring[i][1]);
   }
   cx /= n;
-  cy /= n;
-  const mcy = toMercatorY(cy);
-  const mey = toMercatorY(ring[0][1]);
+  mcy /= n;
+  const cy = fromMercatorY(mcy);
   const dx = ring[0][0] - cx;
-  const dy = mey - mcy;
+  const dy = toMercatorY(ring[0][1]) - mcy;
   return { center: [cx, cy], radius: Math.sqrt(dx * dx + dy * dy) };
 }
 
