@@ -4,6 +4,7 @@ import {
   createContext,
   useCallback,
   useContext,
+  useEffect,
   useMemo,
   useReducer,
   useRef,
@@ -154,6 +155,11 @@ interface EditorActions {
     finishDrawing: () => void;
     cancelDrawing: () => void;
   }) => void;
+  recordSnapshot: () => void;
+  undo: () => void;
+  redo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const DataContext = createContext<EditorDataState | null>(null);
@@ -211,6 +217,63 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     cancelDrawing: () => {},
   });
 
+  type Snapshot = { features: FeatureData[]; layers: LayerData[] };
+  const HISTORY_LIMIT = 50;
+  const historyRef = useRef<{ past: Snapshot[]; future: Snapshot[] }>({ past: [], future: [] });
+  const featuresRef = useRef(features);
+  featuresRef.current = features;
+  const layersRef = useRef(layers);
+  layersRef.current = layers;
+  const [canUndo, setCanUndo] = useState(false);
+  const [canRedo, setCanRedo] = useState(false);
+
+  const syncHistoryFlags = useCallback(() => {
+    setCanUndo(historyRef.current.past.length > 0);
+    setCanRedo(historyRef.current.future.length > 0);
+  }, []);
+
+  const recordSnapshot = useCallback(() => {
+    const h = historyRef.current;
+    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current) });
+    if (h.past.length > HISTORY_LIMIT) h.past.shift();
+    h.future = [];
+    syncHistoryFlags();
+  }, [syncHistoryFlags]);
+
+  const undo = useCallback(() => {
+    const h = historyRef.current;
+    const snap = h.past.pop();
+    if (!snap) return;
+    h.future.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current) });
+    setFeatures(snap.features);
+    setLayers(snap.layers);
+    setSelectedFeatureId(null);
+    syncHistoryFlags();
+  }, [syncHistoryFlags]);
+
+  const redo = useCallback(() => {
+    const h = historyRef.current;
+    const snap = h.future.pop();
+    if (!snap) return;
+    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current) });
+    setFeatures(snap.features);
+    setLayers(snap.layers);
+    setSelectedFeatureId(null);
+    syncHistoryFlags();
+  }, [syncHistoryFlags]);
+
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const mod = e.metaKey || e.ctrlKey;
+      if (!mod || e.key.toLowerCase() !== "z") return;
+      e.preventDefault();
+      if (e.shiftKey) redo();
+      else undo();
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [undo, redo]);
+
   const set = useCallback(
     (payload: Partial<DrawingState>) => dispatchDrawing({ type: "SET", payload }),
     []
@@ -244,6 +307,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const setActiveBaseMap = useCallback((baseMap: BaseMap) => set({ activeBaseMap: baseMap }), [set]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
+    recordSnapshot();
     const s = drawingRef.current;
     const currentMode = drawModeRef.current;
     const isText = currentMode === "text";
@@ -297,7 +361,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureId(newFeature.id);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
-  }, []);
+  }, [recordSnapshot]);
 
   const updateFeature = useCallback(
     (id: string, updates: Partial<FeatureData>) => {
@@ -309,23 +373,27 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   );
 
   const deleteFeature = useCallback((id: string) => {
+    recordSnapshot();
     setFeatures((prev) => prev.filter((f) => f.id !== id));
     setSelectedFeatureId(null);
-  }, []);
+  }, [recordSnapshot]);
 
   const addLayer = useCallback((name: string) => {
+    recordSnapshot();
     const id = uuid();
     setLayers((prev) => [...prev, { id, name, visible: true, order: prev.length }]);
     set({ activeLayerId: id });
-  }, [set]);
+  }, [set, recordSnapshot]);
 
   const toggleLayer = useCallback((id: string) => {
+    recordSnapshot();
     setLayers((prev) =>
       prev.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l))
     );
-  }, []);
+  }, [recordSnapshot]);
 
   const deleteLayer = useCallback((id: string) => {
+    recordSnapshot();
     setLayers((prev) => {
       const remaining = prev.filter((l) => l.id !== id);
       if (remaining.length === 0) return prev;
@@ -333,13 +401,14 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     });
     setFeatures((prev) => prev.filter((f) => f.layerId !== id));
     set({ activeLayerId: DEFAULT_LAYER.id });
-  }, [set]);
+  }, [set, recordSnapshot]);
 
   const updateMap = useCallback((updates: Partial<MapData>) => {
     setMap((prev) => ({ ...prev, ...updates }));
   }, []);
 
   const importMapData = useCallback((data: DeserializedMap) => {
+    recordSnapshot();
     setMap((prev) => ({ ...prev, ...data.map }));
     setLayers(data.layers);
     setFeatures(
@@ -354,7 +423,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       },
     });
     setSelectedFeatureId(null);
-  }, []);
+  }, [recordSnapshot]);
 
   const selectFeature = useCallback((id: string | null) => {
     setSelectedFeatureId(id);
@@ -421,6 +490,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       finishDrawing,
       cancelDrawing,
       registerDrawingControls,
+      recordSnapshot,
+      undo,
+      redo,
+      canUndo,
+      canRedo,
     }),
     [
       setDrawMode,
@@ -461,6 +535,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       finishDrawing,
       cancelDrawing,
       registerDrawingControls,
+      recordSnapshot,
+      undo,
+      redo,
+      canUndo,
+      canRedo,
     ]
   );
 

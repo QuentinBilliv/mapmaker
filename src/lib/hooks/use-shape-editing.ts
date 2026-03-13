@@ -237,7 +237,8 @@ export function useShapeEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
   updateFeature: (id: string, updates: Partial<FeatureData>) => void,
-  styleVersion: number
+  styleVersion: number,
+  recordSnapshot?: () => void,
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
@@ -245,6 +246,8 @@ export function useShapeEditing(
   featRef.current = selectedFeature;
   const updateRef = useRef(updateFeature);
   updateRef.current = updateFeature;
+  const recordRef = useRef(recordSnapshot);
+  recordRef.current = recordSnapshot;
 
   useEffect(() => {
     const m = mapRef.current;
@@ -273,6 +276,7 @@ export function useShapeEditing(
         ? map.queryRenderedFeatures(e.point, { layers: [LAYER_ROTATE_HIT] })
         : [];
       if (rotateHits.length > 0) {
+        recordRef.current?.();
         e.preventDefault();
         interactingRef.current = true;
         map.dragPan.disable();
@@ -298,6 +302,7 @@ export function useShapeEditing(
       if (hits.length === 0) return;
 
       const props = hits[0].properties;
+      recordRef.current?.();
       e.preventDefault();
       interactingRef.current = true;
       map.dragPan.disable();

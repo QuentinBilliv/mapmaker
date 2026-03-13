@@ -12,7 +12,7 @@ import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 export default function MapCanvas() {
   const { map, features, layers, selectedFeature } = useEditorData();
   const { drawMode, activeBaseMap } = useDrawingState();
-  const { addFeature, selectFeature, updateFeature, updateMap, registerDrawingControls } = useEditorActions();
+  const { addFeature, selectFeature, updateFeature, updateMap, registerDrawingControls, recordSnapshot } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap);
@@ -24,8 +24,8 @@ export default function MapCanvas() {
 
   useFeatureRendering(mapRef, features, layers, styleVersion);
   const selectTarget = drawMode === "select" ? selectedFeature : null;
-  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion);
-  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion);
+  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot);
+  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot);
   const combinedRef = useMemo(() => ({
     get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current); },
     set current(_v: boolean) {},

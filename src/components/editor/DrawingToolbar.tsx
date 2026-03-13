@@ -6,6 +6,7 @@ import { DrawMode } from "@/lib/draw-engine";
 import { POINT_SHAPES } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
+import { FaRotateLeft, FaRotateRight } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
@@ -27,6 +28,8 @@ export default function DrawingToolbar() {
   return (
     <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-2">
       <ToolButtons />
+      <Separator />
+      <UndoRedoButtons />
       {drawMode === "point" && (
         <>
           <Separator />
@@ -56,6 +59,21 @@ function ToolButtons() {
         </Button>
       ))}
     </>
+  );
+}
+
+function UndoRedoButtons() {
+  const { undo, redo, canUndo, canRedo } = useEditorActions();
+
+  return (
+    <div className="flex flex-col gap-1">
+      <Button variant="ghost" size="icon" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">
+        <FaRotateLeft />
+      </Button>
+      <Button variant="ghost" size="icon" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Shift+Z)">
+        <FaRotateRight />
+      </Button>
+    </div>
   );
 }
 

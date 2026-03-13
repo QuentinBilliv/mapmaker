@@ -188,7 +188,8 @@ export function useVertexEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
   updateFeature: (id: string, updates: Partial<FeatureData>) => void,
-  styleVersion: number
+  styleVersion: number,
+  recordSnapshot?: () => void,
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
@@ -196,6 +197,8 @@ export function useVertexEditing(
   featRef.current = selectedFeature;
   const updateRef = useRef(updateFeature);
   updateRef.current = updateFeature;
+  const recordRef = useRef(recordSnapshot);
+  recordRef.current = recordSnapshot;
 
   useEffect(() => {
     const m = mapRef.current;
@@ -225,6 +228,7 @@ export function useVertexEditing(
         ? map.queryRenderedFeatures(e.point, { layers: [LAYER_ROTATE_HIT] })
         : [];
       if (rotateHits.length > 0) {
+        recordRef.current?.();
         e.preventDefault();
         interactingRef.current = true;
         map.dragPan.disable();
@@ -266,6 +270,7 @@ export function useVertexEditing(
         ? map.queryRenderedFeatures(e.point, { layers: [LAYER_MOVE_HIT] })
         : [];
       if (moveHits.length > 0) {
+        recordRef.current?.();
         e.preventDefault();
         interactingRef.current = true;
         map.dragPan.disable();
@@ -284,6 +289,7 @@ export function useVertexEditing(
       if (vHits.length > 0) {
         const idx = vHits[0].properties?.index;
         if (typeof idx !== "number") return;
+        recordRef.current?.();
         e.preventDefault();
         interactingRef.current = true;
         map.dragPan.disable();
@@ -297,6 +303,7 @@ export function useVertexEditing(
       if (mHits.length > 0) {
         const idx = mHits[0].properties?.index;
         if (typeof idx !== "number") return;
+        recordRef.current?.();
         e.preventDefault();
         interactingRef.current = true;
         map.dragPan.disable();

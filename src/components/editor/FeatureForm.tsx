@@ -65,10 +65,11 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
 
 export default function FeatureForm() {
   const { selectedFeature, layers } = useEditorData();
-  const { updateFeature, deleteFeature, selectFeature } = useEditorActions();
+  const { updateFeature, deleteFeature, selectFeature, recordSnapshot } = useEditorActions();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
   const originalRef = useRef<Partial<FeatureData> | null>(null);
+  const snapshotTakenRef = useRef(false);
 
   const methods = useForm<FeatureFormValues>({
     resolver: zodResolver(featureSchema),
@@ -81,6 +82,7 @@ export default function FeatureForm() {
     if (!selectedFeature) return;
     methods.reset(featureToFormValues(selectedFeature));
     originalRef.current = { ...selectedFeature };
+    snapshotTakenRef.current = false;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [featureId]);
 
@@ -91,6 +93,10 @@ export default function FeatureForm() {
   useEffect(() => {
     if (!selectedFeature) return;
     const sub = methods.watch((values) => {
+      if (!snapshotTakenRef.current) {
+        snapshotTakenRef.current = true;
+        recordSnapshot();
+      }
       const result = featureSchema.safeParse(values);
       if (!result.success) return;
       const v = result.data;
