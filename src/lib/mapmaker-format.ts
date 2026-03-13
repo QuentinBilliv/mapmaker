@@ -59,14 +59,16 @@ const mapmakerProps = z
   })
   .passthrough();
 
-const geometrySchema = z.object({
-  type: z.enum([
-    "Point", "MultiPoint",
-    "LineString", "MultiLineString",
-    "Polygon", "MultiPolygon",
-  ]),
-  coordinates: z.any(),
-});
+const position = z.array(z.number()).min(2).max(3);
+
+const geometrySchema = z.discriminatedUnion("type", [
+  z.object({ type: z.literal("Point"), coordinates: position }),
+  z.object({ type: z.literal("MultiPoint"), coordinates: z.array(position) }),
+  z.object({ type: z.literal("LineString"), coordinates: z.array(position).min(2) }),
+  z.object({ type: z.literal("MultiLineString"), coordinates: z.array(z.array(position).min(2)) }),
+  z.object({ type: z.literal("Polygon"), coordinates: z.array(z.array(position).min(4)) }),
+  z.object({ type: z.literal("MultiPolygon"), coordinates: z.array(z.array(z.array(position).min(4))) }),
+]);
 
 const featureSchema = z.object({
   type: z.literal("Feature"),

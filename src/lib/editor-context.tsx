@@ -5,6 +5,7 @@ import {
   useCallback,
   useContext,
   useMemo,
+  useReducer,
   useRef,
   useState,
 } from "react";
@@ -60,6 +61,55 @@ interface DrawingState {
   activeTextBorderColor: string;
   activeTextBorderWidth: number;
   activeBaseMap: BaseMap;
+}
+
+type DrawingAction =
+  | { type: "SET"; payload: Partial<DrawingState> }
+  | { type: "RESET_AFTER_ADD"; isText: boolean };
+
+const INITIAL_DRAWING_STATE: DrawingState = {
+  drawMode: "select",
+  activeLabel: "",
+  activeSourceText: "",
+  activeSourceUrl: "",
+  activeColor: COLORS.primary,
+  activeOpacity: 1,
+  activeLayerId: DEFAULT_LAYER.id,
+  activeSize: 1,
+  activeShape: "circle",
+  activeIcon: null,
+  activeBorderColor: COLORS.white,
+  activeBorderWidth: DEFAULT_BORDER_WIDTH,
+  activeSmoothing: 0,
+  activeStrokeWidth: 3,
+  activeLineStyle: "solid",
+  activeArrowStyle: "none",
+  activeLineDecoration: "none",
+  activeDecorationSpacing: 50,
+  activeFillPattern: "none",
+  activeTextContent: "",
+  activeFontSize: 24,
+  activeFontFamily: "sans",
+  activeTextBorderEnabled: true,
+  activeTextBorderColor: COLORS.white,
+  activeTextBorderWidth: 2,
+  activeBaseMap: BASE_MAPS[0],
+};
+
+function drawingReducer(state: DrawingState, action: DrawingAction): DrawingState {
+  switch (action.type) {
+    case "SET":
+      return { ...state, ...action.payload };
+    case "RESET_AFTER_ADD":
+      return {
+        ...state,
+        drawMode: "select",
+        activeLabel: "",
+        activeSourceText: "",
+        activeSourceUrl: "",
+        ...(action.isText ? { activeTextContent: "" } : {}),
+      };
+  }
 }
 
 interface EditorActions {
@@ -138,98 +188,20 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [map, setMap] = useState<MapData>(DEFAULT_MAP);
   const [layers, setLayers] = useState<LayerData[]>([DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>([]);
-  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(
-    null
-  );
+  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
 
-  const [drawMode, setDrawMode] = useState<DrawMode>("select");
-  const [activeLabel, setActiveLabel] = useState("");
-  const [activeSourceText, setActiveSourceText] = useState("");
-  const [activeSourceUrl, setActiveSourceUrl] = useState("");
-  const [activeColor, setActiveColor] = useState(COLORS.primary);
-  const [activeOpacity, setActiveOpacity] = useState(1);
-  const [activeLayerId, setActiveLayerId] = useState(DEFAULT_LAYER.id);
-  const [activeSize, setActiveSize] = useState(1);
-  const [activeShape, setActiveShape] = useState<PointShape>("circle");
-  const [activeIcon, setActiveIcon] = useState<string | null>(null);
-  const [activeBorderColor, setActiveBorderColor] = useState(COLORS.white);
-  const [activeBorderWidth, setActiveBorderWidth] = useState(DEFAULT_BORDER_WIDTH);
-  const [activeSmoothing, setActiveSmoothing] = useState(0);
-  const [activeStrokeWidth, setActiveStrokeWidth] = useState(3);
-  const [activeLineStyle, setActiveLineStyle] = useState<LineStyle>("solid");
-  const [activeArrowStyle, setActiveArrowStyle] = useState<ArrowStyle>("none");
-  const [activeLineDecoration, setActiveLineDecoration] = useState<LineDecoration>("none");
-  const [activeDecorationSpacing, setActiveDecorationSpacing] = useState(50);
-  const [activeFillPattern, setActiveFillPattern] =
-    useState<FillPattern>("none");
-  const [activeTextContent, setActiveTextContent] = useState("");
-  const [activeFontSize, setActiveFontSize] = useState(24);
-  const [activeFontFamily, setActiveFontFamily] = useState<TextFont>("sans");
-  const [activeTextBorderEnabled, setActiveTextBorderEnabled] = useState(true);
-  const [activeTextBorderColor, setActiveTextBorderColor] = useState(COLORS.white);
-  const [activeTextBorderWidth, setActiveTextBorderWidth] = useState(2);
-  const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
+  const [drawing, dispatchDrawing] = useReducer(drawingReducer, INITIAL_DRAWING_STATE);
 
   const selectedFeature = useMemo(
     () => features.find((f) => f.id === selectedFeatureId) ?? null,
     [features, selectedFeatureId]
   );
 
-  const drawModeRef = useRef(drawMode);
-  drawModeRef.current = drawMode;
+  const drawModeRef = useRef(drawing.drawMode);
+  drawModeRef.current = drawing.drawMode;
 
-  const drawingRef = useRef({
-    activeLabel,
-    activeSourceText,
-    activeSourceUrl,
-    activeLayerId,
-    activeColor,
-    activeOpacity,
-    activeSize,
-    activeShape,
-    activeIcon,
-    activeBorderColor,
-    activeBorderWidth,
-    activeSmoothing,
-    activeStrokeWidth,
-    activeLineStyle,
-    activeArrowStyle,
-    activeLineDecoration,
-    activeDecorationSpacing,
-    activeFillPattern,
-    activeTextContent,
-    activeFontSize,
-    activeFontFamily,
-    activeTextBorderEnabled,
-    activeTextBorderColor,
-    activeTextBorderWidth,
-  });
-  drawingRef.current = {
-    activeLabel,
-    activeSourceText,
-    activeSourceUrl,
-    activeLayerId,
-    activeColor,
-    activeOpacity,
-    activeSize,
-    activeShape,
-    activeIcon,
-    activeBorderColor,
-    activeBorderWidth,
-    activeSmoothing,
-    activeStrokeWidth,
-    activeLineStyle,
-    activeArrowStyle,
-    activeLineDecoration,
-    activeDecorationSpacing,
-    activeFillPattern,
-    activeTextContent,
-    activeFontSize,
-    activeFontFamily,
-    activeTextBorderEnabled,
-    activeTextBorderColor,
-    activeTextBorderWidth,
-  };
+  const drawingRef = useRef(drawing);
+  drawingRef.current = drawing;
 
   const drawingControlsRef = useRef<{
     finishDrawing: () => void;
@@ -238,6 +210,38 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     finishDrawing: () => {},
     cancelDrawing: () => {},
   });
+
+  const set = useCallback(
+    (payload: Partial<DrawingState>) => dispatchDrawing({ type: "SET", payload }),
+    []
+  );
+
+  const setDrawMode = useCallback((mode: DrawMode) => set({ drawMode: mode }), [set]);
+  const setActiveLabel = useCallback((label: string) => set({ activeLabel: label }), [set]);
+  const setActiveSourceText = useCallback((text: string) => set({ activeSourceText: text }), [set]);
+  const setActiveSourceUrl = useCallback((url: string) => set({ activeSourceUrl: url }), [set]);
+  const setActiveColor = useCallback((color: string) => set({ activeColor: color }), [set]);
+  const setActiveOpacity = useCallback((opacity: number) => set({ activeOpacity: opacity }), [set]);
+  const setActiveLayerId = useCallback((id: string) => set({ activeLayerId: id }), [set]);
+  const setActiveSize = useCallback((size: number) => set({ activeSize: size }), [set]);
+  const setActiveShape = useCallback((shape: PointShape) => set({ activeShape: shape }), [set]);
+  const setActiveIcon = useCallback((icon: string | null) => set({ activeIcon: icon }), [set]);
+  const setActiveBorderColor = useCallback((color: string) => set({ activeBorderColor: color }), [set]);
+  const setActiveBorderWidth = useCallback((width: number) => set({ activeBorderWidth: width }), [set]);
+  const setActiveSmoothing = useCallback((smoothing: number) => set({ activeSmoothing: smoothing }), [set]);
+  const setActiveStrokeWidth = useCallback((width: number) => set({ activeStrokeWidth: width }), [set]);
+  const setActiveLineStyle = useCallback((style: LineStyle) => set({ activeLineStyle: style }), [set]);
+  const setActiveArrowStyle = useCallback((style: ArrowStyle) => set({ activeArrowStyle: style }), [set]);
+  const setActiveLineDecoration = useCallback((decoration: LineDecoration) => set({ activeLineDecoration: decoration }), [set]);
+  const setActiveDecorationSpacing = useCallback((spacing: number) => set({ activeDecorationSpacing: spacing }), [set]);
+  const setActiveFillPattern = useCallback((pattern: FillPattern) => set({ activeFillPattern: pattern }), [set]);
+  const setActiveTextContent = useCallback((text: string) => set({ activeTextContent: text }), [set]);
+  const setActiveFontSize = useCallback((size: number) => set({ activeFontSize: size }), [set]);
+  const setActiveFontFamily = useCallback((font: TextFont) => set({ activeFontFamily: font }), [set]);
+  const setActiveTextBorderEnabled = useCallback((enabled: boolean) => set({ activeTextBorderEnabled: enabled }), [set]);
+  const setActiveTextBorderColor = useCallback((color: string) => set({ activeTextBorderColor: color }), [set]);
+  const setActiveTextBorderWidth = useCallback((width: number) => set({ activeTextBorderWidth: width }), [set]);
+  const setActiveBaseMap = useCallback((baseMap: BaseMap) => set({ activeBaseMap: baseMap }), [set]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
     const s = drawingRef.current;
@@ -292,11 +296,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     };
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureId(newFeature.id);
-    setDrawMode("select");
-    setActiveLabel("");
-    setActiveSourceText("");
-    setActiveSourceUrl("");
-    if (isText) setActiveTextContent("");
+    dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
   }, []);
 
   const updateFeature = useCallback(
@@ -316,8 +316,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const addLayer = useCallback((name: string) => {
     const id = uuid();
     setLayers((prev) => [...prev, { id, name, visible: true, order: prev.length }]);
-    setActiveLayerId(id);
-  }, []);
+    set({ activeLayerId: id });
+  }, [set]);
 
   const toggleLayer = useCallback((id: string) => {
     setLayers((prev) =>
@@ -332,8 +332,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       return remaining;
     });
     setFeatures((prev) => prev.filter((f) => f.layerId !== id));
-    setActiveLayerId((prev) => (prev !== id ? prev : DEFAULT_LAYER.id));
-  }, []);
+    set({ activeLayerId: DEFAULT_LAYER.id });
+  }, [set]);
 
   const updateMap = useCallback((updates: Partial<MapData>) => {
     setMap((prev) => ({ ...prev, ...updates }));
@@ -345,10 +345,15 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setFeatures(
       data.features.map((f) => ({ ...f, id: uuid() }))
     );
-    setActiveLayerId(data.layers[0]?.id ?? DEFAULT_LAYER.id);
-    setSelectedFeatureId(null);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
-    if (bm) setActiveBaseMap(bm);
+    dispatchDrawing({
+      type: "SET",
+      payload: {
+        activeLayerId: data.layers[0]?.id ?? DEFAULT_LAYER.id,
+        ...(bm ? { activeBaseMap: bm } : {}),
+      },
+    });
+    setSelectedFeatureId(null);
   }, []);
 
   const selectFeature = useCallback((id: string | null) => {
@@ -374,64 +379,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const dataValue = useMemo<EditorDataState>(
     () => ({ map, layers, features, selectedFeature }),
     [map, layers, features, selectedFeature]
-  );
-
-  const drawingValue = useMemo<DrawingState>(
-    () => ({
-      drawMode,
-      activeLabel,
-      activeSourceText,
-      activeSourceUrl,
-      activeColor,
-      activeOpacity,
-      activeLayerId,
-      activeSize,
-      activeShape,
-      activeIcon,
-      activeBorderColor,
-      activeBorderWidth,
-      activeSmoothing,
-      activeStrokeWidth,
-      activeLineStyle,
-      activeArrowStyle,
-      activeLineDecoration,
-      activeDecorationSpacing,
-      activeFillPattern,
-      activeTextContent,
-      activeFontSize,
-      activeFontFamily,
-      activeTextBorderEnabled,
-      activeTextBorderColor,
-      activeTextBorderWidth,
-      activeBaseMap,
-    }),
-    [
-      drawMode,
-      activeLabel,
-      activeSourceText,
-      activeSourceUrl,
-      activeColor,
-      activeOpacity,
-      activeLayerId,
-      activeSize,
-      activeShape,
-      activeIcon,
-      activeBorderColor,
-      activeBorderWidth,
-      activeSmoothing,
-      activeStrokeWidth,
-      activeLineStyle,
-      activeArrowStyle,
-      activeLineDecoration,
-      activeFillPattern,
-      activeTextContent,
-      activeFontSize,
-      activeFontFamily,
-      activeTextBorderEnabled,
-      activeTextBorderColor,
-      activeTextBorderWidth,
-      activeBaseMap,
-    ]
   );
 
   const actionsValue = useMemo<EditorActions>(
@@ -476,6 +423,31 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       registerDrawingControls,
     }),
     [
+      setDrawMode,
+      setActiveLabel,
+      setActiveSourceText,
+      setActiveSourceUrl,
+      setActiveColor,
+      setActiveOpacity,
+      setActiveLayerId,
+      setActiveSize,
+      setActiveShape,
+      setActiveIcon,
+      setActiveBorderColor,
+      setActiveBorderWidth,
+      setActiveSmoothing,
+      setActiveStrokeWidth,
+      setActiveLineStyle,
+      setActiveArrowStyle,
+      setActiveLineDecoration,
+      setActiveDecorationSpacing,
+      setActiveFillPattern,
+      setActiveTextContent,
+      setActiveFontSize,
+      setActiveFontFamily,
+      setActiveTextBorderEnabled,
+      setActiveTextBorderColor,
+      setActiveTextBorderWidth,
       selectFeature,
       addFeature,
       updateFeature,
@@ -483,6 +455,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addLayer,
       toggleLayer,
       deleteLayer,
+      setActiveBaseMap,
       updateMap,
       importMapData,
       finishDrawing,
@@ -494,7 +467,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   return (
     <ActionsCtx.Provider value={actionsValue}>
       <DataContext.Provider value={dataValue}>
-        <DrawingCtx.Provider value={drawingValue}>
+        <DrawingCtx.Provider value={drawing}>
           {children}
         </DrawingCtx.Provider>
       </DataContext.Provider>

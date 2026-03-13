@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { EditorProvider } from "@/lib/editor-context";
 import MapCanvas from "@/components/editor/MapCanvas";
+import MapCanvasErrorBoundary from "@/components/editor/MapCanvasErrorBoundary";
 import DrawingToolbar from "@/components/editor/DrawingToolbar";
 import LayerPanel from "@/components/editor/LayerPanel";
 import FeatureForm from "@/components/editor/FeatureForm";
@@ -20,7 +21,9 @@ export default function Home() {
     <EditorProvider>
       <div className="h-screen w-screen flex overflow-hidden">
         <div className="flex-1 relative overflow-hidden">
-          <MapCanvas />
+          <MapCanvasErrorBoundary>
+            <MapCanvas />
+          </MapCanvasErrorBoundary>
           <DrawingToolbar />
           <MapMetadata />
           <DrawingSettingsPanel />

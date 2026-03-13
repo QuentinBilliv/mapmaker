@@ -7,7 +7,8 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import SliderField from "@/components/ui/SliderField";
+import ColorInput from "@/components/ui/ColorInput";
 import {
   Select,
   SelectContent,
@@ -84,32 +85,31 @@ export default function DrawingSettingsPanel() {
         </Field>
         <div className="flex gap-3">
           <Field label="Color" className="flex-1">
-            <input
-              type="color"
+            <ColorInput
               value={activeColor}
               onChange={(e) => setActiveColor(e.target.value)}
-              className="w-full h-8 rounded cursor-pointer"
             />
           </Field>
           <Field label={`Opacity (${Math.round(activeOpacity * 100)}%)`} className="flex-1">
-            <Slider
+            <SliderField
+              value={activeOpacity}
+              onChange={setActiveOpacity}
               min={0}
               max={100}
               step={5}
-              value={[Math.round(activeOpacity * 100)]}
-              onValueChange={(v: number[]) => setActiveOpacity(v[0] / 100)}
+              scale={100}
               className="mt-2"
             />
           </Field>
         </div>
         <div className="flex gap-3">
           <Field label={`Stroke (${activeStrokeWidth}px)`} className="flex-1">
-            <Slider
+            <SliderField
+              value={activeStrokeWidth}
+              onChange={setActiveStrokeWidth}
               min={1}
               max={10}
               step={1}
-              value={[activeStrokeWidth]}
-              onValueChange={(v: number[]) => setActiveStrokeWidth(v[0])}
               className="mt-2"
             />
           </Field>
@@ -140,23 +140,24 @@ export default function DrawingSettingsPanel() {
         </Field>
         {activeLineDecoration !== "none" && (
           <Field label={`Decoration spacing (${activeDecorationSpacing}px)`}>
-            <Slider
+            <SliderField
+              value={activeDecorationSpacing}
+              onChange={setActiveDecorationSpacing}
               min={5}
               max={200}
               step={5}
-              value={[activeDecorationSpacing]}
-              onValueChange={(v: number[]) => setActiveDecorationSpacing(v[0])}
               className="mt-2"
             />
           </Field>
         )}
         <Field label={`Smoothing (${Math.round(activeSmoothing * 100)}%)`}>
-          <Slider
+          <SliderField
+            value={activeSmoothing}
+            onChange={setActiveSmoothing}
             min={0}
             max={100}
             step={5}
-            value={[Math.round(activeSmoothing * 100)]}
-            onValueChange={(v: number[]) => setActiveSmoothing(v[0] / 100)}
+            scale={100}
             className="mt-2"
           />
         </Field>
@@ -178,12 +179,13 @@ export default function DrawingSettingsPanel() {
         )}
         {isPolygon && (
           <Field label={`Fill opacity (${Math.round(activeOpacity * 100)}%)`}>
-            <Slider
+            <SliderField
+              value={activeOpacity}
+              onChange={setActiveOpacity}
               min={0}
               max={100}
               step={5}
-              value={[Math.round(activeOpacity * 100)]}
-              onValueChange={(v: number[]) => setActiveOpacity(v[0] / 100)}
+              scale={100}
               className="mt-2"
             />
           </Field>

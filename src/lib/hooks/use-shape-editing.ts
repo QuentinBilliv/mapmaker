@@ -181,7 +181,7 @@ function ensureLayers(map: maplibregl.Map) {
         "circle-stroke-color": ["case", ["==", ["get", "t"], "center"], "transparent", COLORS.white],
         "circle-stroke-width": 2,
       },
-      filter: ["all", ["==", "$type", "Point"], ["!=", ["get", "t"], "rotate"]],
+      filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "t"], "rotate"]],
     });
   }
   if (!map.getLayer(LAYER_CENTER)) {

@@ -15,7 +15,8 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Slider } from "@/components/ui/slider";
+import SliderField from "@/components/ui/SliderField";
+import ColorInput from "@/components/ui/ColorInput";
 import ConfirmDialog from "@/components/ui/confirm-dialog";
 import {
   Select,
@@ -72,6 +73,7 @@ export default function FeatureForm() {
   const methods = useForm<FeatureFormValues>({
     resolver: zodResolver(featureSchema),
     defaultValues: selectedFeature ? featureToFormValues(selectedFeature) : undefined,
+    mode: "onChange",
   });
 
   const featureId = selectedFeature?.id;
@@ -90,10 +92,7 @@ export default function FeatureForm() {
     if (!selectedFeature) return;
     const sub = methods.watch((values) => {
       const result = featureSchema.safeParse(values);
-      if (!result.success) {
-        methods.trigger();
-        return;
-      }
+      if (!result.success) return;
       const v = result.data;
       updateFeature(selectedFeature.id, {
         label: v.label,
@@ -190,14 +189,10 @@ function StyleFields() {
       </Field>
       <div className="flex gap-3">
         <Field label="Color" className="flex-1" error={errors.color?.message}>
-          <input
-            type="color"
-            {...register("color")}
-            className="w-full h-8 rounded cursor-pointer"
-          />
+          <ColorInput {...register("color")} />
         </Field>
         <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
-          <SliderField name="opacity" min={0} max={100} step={5} scale={100} className="mt-2" />
+          <FormSlider name="opacity" min={0} max={100} step={5} scale={100} className="mt-2" />
         </Field>
       </div>
     </>
@@ -213,19 +208,17 @@ function PointFields() {
     <>
       <MarkerSelect />
       <Field label={`Size (${Math.round(size * 100)}%)`}>
-        <SliderField name="size" min={50} max={300} step={25} scale={100} />
+        <FormSlider name="size" min={50} max={300} step={25} scale={100} />
       </Field>
       <div className="flex gap-3">
         <Field label="Border" className="flex-1">
-          <input
-            type="color"
+          <ColorInput
             value={watch("borderColor")}
-            onChange={(e) => setValue("borderColor", e.target.value)}
-            className="w-full h-8 rounded cursor-pointer"
+            onChange={(e) => setValue("borderColor", (e.target as HTMLInputElement).value)}
           />
         </Field>
         <Field label={`Width (${borderWidth}px)`} className="flex-1">
-          <SliderField name="borderWidth" min={0} max={12} step={1} className="mt-2" />
+          <FormSlider name="borderWidth" min={0} max={12} step={1} className="mt-2" />
         </Field>
       </div>
     </>
@@ -345,12 +338,12 @@ function TextFields() {
       </Field>
       <div className="flex gap-3">
         <Field label={`Size (${fontSize}px)`} className="flex-1">
-          <Slider
+          <SliderField
+            value={fontSize}
+            onChange={(v) => setValue("fontSize", v)}
             min={8}
             max={72}
             step={1}
-            value={[fontSize]}
-            onValueChange={(v: number[]) => setValue("fontSize", v[0])}
             className="mt-2"
           />
         </Field>
@@ -381,20 +374,18 @@ function TextFields() {
         {textBorderEnabled && (
           <>
             <Field label="Color" className="flex-1">
-              <input
-                type="color"
+              <ColorInput
                 value={watch("textBorderColor") ?? "#ffffff"}
-                onChange={(e) => setValue("textBorderColor", e.target.value)}
-                className="w-full h-8 rounded cursor-pointer"
+                onChange={(e) => setValue("textBorderColor", (e.target as HTMLInputElement).value)}
               />
             </Field>
             <Field label={`Width (${textBorderWidth}px)`} className="flex-1">
-              <Slider
+              <SliderField
+                value={textBorderWidth}
+                onChange={(v) => setValue("textBorderWidth", v)}
                 min={0}
                 max={5}
                 step={0.5}
-                value={[textBorderWidth]}
-                onValueChange={(v: number[]) => setValue("textBorderWidth", v[0])}
                 className="mt-2"
               />
             </Field>
@@ -418,7 +409,7 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
     <>
       <div className="flex gap-3">
         <Field label={`Stroke (${strokeWidth}px)`} className="flex-1">
-          <SliderField name="strokeWidth" min={1} max={10} step={1} className="mt-2" />
+          <FormSlider name="strokeWidth" min={1} max={10} step={1} className="mt-2" />
         </Field>
         <Field label="Line style" className="flex-1">
           <Select value={lineStyle} onValueChange={(v) => setValue("lineStyle", v as LineStyle)}>
@@ -447,7 +438,7 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
       </Field>
       {lineDecoration !== "none" && (
         <Field label={`Decoration spacing (${decorationSpacing}px)`}>
-          <SliderField name="decorationSpacing" min={5} max={200} step={5} className="mt-2" />
+          <FormSlider name="decorationSpacing" min={5} max={200} step={5} className="mt-2" />
         </Field>
       )}
       {showArrows && (
@@ -465,7 +456,7 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
         </Field>
       )}
       <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
-        <SliderField name="smoothing" min={0} max={100} step={5} scale={100} className="mt-2" />
+        <FormSlider name="smoothing" min={0} max={100} step={5} scale={100} className="mt-2" />
       </Field>
     </>
   );
@@ -536,7 +527,7 @@ function FillPatternSelect() {
   );
 }
 
-function SliderField({
+function FormSlider({
   name,
   min,
   max,
@@ -553,15 +544,15 @@ function SliderField({
 }) {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
   const raw = watch(name) as number | undefined;
-  const displayed = scale ? Math.round((raw ?? 0) * scale) : (raw ?? 0);
 
   return (
-    <Slider
+    <SliderField
+      value={raw ?? 0}
+      onChange={(v) => setValue(name, v)}
       min={min}
       max={max}
       step={step}
-      value={[displayed]}
-      onValueChange={(v: number[]) => setValue(name, scale ? v[0] / scale : v[0])}
+      scale={scale}
       className={className}
     />
   );

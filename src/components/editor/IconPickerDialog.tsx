@@ -25,11 +25,15 @@ export default function IconPickerDialog({
   const [query, setQuery] = useState("");
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
 
+  const [loadError, setLoadError] = useState(false);
+
   useEffect(() => {
-    if (open && catalog.length === 0) {
-      loadCatalog().then(setCatalog);
+    if (open && catalog.length === 0 && !loadError) {
+      loadCatalog()
+        .then(setCatalog)
+        .catch(() => setLoadError(true));
     }
-  }, [open, catalog.length]);
+  }, [open, catalog.length, loadError]);
 
   const filtered = useMemo(() => {
     if (!query.trim()) return catalog;
@@ -53,7 +57,9 @@ export default function IconPickerDialog({
           autoFocus
         />
         <div className="overflow-y-auto flex-1 mt-2">
-          {catalog.length === 0 ? (
+          {loadError ? (
+            <p className="text-sm text-destructive text-center py-4">Failed to load icons</p>
+          ) : catalog.length === 0 ? (
             <p className="text-sm text-muted-foreground text-center py-4">Loading...</p>
           ) : (
             <IconGrid
