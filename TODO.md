@@ -7,7 +7,7 @@
 - [x] **Memoisation** — Ajouter useMemo pour featureCounts (LayerPanel). GeoJSON collections dans use-feature-rendering déjà stables via le context.
 - [x] **Virtual scrolling** — Virtual scrolling + multi-pack (FA6, Game Icons, Ionicons) avec search cross-pack
 - [x] **Sécurité URLs** — Bloquer les URLs javascript: et data: dans schemas.ts et mapmaker-format.ts
-- [ ] **Rotation** — Sérialiser le champ rotation dans mapmaker-format.ts (existe dans types.ts mais jamais persisté)
+- [x] **Rotation** — Sérialiser le champ rotation dans mapmaker-format.ts (existe dans types.ts mais jamais persisté)
 
 ## Long terme
 

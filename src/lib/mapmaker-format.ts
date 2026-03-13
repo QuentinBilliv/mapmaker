@@ -47,6 +47,7 @@ const mapmakerProps = z
     "mapmaker:fillPattern": z
       .enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"])
       .default("none"),
+    "mapmaker:rotation": z.number().optional(),
     "mapmaker:shapeOrigin": z.enum(["rectangle", "circle"]).optional(),
     "mapmaker:textContent": z.string().max(MAX_LABEL).optional(),
     "mapmaker:fontSize": z.number().min(8).max(72).optional(),
@@ -142,6 +143,7 @@ export function serialize(
       if (f.customSvg) props["mapmaker:customSvg"] = f.customSvg;
       if (f.borderColor) props["mapmaker:borderColor"] = f.borderColor;
       if (f.borderWidth !== undefined) props["mapmaker:borderWidth"] = f.borderWidth;
+      if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
       if (f.shapeOrigin) props["mapmaker:shapeOrigin"] = f.shapeOrigin;
       if (f.textContent) props["mapmaker:textContent"] = f.textContent;
       if (f.fontSize !== undefined) props["mapmaker:fontSize"] = f.fontSize;
@@ -197,6 +199,7 @@ export function deserialize(raw: string): DeserializedMap {
     return [{
       layerId: p["mapmaker:layerId"],
       type: declaredType,
+      rotation: p["mapmaker:rotation"],
       shapeOrigin: p["mapmaker:shapeOrigin"],
       label: p["mapmaker:label"],
       color: p["mapmaker:color"],
