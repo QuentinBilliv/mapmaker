@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useEditorData, useEditorActions, useDrawingState } from "@/lib/editor-context";
 import type { LayerData } from "@/lib/types";
 import { Button } from "@/components/ui/button";
@@ -15,10 +15,13 @@ export default function LayerPanel() {
 
   const sortedLayers = [...layers].sort((a, b) => a.order - b.order);
 
-  const featureCounts = new Map<string, number>();
-  for (const f of features) {
-    featureCounts.set(f.layerId, (featureCounts.get(f.layerId) ?? 0) + 1);
-  }
+  const featureCounts = useMemo(() => {
+    const counts = new Map<string, number>();
+    for (const f of features) {
+      counts.set(f.layerId, (counts.get(f.layerId) ?? 0) + 1);
+    }
+    return counts;
+  }, [features]);
 
   const handleAdd = () => {
     if (!newLayerName.trim()) return;
