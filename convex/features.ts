@@ -19,7 +19,8 @@ export const create = mutation({
     type: v.union(
       v.literal("polygon"),
       v.literal("polyline"),
-      v.literal("point")
+      v.literal("point"),
+      v.literal("text")
     ),
     label: v.string(),
     color: v.string(),

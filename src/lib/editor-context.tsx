@@ -22,6 +22,7 @@ import type {
   ArrowStyle,
   LineDecoration,
   FillPattern,
+  TextFont,
 } from "./types";
 import type { DeserializedMap } from "./mapmaker-format";
 
@@ -52,6 +53,12 @@ interface DrawingState {
   activeLineDecoration: LineDecoration;
   activeDecorationSpacing: number;
   activeFillPattern: FillPattern;
+  activeTextContent: string;
+  activeFontSize: number;
+  activeFontFamily: TextFont;
+  activeTextBorderEnabled: boolean;
+  activeTextBorderColor: string;
+  activeTextBorderWidth: number;
   activeBaseMap: BaseMap;
 }
 
@@ -75,6 +82,12 @@ interface EditorActions {
   setActiveLineDecoration: (decoration: LineDecoration) => void;
   setActiveDecorationSpacing: (spacing: number) => void;
   setActiveFillPattern: (pattern: FillPattern) => void;
+  setActiveTextContent: (text: string) => void;
+  setActiveFontSize: (size: number) => void;
+  setActiveFontFamily: (font: TextFont) => void;
+  setActiveTextBorderEnabled: (enabled: boolean) => void;
+  setActiveTextBorderColor: (color: string) => void;
+  setActiveTextBorderWidth: (width: number) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: Partial<FeatureData>) => void;
@@ -149,6 +162,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [activeDecorationSpacing, setActiveDecorationSpacing] = useState(50);
   const [activeFillPattern, setActiveFillPattern] =
     useState<FillPattern>("none");
+  const [activeTextContent, setActiveTextContent] = useState("");
+  const [activeFontSize, setActiveFontSize] = useState(24);
+  const [activeFontFamily, setActiveFontFamily] = useState<TextFont>("sans");
+  const [activeTextBorderEnabled, setActiveTextBorderEnabled] = useState(true);
+  const [activeTextBorderColor, setActiveTextBorderColor] = useState(COLORS.white);
+  const [activeTextBorderWidth, setActiveTextBorderWidth] = useState(2);
   const [activeBaseMap, setActiveBaseMap] = useState<BaseMap>(BASE_MAPS[0]);
 
   const selectedFeature = useMemo(
@@ -178,6 +197,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     activeLineDecoration,
     activeDecorationSpacing,
     activeFillPattern,
+    activeTextContent,
+    activeFontSize,
+    activeFontFamily,
+    activeTextBorderEnabled,
+    activeTextBorderColor,
+    activeTextBorderWidth,
   });
   drawingRef.current = {
     activeLabel,
@@ -198,6 +223,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     activeLineDecoration,
     activeDecorationSpacing,
     activeFillPattern,
+    activeTextContent,
+    activeFontSize,
+    activeFontFamily,
+    activeTextBorderEnabled,
+    activeTextBorderColor,
+    activeTextBorderWidth,
   };
 
   const drawingControlsRef = useRef<{
@@ -210,10 +241,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
     const s = drawingRef.current;
-    const featureType = geometryTypeToFeatureType(geometry.type);
+    const currentMode = drawModeRef.current;
+    const isText = currentMode === "text";
+    const featureType = isText ? "text" as const : geometryTypeToFeatureType(geometry.type);
     const isPoint = featureType === "point";
     const isLine = featureType === "polyline";
-    const currentMode = drawModeRef.current;
     const arrowFromMode =
       currentMode === "arrow"
         ? "forward"
@@ -241,13 +273,19 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       icon: isPoint ? (s.activeIcon ?? undefined) : undefined,
       borderColor: isPoint ? s.activeBorderColor : undefined,
       borderWidth: isPoint ? s.activeBorderWidth : undefined,
-      smoothing: isPoint ? 0 : s.activeSmoothing,
-      strokeWidth: isPoint ? 0 : s.activeStrokeWidth,
-      lineStyle: isPoint ? "solid" : s.activeLineStyle,
+      smoothing: (isPoint || isText) ? 0 : s.activeSmoothing,
+      strokeWidth: (isPoint || isText) ? 0 : s.activeStrokeWidth,
+      lineStyle: (isPoint || isText) ? "solid" : s.activeLineStyle,
       arrowStyle: isLine ? arrowFromMode : "none",
-      lineDecoration: isPoint ? "none" : s.activeLineDecoration,
-      decorationSpacing: isPoint ? 50 : s.activeDecorationSpacing,
+      lineDecoration: (isPoint || isText) ? "none" : s.activeLineDecoration,
+      decorationSpacing: (isPoint || isText) ? 50 : s.activeDecorationSpacing,
       fillPattern: featureType === "polygon" ? s.activeFillPattern : "none",
+      textContent: isText ? (s.activeTextContent || "Text") : undefined,
+      fontSize: isText ? s.activeFontSize : undefined,
+      fontFamily: isText ? s.activeFontFamily : undefined,
+      textBorderEnabled: isText ? s.activeTextBorderEnabled : undefined,
+      textBorderColor: isText ? s.activeTextBorderColor : undefined,
+      textBorderWidth: isText ? s.activeTextBorderWidth : undefined,
       sourceText: s.activeSourceText,
       sourceUrl: s.activeSourceUrl || undefined,
       geometry,
@@ -258,6 +296,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setActiveLabel("");
     setActiveSourceText("");
     setActiveSourceUrl("");
+    if (isText) setActiveTextContent("");
   }, []);
 
   const updateFeature = useCallback(
@@ -358,6 +397,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeLineDecoration,
       activeDecorationSpacing,
       activeFillPattern,
+      activeTextContent,
+      activeFontSize,
+      activeFontFamily,
+      activeTextBorderEnabled,
+      activeTextBorderColor,
+      activeTextBorderWidth,
       activeBaseMap,
     }),
     [
@@ -379,6 +424,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       activeArrowStyle,
       activeLineDecoration,
       activeFillPattern,
+      activeTextContent,
+      activeFontSize,
+      activeFontFamily,
+      activeTextBorderEnabled,
+      activeTextBorderColor,
+      activeTextBorderWidth,
       activeBaseMap,
     ]
   );
@@ -404,6 +455,12 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveLineDecoration,
       setActiveDecorationSpacing,
       setActiveFillPattern,
+      setActiveTextContent,
+      setActiveFontSize,
+      setActiveFontFamily,
+      setActiveTextBorderEnabled,
+      setActiveTextBorderColor,
+      setActiveTextBorderWidth,
       selectFeature,
       addFeature,
       updateFeature,

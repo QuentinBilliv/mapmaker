@@ -9,7 +9,7 @@ export interface MapFeatureProperties {
   layerName: string;
   sourceText: string;
   sourceUrl?: string;
-  featureType: "polygon" | "polyline" | "point";
+  featureType: "polygon" | "polyline" | "point" | "text";
 }
 
 export interface ExportedMap {

@@ -21,7 +21,7 @@ const layerSchema = z.object({
 
 const mapmakerProps = z
   .object({
-    "mapmaker:type": z.enum(["polygon", "polyline", "point"]),
+    "mapmaker:type": z.enum(["polygon", "polyline", "point", "text"]),
     "mapmaker:layerId": z.string().max(100),
     "mapmaker:label": z.string().max(MAX_LABEL).default(""),
     "mapmaker:color": colorSchema,
@@ -48,6 +48,12 @@ const mapmakerProps = z
       .enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"])
       .default("none"),
     "mapmaker:shapeOrigin": z.enum(["rectangle", "circle"]).optional(),
+    "mapmaker:textContent": z.string().max(MAX_LABEL).optional(),
+    "mapmaker:fontSize": z.number().min(8).max(72).optional(),
+    "mapmaker:fontFamily": z.enum(["sans", "serif", "mono"]).optional(),
+    "mapmaker:textBorderEnabled": z.boolean().optional(),
+    "mapmaker:textBorderColor": colorSchema.optional(),
+    "mapmaker:textBorderWidth": z.number().min(0).max(5).optional(),
     "mapmaker:sourceText": z.string().max(MAX_STRING).default(""),
     "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).optional(),
   })
@@ -132,6 +138,12 @@ export function serialize(
       if (f.borderColor) props["mapmaker:borderColor"] = f.borderColor;
       if (f.borderWidth !== undefined) props["mapmaker:borderWidth"] = f.borderWidth;
       if (f.shapeOrigin) props["mapmaker:shapeOrigin"] = f.shapeOrigin;
+      if (f.textContent) props["mapmaker:textContent"] = f.textContent;
+      if (f.fontSize !== undefined) props["mapmaker:fontSize"] = f.fontSize;
+      if (f.fontFamily) props["mapmaker:fontFamily"] = f.fontFamily;
+      if (f.textBorderEnabled !== undefined) props["mapmaker:textBorderEnabled"] = f.textBorderEnabled;
+      if (f.textBorderColor) props["mapmaker:textBorderColor"] = f.textBorderColor;
+      if (f.textBorderWidth !== undefined) props["mapmaker:textBorderWidth"] = f.textBorderWidth;
       if (f.sourceUrl) props["mapmaker:sourceUrl"] = f.sourceUrl;
       return { type: "Feature" as const, geometry: f.geometry, properties: props };
     }),
@@ -162,8 +174,10 @@ export function deserialize(raw: string): DeserializedMap {
 
   const features: Omit<FeatureData, "id">[] = result.features.flatMap((f) => {
     const p = f.properties;
+    const declaredType = p["mapmaker:type"];
     const geoType = geometryTypeToFeatureType(f.geometry.type);
-    if (geoType !== p["mapmaker:type"]) return [];
+    const typeMatches = declaredType === "text" ? geoType === "point" : geoType === declaredType;
+    if (!typeMatches) return [];
     if (!validLayerIds.has(p["mapmaker:layerId"])) return [];
 
     let customSvg = p["mapmaker:customSvg"];
@@ -177,7 +191,7 @@ export function deserialize(raw: string): DeserializedMap {
 
     return [{
       layerId: p["mapmaker:layerId"],
-      type: p["mapmaker:type"],
+      type: declaredType,
       shapeOrigin: p["mapmaker:shapeOrigin"],
       label: p["mapmaker:label"],
       color: p["mapmaker:color"],
@@ -195,6 +209,12 @@ export function deserialize(raw: string): DeserializedMap {
       lineDecoration: p["mapmaker:lineDecoration"],
       decorationSpacing: p["mapmaker:decorationSpacing"],
       fillPattern: p["mapmaker:fillPattern"],
+      textContent: p["mapmaker:textContent"],
+      fontSize: p["mapmaker:fontSize"],
+      fontFamily: p["mapmaker:fontFamily"],
+      textBorderEnabled: p["mapmaker:textBorderEnabled"],
+      textBorderColor: p["mapmaker:textBorderColor"],
+      textBorderWidth: p["mapmaker:textBorderWidth"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],
       geometry: f.geometry,

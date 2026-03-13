@@ -5,6 +5,13 @@ import type { FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 
 function FeatureIcon({ feature }: { feature: FeatureData }) {
+  if (feature.type === "text") {
+    return (
+      <span className="text-xs font-bold shrink-0" style={{ color: feature.color }}>
+        T
+      </span>
+    );
+  }
   if (feature.type === "point" && feature.shape) {
     return (
       <span className="shrink-0" style={{ color: feature.color }}>

@@ -16,6 +16,7 @@ const LINE_STYLE_VALUES = ["solid", "dotted", "dash-short", "dash-medium", "dash
 const ARROW_STYLE_VALUES = ["none", "forward", "both"] as const;
 const LINE_DECORATION_VALUES = ["none", "crosses", "crosses-free", "ticks", "triangles-up", "triangles-down", "arrows-down", "arrows-up", "railway"] as const;
 const FILL_PATTERN_VALUES = ["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"] as const;
+const TEXT_FONT_VALUES = ["sans", "serif", "mono"] as const;
 
 export const featureSchema = z.object({
   label: z.string().max(100, "Label is too long"),
@@ -34,6 +35,12 @@ export const featureSchema = z.object({
   lineDecoration: z.enum(LINE_DECORATION_VALUES),
   decorationSpacing: z.number().min(5).max(200),
   fillPattern: z.enum(FILL_PATTERN_VALUES),
+  textContent: z.string().max(500, "Text is too long").optional(),
+  fontSize: z.number().min(8).max(72).optional(),
+  fontFamily: z.enum(TEXT_FONT_VALUES).optional(),
+  textBorderEnabled: z.boolean().optional(),
+  textBorderColor: hexColor.optional(),
+  textBorderWidth: z.number().min(0).max(5).optional(),
   sourceText: z.string().max(500, "Source text is too long"),
   sourceUrl: z.string().url("Invalid URL").or(z.literal("")),
   layerId: z.string().min(1, "Layer is required"),

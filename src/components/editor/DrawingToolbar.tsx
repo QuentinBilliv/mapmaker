@@ -18,6 +18,7 @@ const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
   { mode: "arrow", label: "Arrow", icon: "→" },
   { mode: "double-arrow", label: "Double Arrow", icon: "↔" },
   { mode: "point", label: "Point", icon: "●" },
+  { mode: "text", label: "Text", icon: "T" },
 ];
 
 export default function DrawingToolbar() {

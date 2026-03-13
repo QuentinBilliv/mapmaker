@@ -29,14 +29,14 @@ function centroid(coords: Coord[]): Coord {
 }
 
 function toGeometry(coords: Coord[], f: FeatureData): GeoJSON.Geometry {
-  if (f.type === "point") return { type: "Point", coordinates: coords[0] };
+  if (f.type === "point" || f.type === "text") return { type: "Point", coordinates: coords[0] };
   if (f.type === "polygon") return { type: "Polygon", coordinates: [[...coords, coords[0]]] };
   return { type: "LineString", coordinates: coords };
 }
 
 function buildFC(coords: Coord[], f: FeatureData): GeoJSON.FeatureCollection {
   const feats: GeoJSON.Feature[] = [];
-  const isPoint = f.type === "point";
+  const isPoint = f.type === "point" || f.type === "text";
   const isPoly = f.type === "polygon";
 
   if (!isPoint) {
@@ -149,7 +149,7 @@ export function useVertexEditing(
         return;
       }
 
-      if (f.type === "point") return;
+      if (f.type === "point" || f.type === "text") return;
       if (!map.getLayer(LAYER_VERTEX)) return;
 
       const vHits = map.queryRenderedFeatures(e.point, { layers: [LAYER_VERTEX] });

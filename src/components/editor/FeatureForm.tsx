@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
-import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type FeatureData } from "@/lib/types";
+import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, TEXT_FONTS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type TextFont, type FeatureData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -29,6 +29,7 @@ const TYPE_LABELS: Record<string, string> = {
   polygon: "Polygon",
   polyline: "Polyline",
   point: "Point",
+  text: "Text",
 };
 
 function featureToFormValues(f: FeatureData): FeatureFormValues {
@@ -49,6 +50,12 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     lineDecoration: f.lineDecoration ?? "none",
     decorationSpacing: f.decorationSpacing ?? 50,
     fillPattern: f.fillPattern ?? "none",
+    textContent: f.textContent ?? "",
+    fontSize: f.fontSize ?? 24,
+    fontFamily: f.fontFamily ?? "sans",
+    textBorderEnabled: f.textBorderEnabled ?? true,
+    textBorderColor: f.textBorderColor ?? COLORS.white,
+    textBorderWidth: f.textBorderWidth ?? 2,
     sourceText: f.sourceText,
     sourceUrl: f.sourceUrl ?? "",
     layerId: f.layerId,
@@ -77,6 +84,7 @@ export default function FeatureForm() {
 
   const isPoint = selectedFeature?.type === "point";
   const isLine = selectedFeature?.type === "polyline";
+  const isText = selectedFeature?.type === "text";
 
   useEffect(() => {
     if (!selectedFeature) return;
@@ -97,13 +105,19 @@ export default function FeatureForm() {
         customSvg: isPoint ? v.customSvg : undefined,
         borderColor: isPoint ? v.borderColor : undefined,
         borderWidth: isPoint ? v.borderWidth : undefined,
-        smoothing: isPoint ? 0 : v.smoothing,
-        strokeWidth: isPoint ? 0 : v.strokeWidth,
-        lineStyle: isPoint ? "solid" : v.lineStyle,
+        smoothing: (isPoint || isText) ? 0 : v.smoothing,
+        strokeWidth: (isPoint || isText) ? 0 : v.strokeWidth,
+        lineStyle: (isPoint || isText) ? "solid" : v.lineStyle,
         arrowStyle: isLine ? v.arrowStyle : "none",
-        lineDecoration: isPoint ? "none" : v.lineDecoration,
-        decorationSpacing: isPoint ? 50 : v.decorationSpacing,
-        fillPattern: (!isPoint && !isLine) ? v.fillPattern : "none",
+        lineDecoration: (isPoint || isText) ? "none" : v.lineDecoration,
+        decorationSpacing: (isPoint || isText) ? 50 : v.decorationSpacing,
+        fillPattern: (!isPoint && !isLine && !isText) ? v.fillPattern : "none",
+        textContent: isText ? v.textContent : undefined,
+        fontSize: isText ? v.fontSize : undefined,
+        fontFamily: isText ? v.fontFamily : undefined,
+        textBorderEnabled: isText ? v.textBorderEnabled : undefined,
+        textBorderColor: isText ? v.textBorderColor : undefined,
+        textBorderWidth: isText ? v.textBorderWidth : undefined,
         sourceText: v.sourceText,
         sourceUrl: v.sourceUrl || undefined,
         layerId: v.layerId,
@@ -111,7 +125,7 @@ export default function FeatureForm() {
     });
     return () => sub.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFeature?.id, isPoint, isLine, updateFeature]);
+  }, [selectedFeature?.id, isPoint, isLine, isText, updateFeature]);
 
   if (!selectedFeature) return null;
 
@@ -131,7 +145,9 @@ export default function FeatureForm() {
         />
         <div className="p-3 space-y-3">
           <StyleFields />
-          {selectedFeature.type === "point" ? (
+          {selectedFeature.type === "text" ? (
+            <TextFields />
+          ) : selectedFeature.type === "point" ? (
             <PointFields />
           ) : (
             <>
@@ -307,6 +323,85 @@ function MarkerSelect() {
         }}
       />
     </Field>
+  );
+}
+
+function TextFields() {
+  const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
+  const fontSize = watch("fontSize") ?? 24;
+  const fontFamily = watch("fontFamily") ?? "sans";
+  const textBorderEnabled = watch("textBorderEnabled") ?? true;
+  const textBorderWidth = watch("textBorderWidth") ?? 2;
+
+  return (
+    <>
+      <Field label="Text content" error={errors.textContent?.message}>
+        <Textarea
+          {...register("textContent")}
+          rows={3}
+          placeholder="Enter your text..."
+          className="resize-y"
+        />
+      </Field>
+      <div className="flex gap-3">
+        <Field label={`Size (${fontSize}px)`} className="flex-1">
+          <Slider
+            min={8}
+            max={72}
+            step={1}
+            value={[fontSize]}
+            onValueChange={(v: number[]) => setValue("fontSize", v[0])}
+            className="mt-2"
+          />
+        </Field>
+        <Field label="Font" className="flex-1">
+          <Select value={fontFamily} onValueChange={(v) => setValue("fontFamily", v as TextFont)}>
+            <SelectTrigger className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {TEXT_FONTS.map((f) => (
+                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </Field>
+      </div>
+      <div className="flex gap-3 items-end">
+        <Field label="Text outline" className="shrink-0">
+          <Button
+            type="button"
+            variant={textBorderEnabled ? "default" : "outline"}
+            size="xs"
+            onClick={() => setValue("textBorderEnabled", !textBorderEnabled)}
+          >
+            {textBorderEnabled ? "On" : "Off"}
+          </Button>
+        </Field>
+        {textBorderEnabled && (
+          <>
+            <Field label="Color" className="flex-1">
+              <input
+                type="color"
+                value={watch("textBorderColor") ?? "#ffffff"}
+                onChange={(e) => setValue("textBorderColor", e.target.value)}
+                className="w-full h-8 rounded cursor-pointer"
+              />
+            </Field>
+            <Field label={`Width (${textBorderWidth}px)`} className="flex-1">
+              <Slider
+                min={0}
+                max={5}
+                step={0.5}
+                value={[textBorderWidth]}
+                onValueChange={(v: number[]) => setValue("textBorderWidth", v[0])}
+                className="mt-2"
+              />
+            </Field>
+          </>
+        )}
+      </div>
+    </>
   );
 }
 

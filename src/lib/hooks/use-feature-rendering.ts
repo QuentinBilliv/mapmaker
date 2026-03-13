@@ -196,7 +196,38 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     paint: {
       "icon-opacity": ["get", "opacity"],
     },
-    filter: ["==", "$type", "Point"],
+    filter: ["all", ["==", "$type", "Point"], ["!=", "featureType", "text"]],
+  });
+
+  map.addLayer({
+    id: "features-text",
+    type: "symbol",
+    source: FEATURES_SOURCE,
+    layout: {
+      "text-field": ["get", "textContent"],
+      "text-size": ["get", "fontSize"],
+      "text-font": ["literal", ["Open Sans Regular", "Arial Unicode MS Regular"]],
+      "text-allow-overlap": true,
+      "text-anchor": "center",
+      "text-max-width": 30,
+    },
+    paint: {
+      "text-color": ["get", "color"],
+      "text-opacity": ["get", "opacity"],
+      "text-halo-color": [
+        "case",
+        ["get", "textBorderEnabled"],
+        ["get", "textBorderColor"],
+        "rgba(0,0,0,0)",
+      ],
+      "text-halo-width": [
+        "case",
+        ["get", "textBorderEnabled"],
+        ["get", "textBorderWidth"],
+        0,
+      ],
+    },
+    filter: ["all", ["==", "$type", "Point"], ["==", "featureType", "text"]],
   });
 
   map.addLayer({
@@ -232,6 +263,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       "text-halo-color": COLORS.white,
       "text-halo-width": 1,
     },
+    filter: ["!=", "featureType", "text"],
   });
 }
 
@@ -264,8 +296,28 @@ function buildGeoJSON(
 
   const geojsonFeatures: GeoJSON.Feature[] = features
     .filter((f) => visibleLayerIds.has(f.layerId))
-    .flatMap((f) => {
+    .flatMap((f): GeoJSON.Feature[] => {
       const rawGeometry = f.geometry;
+
+      if (f.type === "text") {
+        return [{
+          type: "Feature" as const,
+          geometry: rawGeometry,
+          properties: {
+            id: f.id,
+            label: "",
+            color: f.color,
+            opacity: f.opacity,
+            featureType: "text",
+            layerId: f.layerId,
+            textContent: f.textContent ?? "Text",
+            fontSize: f.fontSize ?? 24,
+            textBorderEnabled: f.textBorderEnabled ?? true,
+            textBorderColor: f.textBorderColor ?? COLORS.white,
+            textBorderWidth: f.textBorderWidth ?? 2,
+          },
+        }];
+      }
 
       let iconId = "";
 

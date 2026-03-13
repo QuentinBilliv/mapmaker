@@ -72,10 +72,18 @@ export const FILL_PATTERNS: { value: FillPattern; label: string }[] = [
 
 export type ShapeOrigin = "rectangle" | "circle";
 
+export type TextFont = "sans" | "serif" | "mono";
+
+export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] = [
+  { value: "sans", label: "Sans-serif", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "serif", label: "Serif", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "mono", label: "Monospace", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
+];
+
 export interface FeatureData {
   id: string;
   layerId: string;
-  type: "polygon" | "polyline" | "point";
+  type: "polygon" | "polyline" | "point" | "text";
   shapeOrigin?: ShapeOrigin;
   label: string;
   color: string;
@@ -93,6 +101,12 @@ export interface FeatureData {
   lineDecoration: LineDecoration;
   decorationSpacing: number;
   fillPattern: FillPattern;
+  textContent?: string;
+  fontSize?: number;
+  fontFamily?: TextFont;
+  textBorderEnabled?: boolean;
+  textBorderColor?: string;
+  textBorderWidth?: number;
   sourceText: string;
   sourceUrl?: string;
   geometry: GeoJSON.Geometry;

@@ -49,7 +49,7 @@ export function useDrawing(
     const map = mapRef.current;
     if (!map) return;
     const mode = drawModeRef.current;
-    if (mode === "select" || mode === "point") return;
+    if (mode === "select" || mode === "point" || mode === "text") return;
     const state = drawStateRef.current;
     const geometry = buildGeometry(mode, state.currentPoints);
     if (geometry) onFeatureDrawn(geometry);
@@ -77,6 +77,7 @@ export function useDrawing(
           "features-fill",
           "features-line-solid", "features-line-dotted", "features-line-dash-short", "features-line-dash-medium", "features-line-dash-long",
           "features-circle",
+          "features-text",
         ].filter((id) => map.getLayer(id));
         const clicked = map.queryRenderedFeatures(e.point, { layers: queryLayers });
         if (clicked.length > 0 && clicked[0].properties?.id) {
@@ -88,7 +89,7 @@ export function useDrawing(
       const point: [number, number] = [e.lngLat.lng, e.lngLat.lat];
       const state = drawStateRef.current;
 
-      if (mode === "point") {
+      if (mode === "point" || mode === "text") {
         const geometry = buildGeometry(mode, [point]);
         if (geometry) onFeatureDrawn(geometry);
         clearDrawPreview(map);

@@ -2,7 +2,7 @@ import maplibregl from "maplibre-gl";
 import { COLORS } from "./defaults";
 import { toMercatorY, fromMercatorY } from "./geo-math";
 
-export type DrawMode = "select" | "polygon" | "rectangle" | "circle" | "polyline" | "point" | "arrow" | "double-arrow";
+export type DrawMode = "select" | "polygon" | "rectangle" | "circle" | "polyline" | "point" | "arrow" | "double-arrow" | "text";
 
 export interface DrawState {
   mode: DrawMode;
@@ -128,7 +128,7 @@ export function buildGeometry(
   mode: DrawMode,
   points: [number, number][]
 ): GeoJSON.Geometry | null {
-  if (mode === "point" && points.length === 1) {
+  if ((mode === "point" || mode === "text") && points.length === 1) {
     return { type: "Point", coordinates: points[0] };
   }
   if ((mode === "polyline" || mode === "arrow" || mode === "double-arrow") && points.length >= 2) {
