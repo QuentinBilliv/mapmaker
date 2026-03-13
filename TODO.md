@@ -2,7 +2,7 @@
 
 ## Moyen terme
 
-- [ ] **Accessibilité** — Ajouter des aria-labels sur les inputs color, slider et file upload (FeatureForm, DrawingSettingsPanel, IconPickerDialog)
+- [x] **Accessibilité** — Ajouter des aria-labels sur les inputs color, slider et file upload (FeatureForm, DrawingSettingsPanel, IconPickerDialog)
 - [x] **Undo/redo** — Implémenter undo/redo ou au minimum une confirmation avant les suppressions destructives (features, layers)
 - [x] **Memoisation** — Ajouter useMemo pour featureCounts (LayerPanel). GeoJSON collections dans use-feature-rendering déjà stables via le context.
 - [x] **Virtual scrolling** — Virtual scrolling + multi-pack (FA6, Game Icons, Ionicons) avec search cross-pack

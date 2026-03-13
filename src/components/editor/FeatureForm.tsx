@@ -305,6 +305,7 @@ function MarkerSelect() {
             accept=".svg"
             onChange={handleUpload}
             className="hidden"
+            aria-label="Upload SVG marker"
           />
         </div>
         {svgError && (
