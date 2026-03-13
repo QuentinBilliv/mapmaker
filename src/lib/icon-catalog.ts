@@ -3,36 +3,63 @@ import { type IconType } from "react-icons";
 export interface CatalogEntry {
   id: string;
   name: string;
+  pack: string;
   Icon: IconType;
 }
 
-let _cache: CatalogEntry[] | null = null;
-let _map: Map<string, CatalogEntry> | null = null;
-
-function pascalToReadable(id: string): string {
-  return id.replace(/^Fa/, "").replace(/([A-Z])/g, " $1").trim();
+export interface IconPack {
+  id: string;
+  label: string;
+  prefix: string;
+  loader: () => Promise<Record<string, unknown>>;
 }
 
-export async function loadCatalog(): Promise<CatalogEntry[]> {
-  if (_cache) return _cache;
-  const mod = await import("react-icons/fa6");
-  _cache = Object.entries(mod)
-    .filter(([key, val]) => key.startsWith("Fa") && typeof val === "function")
+const PACKS: IconPack[] = [
+  { id: "fa6", label: "Font Awesome", prefix: "Fa", loader: () => import("react-icons/fa6") },
+  { id: "gi", label: "Game Icons", prefix: "Gi", loader: () => import("react-icons/gi") },
+  { id: "io5", label: "Ionicons", prefix: "Io", loader: () => import("react-icons/io5") },
+];
+
+export { PACKS };
+
+const _packCache = new Map<string, CatalogEntry[]>();
+const _globalMap = new Map<string, CatalogEntry>();
+
+function stripPrefix(id: string, prefix: string): string {
+  return id.replace(new RegExp(`^${prefix}`), "").replace(/([A-Z])/g, " $1").trim();
+}
+
+export async function loadPack(packId: string): Promise<CatalogEntry[]> {
+  const cached = _packCache.get(packId);
+  if (cached) return cached;
+  const pack = PACKS.find((p) => p.id === packId);
+  if (!pack) return [];
+  const mod = await pack.loader();
+  const entries: CatalogEntry[] = Object.entries(mod)
+    .filter(([key, val]) => key.startsWith(pack.prefix) && typeof val === "function")
     .map(([key, val]) => ({
       id: key,
-      name: pascalToReadable(key),
+      name: stripPrefix(key, pack.prefix),
+      pack: pack.id,
       Icon: val as IconType,
     }))
     .sort((a, b) => a.name.localeCompare(b.name));
-  _map = new Map(_cache.map((e) => [e.id, e]));
-  return _cache;
+  _packCache.set(packId, entries);
+  for (const e of entries) _globalMap.set(e.id, e);
+  return entries;
+}
+
+export async function loadAllPacks(): Promise<CatalogEntry[]> {
+  const results = await Promise.all(PACKS.map((p) => loadPack(p.id)));
+  return results.flat();
 }
 
 export function getCatalogEntry(id: string): CatalogEntry | undefined {
-  return _map?.get(id);
+  return _globalMap.get(id);
 }
 
 export async function loadCatalogEntry(id: string): Promise<CatalogEntry | undefined> {
-  if (!_map) await loadCatalog();
-  return _map?.get(id);
+  if (_globalMap.has(id)) return _globalMap.get(id);
+  await loadAllPacks();
+  return _globalMap.get(id);
 }
