@@ -1,5 +1,3 @@
-import type { Doc } from "../../convex/_generated/dataModel";
-
 export interface MapFeatureProperties {
   id: string;
   label: string;
@@ -31,52 +29,6 @@ export function parseGeometry(raw: string): GeoJSON.Geometry | null {
   } catch {
     return null;
   }
-}
-
-export function featureToGeoJSON(
-  feature: Doc<"features">,
-  layerName: string
-): GeoJSON.Feature | null {
-  const geometry = parseGeometry(feature.geometry);
-  if (!geometry) return null;
-  return {
-    type: "Feature",
-    geometry,
-    properties: {
-      id: feature._id,
-      label: feature.label,
-      color: feature.color,
-      opacity: feature.opacity,
-      layerId: feature.layerId,
-      layerName,
-      sourceText: feature.sourceText,
-      sourceUrl: feature.sourceUrl,
-      featureType: feature.type,
-    } satisfies MapFeatureProperties,
-  };
-}
-
-export function exportMap(
-  map: Doc<"maps">,
-  features: Doc<"features">[],
-  layers: Doc<"layers">[]
-): ExportedMap {
-  const layerMap = new Map(layers.map((l) => [l._id, l.name]));
-
-  return {
-    type: "FeatureCollection",
-    properties: {
-      title: map.title,
-      description: map.description,
-      tags: map.tags,
-      license: map.license,
-      exportedAt: new Date().toISOString(),
-      generator: "mapmaker",
-    },
-    features: features
-      .map((f) => featureToGeoJSON(f, layerMap.get(f.layerId) ?? "Unnamed"))
-      .filter((f): f is GeoJSON.Feature => f !== null),
-  };
 }
 
 export function geometryTypeToFeatureType(

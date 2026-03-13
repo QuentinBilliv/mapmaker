@@ -12,11 +12,9 @@
 
 - Next.js 14 (App Router), TypeScript, Tailwind CSS
 - MapLibre GL JS for map rendering (client-side only)
-- Convex for persistence (optional — editor works in local state without it)
 
 ## Project structure
 
-- `/convex` — Convex schema and server functions (maps, layers, features)
 - `/src/app` — editor is the home page (`/`)
 - `/src/components/editor/` — MapCanvas, DrawingToolbar, LayerPanel, FeatureForm, MapMetadata
 - `/src/components/ui/` — shared UI primitives (Field, PanelHeader)
@@ -25,7 +23,7 @@
 
 ## Key principles
 
-- Editor runs entirely client-side; server calls are only for persistence
+- Editor runs entirely client-side
 - GeoJSON format must stay clean and exportable independently of the platform
 - The `.mapmaker` export format (`mapmaker-format.ts`) must always serialize every field from `FeatureData`. When adding a new property to features, update both the export and import in `mapmaker-format.ts` so no data is lost on round-trip.
 - UI is functional over pretty — editor ergonomics matter most
