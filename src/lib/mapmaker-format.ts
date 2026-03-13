@@ -55,7 +55,10 @@ const mapmakerProps = z
     "mapmaker:textBorderColor": colorSchema.optional(),
     "mapmaker:textBorderWidth": z.number().min(0).max(5).optional(),
     "mapmaker:sourceText": z.string().max(MAX_STRING).default(""),
-    "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).optional(),
+    "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).refine(
+      (v) => /^https?:\/\//i.test(v),
+      "Only http and https URLs are allowed"
+    ).optional(),
   })
   .passthrough();
 

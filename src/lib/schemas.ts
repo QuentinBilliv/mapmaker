@@ -42,7 +42,10 @@ export const featureSchema = z.object({
   textBorderColor: hexColor.optional(),
   textBorderWidth: z.number().min(0).max(5).optional(),
   sourceText: z.string().max(500, "Source text is too long"),
-  sourceUrl: z.string().url("Invalid URL").or(z.literal("")),
+  sourceUrl: z.string().url("Invalid URL").refine(
+    (v) => !v || /^https?:\/\//i.test(v),
+    "Only http and https URLs are allowed"
+  ).or(z.literal("")),
   layerId: z.string().min(1, "Layer is required"),
 });
 
