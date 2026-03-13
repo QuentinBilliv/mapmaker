@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
-import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, TEXT_FONTS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type TextFont, type FeatureData } from "@/lib/types";
+import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, TEXT_FONTS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type TextFont, type FeatureData, type FeatureUpdate } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -34,33 +34,43 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 function featureToFormValues(f: FeatureData): FeatureFormValues {
-  return {
+  const defaults: FeatureFormValues = {
     label: f.label,
     color: f.color,
     opacity: f.opacity,
-    size: f.size ?? 1,
-    shape: f.shape ?? "circle",
-    icon: f.icon,
-    customSvg: f.customSvg,
-    borderColor: f.borderColor ?? COLORS.white,
-    borderWidth: f.borderWidth ?? DEFAULT_BORDER_WIDTH,
-    smoothing: f.smoothing ?? 0,
-    strokeWidth: f.strokeWidth ?? 3,
-    lineStyle: f.lineStyle ?? "solid",
-    arrowStyle: f.arrowStyle ?? "none",
-    lineDecoration: f.lineDecoration ?? "none",
-    decorationSpacing: f.decorationSpacing ?? 50,
-    fillPattern: f.fillPattern ?? "none",
-    textContent: f.textContent ?? "",
-    fontSize: f.fontSize ?? 24,
-    fontFamily: f.fontFamily ?? "sans",
-    textBorderEnabled: f.textBorderEnabled ?? true,
-    textBorderColor: f.textBorderColor ?? COLORS.white,
-    textBorderWidth: f.textBorderWidth ?? 2,
     sourceText: f.sourceText,
     sourceUrl: f.sourceUrl ?? "",
     layerId: f.layerId,
+    size: 1,
+    shape: "circle",
+    icon: undefined,
+    customSvg: undefined,
+    borderColor: COLORS.white,
+    borderWidth: DEFAULT_BORDER_WIDTH,
+    smoothing: 0,
+    strokeWidth: 3,
+    lineStyle: "solid",
+    arrowStyle: "none",
+    lineDecoration: "none",
+    decorationSpacing: 50,
+    fillPattern: "none",
+    textContent: "",
+    fontSize: 24,
+    fontFamily: "sans",
+    textBorderEnabled: true,
+    textBorderColor: COLORS.white,
+    textBorderWidth: 2,
   };
+  switch (f.type) {
+    case "point":
+      return { ...defaults, size: f.size, shape: f.shape ?? "circle", icon: f.icon, customSvg: f.customSvg, borderColor: f.borderColor, borderWidth: f.borderWidth };
+    case "text":
+      return { ...defaults, textContent: f.textContent, fontSize: f.fontSize, fontFamily: f.fontFamily, textBorderEnabled: f.textBorderEnabled, textBorderColor: f.textBorderColor, textBorderWidth: f.textBorderWidth };
+    case "polyline":
+      return { ...defaults, smoothing: f.smoothing, strokeWidth: f.strokeWidth, lineStyle: f.lineStyle, arrowStyle: f.arrowStyle, lineDecoration: f.lineDecoration, decorationSpacing: f.decorationSpacing };
+    case "polygon":
+      return { ...defaults, smoothing: f.smoothing, strokeWidth: f.strokeWidth, lineStyle: f.lineStyle, lineDecoration: f.lineDecoration, decorationSpacing: f.decorationSpacing, fillPattern: f.fillPattern };
+  }
 }
 
 export default function FeatureForm() {
@@ -68,7 +78,7 @@ export default function FeatureForm() {
   const { updateFeature, deleteFeature, selectFeature, recordSnapshot } = useEditorActions();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
-  const originalRef = useRef<Partial<FeatureData> | null>(null);
+  const originalRef = useRef<FeatureUpdate | null>(null);
   const snapshotTakenRef = useRef(false);
 
   const methods = useForm<FeatureFormValues>({

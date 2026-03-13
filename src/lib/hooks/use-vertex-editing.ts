@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData } from "@/lib/types";
+import type { FeatureData, FeatureUpdate } from "@/lib/types";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 import { ROTATE_ICON_ID, ensureRotateIcon } from "@/lib/rotate-icon";
@@ -187,7 +187,7 @@ type DragState = VertexDrag | MoveDrag | RotateDrag | PointRotateDrag;
 export function useVertexEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
-  updateFeature: (id: string, updates: Partial<FeatureData>) => void,
+  updateFeature: (id: string, updates: FeatureUpdate) => void,
   styleVersion: number,
   recordSnapshot?: () => void,
 ): React.RefObject<boolean> {
@@ -209,7 +209,7 @@ export function useVertexEditing(
       if (!map.isStyleLoaded()) return;
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
+      if (!f || (f.type === "polygon" && f.shapeOrigin)) { setOverlay(map, EMPTY); return; }
       const isPoint = f.type === "point" || f.type === "text";
       if (isPoint) {
         const coords = getCoords(f);
@@ -222,7 +222,7 @@ export function useVertexEditing(
 
     function onMouseDown(e: maplibregl.MapMouseEvent) {
       const f = featRef.current;
-      if (!f || f.shapeOrigin) return;
+      if (!f || (f.type === "polygon" && f.shapeOrigin)) return;
 
       const rotateHits = map.getLayer(LAYER_ROTATE_HIT)
         ? map.queryRenderedFeatures(e.point, { layers: [LAYER_ROTATE_HIT] })
@@ -353,7 +353,7 @@ export function useVertexEditing(
         return;
       }
       const f = featRef.current;
-      if (!f || f.shapeOrigin) return;
+      if (!f || (f.type === "polygon" && f.shapeOrigin)) return;
       const rotateLayer = map.getLayer(LAYER_ROTATE_HIT) ? [LAYER_ROTATE_HIT] : [];
       const rotateHits = rotateLayer.length > 0 ? map.queryRenderedFeatures(e.point, { layers: rotateLayer }) : [];
       if (rotateHits.length > 0) {
@@ -416,7 +416,7 @@ export function useVertexEditing(
       }
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || f.shapeOrigin) { setOverlay(map, EMPTY); return; }
+      if (!f || (f.type === "polygon" && f.shapeOrigin)) { setOverlay(map, EMPTY); return; }
       const isPoint = f.type === "point" || f.type === "text";
       if (isPoint) {
         const coords = getCoords(f);

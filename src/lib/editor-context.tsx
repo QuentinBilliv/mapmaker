@@ -19,6 +19,7 @@ import type {
   MapData,
   LayerData,
   FeatureData,
+  FeatureUpdate,
   PointShape,
   LineStyle,
   ArrowStyle,
@@ -141,7 +142,7 @@ interface EditorActions {
   setActiveTextBorderWidth: (width: number) => void;
   selectFeature: (id: string | null) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
-  updateFeature: (id: string, updates: Partial<FeatureData>) => void;
+  updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   addLayer: (name: string) => void;
   toggleLayer: (id: string) => void;
@@ -312,61 +313,72 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     const currentMode = drawModeRef.current;
     const isText = currentMode === "text";
     const featureType = isText ? "text" as const : geometryTypeToFeatureType(geometry.type);
-    const isPoint = featureType === "point";
-    const isLine = featureType === "polyline";
-    const arrowFromMode =
-      currentMode === "arrow"
-        ? "forward"
-        : currentMode === "double-arrow"
-          ? "both"
-          : s.activeArrowStyle;
-    const shapeOrigin =
-      currentMode === "rectangle" ? "rectangle" as const
-      : currentMode === "circle" ? "circle" as const
-      : undefined;
-    const newFeature: FeatureData = {
+    const base = {
       id: uuid(),
       layerId: s.activeLayerId,
-      type: featureType,
-      shapeOrigin,
       label: s.activeLabel,
       color: s.activeColor,
       opacity: s.activeOpacity,
-      size: isPoint ? s.activeSize : undefined,
-      shape: isPoint
-        ? s.activeIcon
-          ? undefined
-          : s.activeShape
-        : undefined,
-      icon: isPoint ? (s.activeIcon ?? undefined) : undefined,
-      borderColor: isPoint ? s.activeBorderColor : undefined,
-      borderWidth: isPoint ? s.activeBorderWidth : undefined,
-      smoothing: (isPoint || isText) ? 0 : s.activeSmoothing,
-      strokeWidth: (isPoint || isText) ? 0 : s.activeStrokeWidth,
-      lineStyle: (isPoint || isText) ? "solid" : s.activeLineStyle,
-      arrowStyle: isLine ? arrowFromMode : "none",
-      lineDecoration: (isPoint || isText) ? "none" : s.activeLineDecoration,
-      decorationSpacing: (isPoint || isText) ? 50 : s.activeDecorationSpacing,
-      fillPattern: featureType === "polygon" ? s.activeFillPattern : "none",
-      textContent: isText ? (s.activeTextContent || "Text") : undefined,
-      fontSize: isText ? s.activeFontSize : undefined,
-      fontFamily: isText ? s.activeFontFamily : undefined,
-      textBorderEnabled: isText ? s.activeTextBorderEnabled : undefined,
-      textBorderColor: isText ? s.activeTextBorderColor : undefined,
-      textBorderWidth: isText ? s.activeTextBorderWidth : undefined,
       sourceText: s.activeSourceText,
       sourceUrl: s.activeSourceUrl || undefined,
       geometry,
     };
+    let newFeature: FeatureData;
+    switch (featureType) {
+      case "text":
+        newFeature = {
+          ...base, type: "text",
+          textContent: s.activeTextContent || "Text",
+          fontSize: s.activeFontSize,
+          fontFamily: s.activeFontFamily,
+          textBorderEnabled: s.activeTextBorderEnabled,
+          textBorderColor: s.activeTextBorderColor,
+          textBorderWidth: s.activeTextBorderWidth,
+        };
+        break;
+      case "point":
+        newFeature = {
+          ...base, type: "point",
+          size: s.activeSize,
+          shape: s.activeIcon ? undefined : s.activeShape,
+          icon: s.activeIcon ?? undefined,
+          borderColor: s.activeBorderColor,
+          borderWidth: s.activeBorderWidth,
+        };
+        break;
+      case "polyline":
+        newFeature = {
+          ...base, type: "polyline",
+          smoothing: s.activeSmoothing,
+          strokeWidth: s.activeStrokeWidth,
+          lineStyle: s.activeLineStyle,
+          arrowStyle: currentMode === "arrow" ? "forward" : currentMode === "double-arrow" ? "both" : s.activeArrowStyle,
+          lineDecoration: s.activeLineDecoration,
+          decorationSpacing: s.activeDecorationSpacing,
+        };
+        break;
+      case "polygon":
+        newFeature = {
+          ...base, type: "polygon",
+          shapeOrigin: currentMode === "rectangle" ? "rectangle" : currentMode === "circle" ? "circle" : undefined,
+          smoothing: s.activeSmoothing,
+          strokeWidth: s.activeStrokeWidth,
+          lineStyle: s.activeLineStyle,
+          lineDecoration: s.activeLineDecoration,
+          decorationSpacing: s.activeDecorationSpacing,
+          fillPattern: s.activeFillPattern,
+        };
+        break;
+    }
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureId(newFeature.id);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
   }, [recordSnapshot]);
 
   const updateFeature = useCallback(
-    (id: string, updates: Partial<FeatureData>) => {
+    (id: string, updates: FeatureUpdate) => {
       setFeatures((prev) =>
-        prev.map((f) => (f.id === id ? { ...f, ...updates } : f))
+        prev.map((f) => (f.id === id ? { ...f, ...updates } as FeatureData : f))
       );
     },
     []
@@ -412,7 +424,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setMap((prev) => ({ ...prev, ...data.map }));
     setLayers(data.layers);
     setFeatures(
-      data.features.map((f) => ({ ...f, id: uuid() }))
+      data.features.map((f) => ({ ...f, id: uuid() }) as FeatureData)
     );
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
     dispatchDrawing({

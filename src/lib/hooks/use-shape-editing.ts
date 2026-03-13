@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData } from "@/lib/types";
+import type { FeatureData, FeatureUpdate, PolygonFeature } from "@/lib/types";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 import { ROTATE_ICON_ID, ensureRotateIcon } from "@/lib/rotate-icon";
@@ -23,19 +23,23 @@ const LAYER_ROTATE_ARM = "shape-edit-rotate-arm";
 
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
-function getRingCoords(f: FeatureData): Coord[] {
+function isShapePolygon(f: FeatureData): f is PolygonFeature & { shapeOrigin: "rectangle" | "circle" } {
+  return f.type === "polygon" && !!f.shapeOrigin;
+}
+
+function getRingCoords(f: PolygonFeature): Coord[] {
   const g = f.geometry;
   if (g.type !== "Polygon") return [];
   return (g as GeoJSON.Polygon).coordinates[0] as Coord[];
 }
 
-function rectCorners(f: FeatureData): { a: Coord; b: Coord } | null {
+function rectCorners(f: PolygonFeature): { a: Coord; b: Coord } | null {
   const ring = getRingCoords(f);
   if (ring.length < 5) return null;
   return { a: ring[0], b: ring[2] };
 }
 
-function circleParams(f: FeatureData): { center: Coord; radius: number } | null {
+function circleParams(f: PolygonFeature): { center: Coord; radius: number } | null {
   const ring = getRingCoords(f);
   if (ring.length < 4) return null;
   let cx = 0, mcy = 0;
@@ -74,7 +78,7 @@ function buildCircleGeometry(center: Coord, radius: number): GeoJSON.Geometry {
   return { type: "Polygon", coordinates: [ring] };
 }
 
-function getShapeCoords(f: FeatureData): Coord[] {
+function getShapeCoords(f: PolygonFeature): Coord[] {
   if (f.shapeOrigin === "rectangle") {
     const rc = rectCorners(f);
     if (!rc) return [];
@@ -236,7 +240,7 @@ type DragState = RectCornerDrag | RectCenterDrag | CircleCenterDrag | CircleEdge
 export function useShapeEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   selectedFeature: FeatureData | null,
-  updateFeature: (id: string, updates: Partial<FeatureData>) => void,
+  updateFeature: (id: string, updates: FeatureUpdate) => void,
   styleVersion: number,
   recordSnapshot?: () => void,
 ): React.RefObject<boolean> {
@@ -258,7 +262,7 @@ export function useShapeEditing(
       if (!map.isStyleLoaded()) return;
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || !f.shapeOrigin) { setOverlay(map, EMPTY); return; }
+      if (!f || !isShapePolygon(f)) { setOverlay(map, EMPTY); return; }
       if (f.shapeOrigin === "rectangle") {
         const rc = rectCorners(f);
         if (rc) setOverlay(map, rectHandles(rc.a, rc.b));
@@ -270,7 +274,7 @@ export function useShapeEditing(
 
     function onMouseDown(e: maplibregl.MapMouseEvent) {
       const f = featRef.current;
-      if (!f || !f.shapeOrigin) return;
+      if (!f || !isShapePolygon(f)) return;
 
       const rotateHits = (f.shapeOrigin === "rectangle" && map.getLayer(LAYER_ROTATE_HIT))
         ? map.queryRenderedFeatures(e.point, { layers: [LAYER_ROTATE_HIT] })
@@ -338,7 +342,7 @@ export function useShapeEditing(
       const d = dragRef.current;
       if (!d) {
         const f = featRef.current;
-        if (!f || !f.shapeOrigin) return;
+        if (!f || !isShapePolygon(f)) return;
         const queryLayers = [LAYER_ROTATE_HIT, LAYER_HANDLE].filter(id => map.getLayer(id));
         if (queryLayers.length === 0) return;
         const rotateHits = map.getLayer(LAYER_ROTATE_HIT)
@@ -454,7 +458,7 @@ export function useShapeEditing(
       if (!map.isStyleLoaded()) { map.once("idle", update); return; }
       ensureLayers(map);
       const f = featRef.current;
-      if (!f || !f.shapeOrigin) { setOverlay(map, EMPTY); return; }
+      if (!f || !isShapePolygon(f)) { setOverlay(map, EMPTY); return; }
       if (f.shapeOrigin === "rectangle") {
         const rc = rectCorners(f);
         if (rc) setOverlay(map, rectHandles(rc.a, rc.b));

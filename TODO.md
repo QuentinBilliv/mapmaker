@@ -11,9 +11,6 @@
 
 ## Long terme
 
-- [ ] **Schema Convex** — Stocker les propriétés de style (color, opacity, shape, icon, etc.) dans la table features
-- [ ] **Indexes Convex** — Ajouter un index by_feature_id et vérifier les indexes existants
-- [ ] **Type safety** — Discriminated unions pour FeatureData par type (polygon, polyline, point, text)
-- [ ] **Offline** — Support IndexedDB en fallback quand Convex n'est pas disponible
-- [ ] **Édition concurrente** — Détection et résolution de conflits multi-utilisateur via Convex
-- [ ] **SVG serveur** — Sanitizer SVG côté serveur (sans DOMParser) si traitement Convex ajouté
+- [x] **Type safety** — Discriminated unions pour FeatureData par type (polygon, polyline, point, text)
+- [ ] **Persistence** — Intégrer un backend (Convex ou autre) pour la persistence des maps/layers/features
+- [ ] **SVG serveur** — Sanitizer SVG côté serveur (sans DOMParser) si traitement backend ajouté

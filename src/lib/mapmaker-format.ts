@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData } from "./types";
+import type { MapData, LayerData, FeatureData, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
 import { BASE_MAPS } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
@@ -128,30 +128,45 @@ export function serialize(
         "mapmaker:label": f.label,
         "mapmaker:color": f.color,
         "mapmaker:opacity": f.opacity,
-        "mapmaker:smoothing": f.smoothing,
-        "mapmaker:strokeWidth": f.strokeWidth,
-        "mapmaker:lineStyle": f.lineStyle,
-        "mapmaker:arrowStyle": f.arrowStyle,
-        "mapmaker:lineDecoration": f.lineDecoration,
-        "mapmaker:decorationSpacing": f.decorationSpacing,
-        "mapmaker:fillPattern": f.fillPattern,
         "mapmaker:sourceText": f.sourceText,
       };
-      if (f.size !== undefined) props["mapmaker:size"] = f.size;
-      if (f.shape) props["mapmaker:shape"] = f.shape;
-      if (f.icon) props["mapmaker:icon"] = f.icon;
-      if (f.customSvg) props["mapmaker:customSvg"] = f.customSvg;
-      if (f.borderColor) props["mapmaker:borderColor"] = f.borderColor;
-      if (f.borderWidth !== undefined) props["mapmaker:borderWidth"] = f.borderWidth;
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
-      if (f.shapeOrigin) props["mapmaker:shapeOrigin"] = f.shapeOrigin;
-      if (f.textContent) props["mapmaker:textContent"] = f.textContent;
-      if (f.fontSize !== undefined) props["mapmaker:fontSize"] = f.fontSize;
-      if (f.fontFamily) props["mapmaker:fontFamily"] = f.fontFamily;
-      if (f.textBorderEnabled !== undefined) props["mapmaker:textBorderEnabled"] = f.textBorderEnabled;
-      if (f.textBorderColor) props["mapmaker:textBorderColor"] = f.textBorderColor;
-      if (f.textBorderWidth !== undefined) props["mapmaker:textBorderWidth"] = f.textBorderWidth;
       if (f.sourceUrl) props["mapmaker:sourceUrl"] = f.sourceUrl;
+      switch (f.type) {
+        case "polygon":
+          props["mapmaker:smoothing"] = f.smoothing;
+          props["mapmaker:strokeWidth"] = f.strokeWidth;
+          props["mapmaker:lineStyle"] = f.lineStyle;
+          props["mapmaker:lineDecoration"] = f.lineDecoration;
+          props["mapmaker:decorationSpacing"] = f.decorationSpacing;
+          props["mapmaker:fillPattern"] = f.fillPattern;
+          if (f.shapeOrigin) props["mapmaker:shapeOrigin"] = f.shapeOrigin;
+          break;
+        case "polyline":
+          props["mapmaker:smoothing"] = f.smoothing;
+          props["mapmaker:strokeWidth"] = f.strokeWidth;
+          props["mapmaker:lineStyle"] = f.lineStyle;
+          props["mapmaker:arrowStyle"] = f.arrowStyle;
+          props["mapmaker:lineDecoration"] = f.lineDecoration;
+          props["mapmaker:decorationSpacing"] = f.decorationSpacing;
+          break;
+        case "point":
+          props["mapmaker:size"] = f.size;
+          if (f.shape) props["mapmaker:shape"] = f.shape;
+          if (f.icon) props["mapmaker:icon"] = f.icon;
+          if (f.customSvg) props["mapmaker:customSvg"] = f.customSvg;
+          props["mapmaker:borderColor"] = f.borderColor;
+          props["mapmaker:borderWidth"] = f.borderWidth;
+          break;
+        case "text":
+          props["mapmaker:textContent"] = f.textContent;
+          props["mapmaker:fontSize"] = f.fontSize;
+          props["mapmaker:fontFamily"] = f.fontFamily;
+          props["mapmaker:textBorderEnabled"] = f.textBorderEnabled;
+          props["mapmaker:textBorderColor"] = f.textBorderColor;
+          props["mapmaker:textBorderWidth"] = f.textBorderWidth;
+          break;
+      }
       return { type: "Feature" as const, geometry: f.geometry, properties: props };
     }),
   };
@@ -159,11 +174,17 @@ export function serialize(
   return JSON.stringify(doc, null, 2);
 }
 
+type FeatureWithoutId =
+  | Omit<PolygonFeature, "id">
+  | Omit<PolylineFeature, "id">
+  | Omit<PointFeature, "id">
+  | Omit<TextFeature, "id">;
+
 export interface DeserializedMap {
   map: Omit<MapData, "id">;
   baseMapId: string;
   layers: LayerData[];
-  features: Omit<FeatureData, "id">[];
+  features: FeatureWithoutId[];
 }
 
 export function deserialize(raw: string): DeserializedMap {
@@ -179,7 +200,7 @@ export function deserialize(raw: string): DeserializedMap {
   const validLayerIds = new Set(result.mapmaker.layers.map((l) => l.id));
   const knownBaseMap = BASE_MAPS.find((b) => b.id === result.mapmaker.baseMap);
 
-  const features: Omit<FeatureData, "id">[] = result.features.flatMap((f) => {
+  const features: FeatureWithoutId[] = result.features.flatMap((f): FeatureWithoutId[] => {
     const p = f.properties;
     const declaredType = p["mapmaker:type"];
     const geoType = geometryTypeToFeatureType(f.geometry.type);
@@ -196,37 +217,26 @@ export function deserialize(raw: string): DeserializedMap {
       }
     }
 
-    return [{
+    const base = {
       layerId: p["mapmaker:layerId"],
-      type: declaredType,
-      rotation: p["mapmaker:rotation"],
-      shapeOrigin: p["mapmaker:shapeOrigin"],
       label: p["mapmaker:label"],
       color: p["mapmaker:color"],
       opacity: p["mapmaker:opacity"],
-      size: p["mapmaker:size"],
-      shape: p["mapmaker:shape"],
-      icon: p["mapmaker:icon"],
-      customSvg,
-      borderColor: p["mapmaker:borderColor"],
-      borderWidth: p["mapmaker:borderWidth"],
-      smoothing: p["mapmaker:smoothing"],
-      strokeWidth: p["mapmaker:strokeWidth"],
-      lineStyle: p["mapmaker:lineStyle"],
-      arrowStyle: p["mapmaker:arrowStyle"],
-      lineDecoration: p["mapmaker:lineDecoration"],
-      decorationSpacing: p["mapmaker:decorationSpacing"],
-      fillPattern: p["mapmaker:fillPattern"],
-      textContent: p["mapmaker:textContent"],
-      fontSize: p["mapmaker:fontSize"],
-      fontFamily: p["mapmaker:fontFamily"],
-      textBorderEnabled: p["mapmaker:textBorderEnabled"],
-      textBorderColor: p["mapmaker:textBorderColor"],
-      textBorderWidth: p["mapmaker:textBorderWidth"],
+      rotation: p["mapmaker:rotation"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],
       geometry: f.geometry,
-    }];
+    };
+    switch (declaredType) {
+      case "polygon":
+        return [{ ...base, type: "polygon" as const, shapeOrigin: p["mapmaker:shapeOrigin"], smoothing: p["mapmaker:smoothing"], strokeWidth: p["mapmaker:strokeWidth"], lineStyle: p["mapmaker:lineStyle"], lineDecoration: p["mapmaker:lineDecoration"], decorationSpacing: p["mapmaker:decorationSpacing"], fillPattern: p["mapmaker:fillPattern"] }];
+      case "polyline":
+        return [{ ...base, type: "polyline" as const, smoothing: p["mapmaker:smoothing"], strokeWidth: p["mapmaker:strokeWidth"], lineStyle: p["mapmaker:lineStyle"], arrowStyle: p["mapmaker:arrowStyle"], lineDecoration: p["mapmaker:lineDecoration"], decorationSpacing: p["mapmaker:decorationSpacing"] }];
+      case "point":
+        return [{ ...base, type: "point" as const, size: p["mapmaker:size"] ?? 1, shape: p["mapmaker:shape"], icon: p["mapmaker:icon"], customSvg, borderColor: p["mapmaker:borderColor"] ?? "#ffffff", borderWidth: p["mapmaker:borderWidth"] ?? 0 }];
+      case "text":
+        return [{ ...base, type: "text" as const, textContent: p["mapmaker:textContent"] ?? "", fontSize: p["mapmaker:fontSize"] ?? 24, fontFamily: p["mapmaker:fontFamily"] ?? "sans", textBorderEnabled: p["mapmaker:textBorderEnabled"] ?? true, textBorderColor: p["mapmaker:textBorderColor"] ?? "#ffffff", textBorderWidth: p["mapmaker:textBorderWidth"] ?? 2 }];
+    }
   });
 
   return {

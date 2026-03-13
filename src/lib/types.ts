@@ -80,35 +80,64 @@ export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] =
   { value: "mono", label: "Monospace", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
 ];
 
-export interface FeatureData {
+interface FeatureBase {
   id: string;
   layerId: string;
-  type: "polygon" | "polyline" | "point" | "text";
-  shapeOrigin?: ShapeOrigin;
   label: string;
   color: string;
   opacity: number;
-  size?: number;
-  shape?: PointShape;
-  icon?: string;
-  customSvg?: string;
-  borderColor?: string;
-  borderWidth?: number;
-  smoothing: number;
-  strokeWidth: number;
-  lineStyle: LineStyle;
-  arrowStyle: ArrowStyle;
-  lineDecoration: LineDecoration;
-  decorationSpacing: number;
-  fillPattern: FillPattern;
-  textContent?: string;
-  fontSize?: number;
-  fontFamily?: TextFont;
-  textBorderEnabled?: boolean;
-  textBorderColor?: string;
-  textBorderWidth?: number;
   rotation?: number;
   sourceText: string;
   sourceUrl?: string;
   geometry: GeoJSON.Geometry;
 }
+
+interface StrokeFields {
+  smoothing: number;
+  strokeWidth: number;
+  lineStyle: LineStyle;
+  lineDecoration: LineDecoration;
+  decorationSpacing: number;
+}
+
+export interface PolygonFeature extends FeatureBase, StrokeFields {
+  type: "polygon";
+  shapeOrigin?: ShapeOrigin;
+  fillPattern: FillPattern;
+}
+
+export interface PolylineFeature extends FeatureBase, StrokeFields {
+  type: "polyline";
+  arrowStyle: ArrowStyle;
+}
+
+export interface PointFeature extends FeatureBase {
+  type: "point";
+  size: number;
+  shape?: PointShape;
+  icon?: string;
+  customSvg?: string;
+  borderColor: string;
+  borderWidth: number;
+}
+
+export interface TextFeature extends FeatureBase {
+  type: "text";
+  textContent: string;
+  fontSize: number;
+  fontFamily: TextFont;
+  textBorderEnabled: boolean;
+  textBorderColor: string;
+  textBorderWidth: number;
+}
+
+export type FeatureData = PolygonFeature | PolylineFeature | PointFeature | TextFeature;
+
+export type FeatureUpdate = Partial<
+  Omit<FeatureBase, "id"> &
+  StrokeFields &
+  Omit<PolygonFeature, keyof FeatureBase | keyof StrokeFields | "type"> &
+  Omit<PolylineFeature, keyof FeatureBase | keyof StrokeFields | "type"> &
+  Omit<PointFeature, keyof FeatureBase | "type"> &
+  Omit<TextFeature, keyof FeatureBase | "type">
+>;

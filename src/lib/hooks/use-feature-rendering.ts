@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData, LayerData, PointShape } from "@/lib/types";
+import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, PointShape } from "@/lib/types";
 import {
   ensureShapeIcon,
   catalogIconId,
@@ -343,12 +343,14 @@ function buildGeoJSON(
         }
       }
 
+      const hasStroke = f.type === "polygon" || f.type === "polyline";
+
       const displayGeometry =
-        f.type !== "point" && f.smoothing > 0
+        hasStroke && f.smoothing > 0
           ? smoothGeometry(rawGeometry, f.smoothing)
           : rawGeometry;
 
-      if (f.type === "polyline" && f.arrowStyle && f.arrowStyle !== "none" && displayGeometry.type === "LineString") {
+      if (f.type === "polyline" && f.arrowStyle !== "none" && displayGeometry.type === "LineString") {
         const coords: number[][] = displayGeometry.coordinates;
         if (coords.length >= 2) {
           if (f.arrowStyle === "forward" || f.arrowStyle === "both") {
@@ -357,7 +359,7 @@ function buildGeoJSON(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth ?? 3 },
+              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth },
             });
           }
           if (f.arrowStyle === "both") {
@@ -366,7 +368,7 @@ function buildGeoJSON(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth ?? 3 },
+              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth },
             });
           }
         }
@@ -374,8 +376,7 @@ function buildGeoJSON(
 
       let patternId = "";
       if (f.type === "polygon") {
-        const pattern = f.fillPattern ?? "none";
-        patternId = ensurePatternImage(map, pattern, f.color, f.opacity);
+        patternId = ensurePatternImage(map, f.fillPattern, f.color, f.opacity);
       }
 
       return [{
@@ -386,15 +387,15 @@ function buildGeoJSON(
           label: f.label,
           color: f.color,
           opacity: f.opacity,
-          size: f.size ?? 1,
+          size: f.type === "point" ? f.size : 1,
           rotation: f.rotation ?? 0,
           featureType: f.type,
           layerId: f.layerId,
           iconId,
           patternId,
-          strokeWidth: f.strokeWidth ?? 3,
-          lineStyle: f.lineDecoration === "crosses-free" ? "__hidden" : (f.lineStyle ?? "solid"),
-          lineDecoration: f.lineDecoration ?? "none",
+          strokeWidth: hasStroke ? f.strokeWidth : 0,
+          lineStyle: hasStroke ? (f.lineDecoration === "crosses-free" ? "__hidden" : f.lineStyle) : "solid",
+          lineDecoration: hasStroke ? f.lineDecoration : "none",
         },
       }];
     });
@@ -421,9 +422,11 @@ function setSourceData(
 }
 
 function syncDecoSpacing(map: maplibregl.Map, features: FeatureData[]) {
-  const decoFeature = features.find((f) => f.lineDecoration && f.lineDecoration !== "none");
+  const decoFeature = features.find((f): f is PolygonFeature | PolylineFeature =>
+    (f.type === "polygon" || f.type === "polyline") && f.lineDecoration !== "none"
+  );
   if (!decoFeature) return;
-  const spacing = decoFeature.decorationSpacing ?? 50;
+  const spacing = decoFeature.decorationSpacing;
   for (const layerId of DECO_LAYER_IDS) {
     if (map.getLayer(layerId)) {
       map.setLayoutProperty(layerId, "symbol-spacing", spacing);
