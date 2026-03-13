@@ -144,6 +144,7 @@ interface EditorActions {
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
+  reorderFeatures: (orderedIds: string[]) => void;
   addLayer: (name: string) => void;
   toggleLayer: (id: string) => void;
   deleteLayer: (id: string) => void;
@@ -313,12 +314,16 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     const currentMode = drawModeRef.current;
     const isText = currentMode === "text";
     const featureType = isText ? "text" as const : geometryTypeToFeatureType(geometry.type);
+    const nextOrder = featuresRef.current.length > 0
+      ? Math.max(...featuresRef.current.map((f) => f.order)) + 1
+      : 0;
     const base = {
       id: uuid(),
       layerId: s.activeLayerId,
       label: s.activeLabel,
       color: s.activeColor,
       opacity: s.activeOpacity,
+      order: nextOrder,
       sourceText: s.activeSourceText,
       sourceUrl: s.activeSourceUrl || undefined,
       geometry,
@@ -415,6 +420,19 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     set({ activeLayerId: DEFAULT_LAYER.id });
   }, [set, recordSnapshot]);
 
+  const reorderFeatures = useCallback((orderedIds: string[]) => {
+    recordSnapshot();
+    setFeatures((prev) => {
+      const map = new Map(prev.map((f) => [f.id, f]));
+      return orderedIds
+        .map((id, i) => {
+          const f = map.get(id);
+          return f ? { ...f, order: i } as FeatureData : null;
+        })
+        .filter((f): f is FeatureData => f !== null);
+    });
+  }, [recordSnapshot]);
+
   const updateMap = useCallback((updates: Partial<MapData>) => {
     setMap((prev) => ({ ...prev, ...updates }));
   }, []);
@@ -493,6 +511,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addFeature,
       updateFeature,
       deleteFeature,
+      reorderFeatures,
       addLayer,
       toggleLayer,
       deleteLayer,
@@ -538,6 +557,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addFeature,
       updateFeature,
       deleteFeature,
+      reorderFeatures,
       addLayer,
       toggleLayer,
       deleteLayer,

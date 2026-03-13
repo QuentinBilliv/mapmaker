@@ -21,6 +21,16 @@ const FEATURES_SOURCE = "map-features";
 const ARROW_SOURCE = "arrow-heads";
 const ARROW_ICON_ID = "arrowhead";
 const ARROW_SIZE = 48;
+const ZF = "zf-";
+const FIRST_OVERLAY = "features-deco-crosses";
+
+const DASH_MAP: Record<string, number[] | undefined> = {
+  solid: undefined,
+  dotted: [1, 2],
+  "dash-short": [2, 2],
+  "dash-medium": [4, 3],
+  "dash-long": [8, 4],
+};
 
 function ensureArrowIcon(map: maplibregl.Map) {
   if (map.hasImage(ARROW_ICON_ID)) return;
@@ -74,53 +84,6 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     data: { type: "FeatureCollection", features: [] },
   });
 
-  map.addLayer({
-    id: "features-fill",
-    type: "fill",
-    source: FEATURES_SOURCE,
-    paint: {
-      "fill-pattern": ["get", "patternId"],
-      "fill-opacity": 1,
-    },
-    filter: ["==", "$type", "Polygon"],
-  });
-
-  const DASH_STYLES: { id: string; dash?: number[] }[] = [
-    { id: "solid" },
-    { id: "dotted", dash: [1, 2] },
-    { id: "dash-short", dash: [2, 2] },
-    { id: "dash-medium", dash: [4, 3] },
-    { id: "dash-long", dash: [8, 4] },
-  ];
-
-  for (const style of DASH_STYLES) {
-    map.addLayer({
-      id: `features-outline-${style.id}`,
-      type: "line",
-      source: FEATURES_SOURCE,
-      paint: {
-        "line-color": ["get", "color"],
-        "line-width": ["get", "strokeWidth"],
-        "line-opacity": 1,
-        ...(style.dash ? { "line-dasharray": style.dash } : {}),
-      },
-      filter: ["all", ["==", "$type", "Polygon"], ["==", "lineStyle", style.id]],
-    });
-
-    map.addLayer({
-      id: `features-line-${style.id}`,
-      type: "line",
-      source: FEATURES_SOURCE,
-      paint: {
-        "line-color": ["get", "color"],
-        "line-width": ["get", "strokeWidth"],
-        "line-opacity": ["get", "opacity"],
-        ...(style.dash ? { "line-dasharray": style.dash } : {}),
-      },
-      filter: ["all", ["==", "$type", "LineString"], ["==", "lineStyle", style.id]],
-    });
-  }
-
   ensureAllDecorationIcons(map);
 
   for (const conf of DECO_CONFIGS) {
@@ -142,6 +105,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
         "icon-allow-overlap": true,
         "icon-rotation-alignment": "map",
         "icon-keep-upright": false,
+        "symbol-sort-key": ["get", "order"],
       },
       paint: {
         "icon-color": ["get", "color"],
@@ -184,57 +148,6 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
   });
 
   map.addLayer({
-    id: "features-circle",
-    type: "symbol",
-    source: FEATURES_SOURCE,
-    layout: {
-      "icon-image": ["get", "iconId"],
-      "icon-size": ["*", ["get", "size"], ICON_SCALE],
-      "icon-allow-overlap": true,
-      "icon-anchor": "center",
-      "icon-rotate": ["get", "rotation"],
-      "icon-rotation-alignment": "map",
-    },
-    paint: {
-      "icon-opacity": ["get", "opacity"],
-    },
-    filter: ["all", ["==", "$type", "Point"], ["!=", "featureType", "text"]],
-  });
-
-  map.addLayer({
-    id: "features-text",
-    type: "symbol",
-    source: FEATURES_SOURCE,
-    layout: {
-      "text-field": ["get", "textContent"],
-      "text-size": ["get", "fontSize"],
-      "text-font": ["literal", ["Open Sans Regular", "Arial Unicode MS Regular"]],
-      "text-allow-overlap": true,
-      "text-anchor": "center",
-      "text-max-width": 30,
-      "text-rotate": ["get", "rotation"],
-      "text-rotation-alignment": "map",
-    },
-    paint: {
-      "text-color": ["get", "color"],
-      "text-opacity": ["get", "opacity"],
-      "text-halo-color": [
-        "case",
-        ["get", "textBorderEnabled"],
-        ["get", "textBorderColor"],
-        "rgba(0,0,0,0)",
-      ],
-      "text-halo-width": [
-        "case",
-        ["get", "textBorderEnabled"],
-        ["get", "textBorderWidth"],
-        0,
-      ],
-    },
-    filter: ["all", ["==", "$type", "Point"], ["==", "featureType", "text"]],
-  });
-
-  map.addLayer({
     id: "features-arrows",
     type: "symbol",
     source: ARROW_SOURCE,
@@ -261,6 +174,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       "text-offset": [0, 1.5],
       "text-anchor": "top",
       "text-allow-overlap": false,
+      "symbol-sort-key": ["get", "order"],
     },
     paint: {
       "text-color": COLORS.primary,
@@ -269,6 +183,133 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     },
     filter: ["!=", "featureType", "text"],
   });
+}
+
+function syncPerFeatureLayers(
+  map: maplibregl.Map,
+  features: FeatureData[],
+  layers: LayerData[]
+) {
+  const style = map.getStyle();
+  if (style?.layers) {
+    for (const l of [...style.layers]) {
+      if (l.id.startsWith(ZF)) map.removeLayer(l.id);
+    }
+  }
+
+  const sorted = visibleSorted(features, layers);
+
+  const before = map.getLayer(FIRST_OVERLAY) ? FIRST_OVERLAY : undefined;
+
+  for (const f of sorted) {
+    const idFilter: maplibregl.ExpressionSpecification = ["==", ["get", "id"], f.id];
+
+    switch (f.type) {
+      case "polygon": {
+        map.addLayer({
+          id: `${ZF}${f.id}-fill`,
+          type: "fill",
+          source: FEATURES_SOURCE,
+          paint: {
+            "fill-pattern": ["get", "patternId"],
+            "fill-opacity": 1,
+          },
+          filter: ["all", ["==", ["geometry-type"], "Polygon"], idFilter],
+        }, before);
+        const lineStyle = f.lineDecoration === "crosses-free" ? "__hidden" : f.lineStyle;
+        if (lineStyle !== "__hidden") {
+          const dash = DASH_MAP[lineStyle];
+          map.addLayer({
+            id: `${ZF}${f.id}-outline`,
+            type: "line",
+            source: FEATURES_SOURCE,
+            paint: {
+              "line-color": ["get", "color"],
+              "line-width": ["get", "strokeWidth"],
+              "line-opacity": 1,
+              ...(dash ? { "line-dasharray": dash } : {}),
+            },
+            filter: ["all", ["==", ["geometry-type"], "Polygon"], idFilter],
+          }, before);
+        }
+        break;
+      }
+      case "polyline": {
+        const lineStyle = f.lineDecoration === "crosses-free" ? "__hidden" : f.lineStyle;
+        if (lineStyle !== "__hidden") {
+          const dash = DASH_MAP[lineStyle];
+          map.addLayer({
+            id: `${ZF}${f.id}-line`,
+            type: "line",
+            source: FEATURES_SOURCE,
+            paint: {
+              "line-color": ["get", "color"],
+              "line-width": ["get", "strokeWidth"],
+              "line-opacity": ["get", "opacity"],
+              ...(dash ? { "line-dasharray": dash } : {}),
+            },
+            filter: ["all", ["==", ["geometry-type"], "LineString"], idFilter],
+          }, before);
+        }
+        break;
+      }
+      case "point": {
+        map.addLayer({
+          id: `${ZF}${f.id}-point`,
+          type: "symbol",
+          source: FEATURES_SOURCE,
+          layout: {
+            "icon-image": ["get", "iconId"],
+            "icon-size": ["*", ["get", "size"], ICON_SCALE],
+            "icon-allow-overlap": true,
+            "icon-anchor": "center",
+            "icon-rotate": ["get", "rotation"],
+            "icon-rotation-alignment": "map",
+          },
+          paint: {
+            "icon-opacity": ["get", "opacity"],
+          },
+          filter: ["all", ["==", ["geometry-type"], "Point"], ["!=", ["get", "featureType"], "text"], idFilter],
+        }, before);
+        break;
+      }
+      case "text": {
+        map.addLayer({
+          id: `${ZF}${f.id}-text`,
+          type: "symbol",
+          source: FEATURES_SOURCE,
+          layout: {
+            "text-field": ["get", "textContent"],
+            "text-size": ["get", "fontSize"],
+            "text-font": ["literal", ["Open Sans Regular", "Arial Unicode MS Regular"]],
+            "text-allow-overlap": true,
+            "text-anchor": "center",
+            "text-max-width": 30,
+            "text-rotate": ["get", "rotation"],
+            "text-rotation-alignment": "map",
+          },
+          paint: {
+            "text-color": ["get", "color"],
+            "text-opacity": ["get", "opacity"],
+            "text-halo-color": [
+              "case",
+              ["get", "textBorderEnabled"],
+              ["get", "textBorderColor"],
+              "rgba(0,0,0,0)",
+            ],
+            "text-halo-width": [
+              "case",
+              ["get", "textBorderEnabled"],
+              ["get", "textBorderWidth"],
+              0,
+            ],
+          },
+          filter: ["all", ["==", ["geometry-type"], "Point"], ["==", ["get", "featureType"], "text"], idFilter],
+        }, before);
+        break;
+      }
+    }
+  }
 }
 
 function bearing(a: number[], b: number[]): number {
@@ -286,20 +327,24 @@ interface BuildResult {
   pendingSvgs: Promise<string>[];
 }
 
+function visibleSorted(features: FeatureData[], layers: LayerData[]): FeatureData[] {
+  const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
+  return [...features]
+    .filter((f) => visibleLayerIds.has(f.layerId))
+    .sort((a, b) => a.order - b.order);
+}
+
 function buildGeoJSON(
   map: maplibregl.Map,
   features: FeatureData[],
   layers: LayerData[]
 ): BuildResult {
-  const visibleLayerIds = new Set(
-    layers.filter((l) => l.visible).map((l) => l.id)
-  );
-
   const pendingSvgs: Promise<string>[] = [];
   const arrowFeatures: GeoJSON.Feature[] = [];
 
-  const geojsonFeatures: GeoJSON.Feature[] = features
-    .filter((f) => visibleLayerIds.has(f.layerId))
+  const sorted = visibleSorted(features, layers);
+
+  const geojsonFeatures: GeoJSON.Feature[] = sorted
     .flatMap((f): GeoJSON.Feature[] => {
       const rawGeometry = f.geometry;
 
@@ -312,6 +357,7 @@ function buildGeoJSON(
             label: "",
             color: f.color,
             opacity: f.opacity,
+            order: f.order,
             featureType: "text",
             layerId: f.layerId,
             rotation: f.rotation ?? 0,
@@ -387,6 +433,7 @@ function buildGeoJSON(
           label: f.label,
           color: f.color,
           opacity: f.opacity,
+          order: f.order,
           size: f.type === "point" ? f.size : 1,
           rotation: f.rotation ?? 0,
           featureType: f.type,
@@ -442,6 +489,7 @@ function fullUpdate(
 ) {
   ensureSourceAndLayers(map);
   const pending = setSourceData(map, features, layers);
+  syncPerFeatureLayers(map, features, layers);
   syncDecoSpacing(map, features);
   if (pending.length > 0) {
     Promise.all(pending).then(() => {
@@ -470,6 +518,7 @@ export function useFeatureRendering(
 
     if (map.getSource(FEATURES_SOURCE)) {
       const pending = setSourceData(map, features, layers);
+      syncPerFeatureLayers(map, features, layers);
       syncDecoSpacing(map, features);
       if (pending.length > 0) {
         Promise.all(pending).then(() => {
@@ -487,4 +536,4 @@ export function useFeatureRendering(
   }, [mapRef, features, layers, styleVersion]);
 }
 
-export { FEATURES_SOURCE };
+export { FEATURES_SOURCE, ZF };

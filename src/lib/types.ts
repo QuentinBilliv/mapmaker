@@ -86,6 +86,7 @@ interface FeatureBase {
   label: string;
   color: string;
   opacity: number;
+  order: number;
   rotation?: number;
   sourceText: string;
   sourceUrl?: string;

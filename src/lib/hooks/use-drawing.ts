@@ -10,6 +10,7 @@ import {
   buildGeometry,
   clearDrawPreview,
 } from "@/lib/draw-engine";
+import { ZF } from "@/lib/hooks/use-feature-rendering";
 
 interface DrawingControls {
   finishDrawing: () => void;
@@ -73,12 +74,10 @@ export function useDrawing(
       const mode = drawModeRef.current;
 
       if (mode === "select") {
-        const queryLayers = [
-          "features-fill",
-          "features-line-solid", "features-line-dotted", "features-line-dash-short", "features-line-dash-medium", "features-line-dash-long",
-          "features-circle",
-          "features-text",
-        ].filter((id) => map.getLayer(id));
+        const queryLayers = (map.getStyle().layers ?? [])
+          .filter((l) => l.id.startsWith(ZF))
+          .map((l) => l.id);
+        if (queryLayers.length === 0) return;
         const clicked = map.queryRenderedFeatures(e.point, { layers: queryLayers });
         if (clicked.length > 0 && clicked[0].properties?.id) {
           onFeatureClick(clicked[0].properties.id);

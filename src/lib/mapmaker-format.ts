@@ -55,6 +55,7 @@ const mapmakerProps = z
     "mapmaker:textBorderEnabled": z.boolean().optional(),
     "mapmaker:textBorderColor": colorSchema.optional(),
     "mapmaker:textBorderWidth": z.number().min(0).max(5).optional(),
+    "mapmaker:order": z.number().int().min(0).max(100_000).optional(),
     "mapmaker:sourceText": z.string().max(MAX_STRING).default(""),
     "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).refine(
       (v) => /^https?:\/\//i.test(v),
@@ -128,6 +129,7 @@ export function serialize(
         "mapmaker:label": f.label,
         "mapmaker:color": f.color,
         "mapmaker:opacity": f.opacity,
+        "mapmaker:order": f.order,
         "mapmaker:sourceText": f.sourceText,
       };
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
@@ -200,7 +202,7 @@ export function deserialize(raw: string): DeserializedMap {
   const validLayerIds = new Set(result.mapmaker.layers.map((l) => l.id));
   const knownBaseMap = BASE_MAPS.find((b) => b.id === result.mapmaker.baseMap);
 
-  const features: FeatureWithoutId[] = result.features.flatMap((f): FeatureWithoutId[] => {
+  const features: FeatureWithoutId[] = result.features.flatMap((f, idx): FeatureWithoutId[] => {
     const p = f.properties;
     const declaredType = p["mapmaker:type"];
     const geoType = geometryTypeToFeatureType(f.geometry.type);
@@ -222,6 +224,7 @@ export function deserialize(raw: string): DeserializedMap {
       label: p["mapmaker:label"],
       color: p["mapmaker:color"],
       opacity: p["mapmaker:opacity"],
+      order: p["mapmaker:order"] ?? idx,
       rotation: p["mapmaker:rotation"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],
