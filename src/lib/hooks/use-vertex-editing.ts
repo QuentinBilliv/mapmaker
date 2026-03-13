@@ -190,6 +190,9 @@ export function useVertexEditing(
   updateFeature: (id: string, updates: FeatureUpdate) => void,
   styleVersion: number,
   recordSnapshot?: () => void,
+  features: FeatureData[] = [],
+  moveGroup?: (groupId: string, dlng: number, dlat: number) => void,
+  rotateGroup?: (groupId: string, deltaAngle: number, center: [number, number]) => void,
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
@@ -199,6 +202,12 @@ export function useVertexEditing(
   updateRef.current = updateFeature;
   const recordRef = useRef(recordSnapshot);
   recordRef.current = recordSnapshot;
+  const featuresRef = useRef(features);
+  featuresRef.current = features;
+  const moveGroupRef = useRef(moveGroup);
+  moveGroupRef.current = moveGroup;
+  const rotateGroupRef = useRef(rotateGroup);
+  rotateGroupRef.current = rotateGroup;
 
   useEffect(() => {
     const m = mapRef.current;
@@ -372,7 +381,25 @@ export function useVertexEditing(
       map.dragPan.enable();
       map.getCanvas().style.cursor = "";
       setTimeout(() => { interactingRef.current = false; }, 0);
-      if (d.kind === "point-rotate") {
+
+      if (d.kind === "move" && d.feat.groupId && moveGroupRef.current) {
+        const origCoords = getCoords(d.feat);
+        const dlng = d.coords[0][0] - origCoords[0][0];
+        const dlat = d.coords[0][1] - origCoords[0][1];
+        moveGroupRef.current(d.feat.groupId, dlng, dlat);
+      } else if (d.kind === "rotate" && d.feat.groupId && rotateGroupRef.current) {
+        const angle = Math.atan2(
+          toMercatorY(d.coords[0][1]) - toMercatorY(d.center[1]),
+          d.coords[0][0] - d.center[0]
+        ) - Math.atan2(
+          toMercatorY(d.origCoords[0][1]) - toMercatorY(d.center[1]),
+          d.origCoords[0][0] - d.center[0]
+        );
+        const groupMembers = featuresRef.current.filter((f) => f.groupId === d.feat.groupId);
+        const allCoords = groupMembers.flatMap((f) => getCoords(f));
+        const groupCenter = centroid(allCoords);
+        rotateGroupRef.current(d.feat.groupId, angle, groupCenter);
+      } else if (d.kind === "point-rotate") {
         updateRef.current(d.id, { rotation: d.currentRotation });
       } else {
         updateRef.current(d.id, { geometry: toGeometry(d.coords, d.feat) });

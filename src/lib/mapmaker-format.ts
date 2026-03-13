@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
+import type { MapData, LayerData, FeatureData, GroupData, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
 import { BASE_MAPS } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
@@ -56,6 +56,7 @@ const mapmakerProps = z
     "mapmaker:textBorderColor": colorSchema.optional(),
     "mapmaker:textBorderWidth": z.number().min(0).max(5).optional(),
     "mapmaker:order": z.number().int().min(0).max(100_000).optional(),
+    "mapmaker:groupId": z.string().max(100).optional(),
     "mapmaker:sourceText": z.string().max(MAX_STRING).default(""),
     "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).refine(
       (v) => /^https?:\/\//i.test(v),
@@ -81,6 +82,12 @@ const featureSchema = z.object({
   properties: mapmakerProps,
 });
 
+const groupSchema = z.object({
+  id: z.string().max(100),
+  label: z.string().max(MAX_LABEL),
+  order: z.number().int().min(0).max(100_000),
+});
+
 const mapmakerMeta = z.object({
   version: z.literal(1),
   map: z.object({
@@ -93,6 +100,7 @@ const mapmakerMeta = z.object({
   }),
   baseMap: z.string().max(100).default("osm"),
   layers: z.array(layerSchema).min(1).max(100),
+  groups: z.array(groupSchema).max(1000).default([]),
 });
 
 const documentSchema = z.object({
@@ -105,7 +113,8 @@ export function serialize(
   map: MapData,
   layers: LayerData[],
   features: FeatureData[],
-  baseMapId: string
+  baseMapId: string,
+  groups: GroupData[] = []
 ): string {
   const doc = {
     type: "FeatureCollection" as const,
@@ -121,6 +130,7 @@ export function serialize(
       },
       baseMap: baseMapId,
       layers: layers.map(({ id, name, visible, order }) => ({ id, name, visible, order })),
+      groups: groups.map(({ id, label, order }) => ({ id, label, order })),
     },
     features: features.map((f) => {
       const props: Record<string, unknown> = {
@@ -133,6 +143,7 @@ export function serialize(
         "mapmaker:sourceText": f.sourceText,
       };
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
+      if (f.groupId) props["mapmaker:groupId"] = f.groupId;
       if (f.sourceUrl) props["mapmaker:sourceUrl"] = f.sourceUrl;
       switch (f.type) {
         case "polygon":
@@ -187,6 +198,7 @@ export interface DeserializedMap {
   baseMapId: string;
   layers: LayerData[];
   features: FeatureWithoutId[];
+  groups: GroupData[];
 }
 
 export function deserialize(raw: string): DeserializedMap {
@@ -226,6 +238,7 @@ export function deserialize(raw: string): DeserializedMap {
       opacity: p["mapmaker:opacity"],
       order: p["mapmaker:order"] ?? idx,
       rotation: p["mapmaker:rotation"],
+      groupId: p["mapmaker:groupId"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],
       geometry: f.geometry,
@@ -254,5 +267,6 @@ export function deserialize(raw: string): DeserializedMap {
     baseMapId: knownBaseMap?.id ?? "osm",
     layers: result.mapmaker.layers,
     features,
+    groups: result.mapmaker.groups,
   };
 }

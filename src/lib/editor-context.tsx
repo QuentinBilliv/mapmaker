@@ -20,6 +20,7 @@ import type {
   LayerData,
   FeatureData,
   FeatureUpdate,
+  GroupData,
   PointShape,
   LineStyle,
   ArrowStyle,
@@ -28,11 +29,14 @@ import type {
   TextFont,
 } from "./types";
 import type { DeserializedMap } from "./mapmaker-format";
+import { type Coord, rotateCoords } from "./geo-math";
 
 interface EditorDataState {
   map: MapData;
   layers: LayerData[];
   features: FeatureData[];
+  groups: GroupData[];
+  selectedFeatureIds: string[];
   selectedFeature: FeatureData | null;
 }
 
@@ -141,10 +145,19 @@ interface EditorActions {
   setActiveTextBorderColor: (color: string) => void;
   setActiveTextBorderWidth: (width: number) => void;
   selectFeature: (id: string | null) => void;
+  selectFeatures: (ids: string[]) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   reorderFeatures: (orderedIds: string[]) => void;
+  createGroup: (featureIds: string[], label: string) => void;
+  dissolveGroup: (groupId: string) => void;
+  updateGroup: (id: string, updates: Partial<GroupData>) => void;
+  reorderItems: (orderedIds: { id: string; kind: "feature" | "group" }[]) => void;
+  addFeatureToGroup: (featureId: string, groupId: string) => void;
+  removeFeatureFromGroup: (featureId: string) => void;
+  moveGroup: (groupId: string, dlng: number, dlat: number) => void;
+  rotateGroup: (groupId: string, deltaAngle: number, center: [number, number]) => void;
   addLayer: (name: string) => void;
   toggleLayer: (id: string) => void;
   deleteLayer: (id: string) => void;
@@ -192,17 +205,54 @@ export function useEditor() {
   return { ...useEditorData(), ...useDrawingState(), ...useEditorActions() };
 }
 
+function shiftCoords(coords: number[][], dlng: number, dlat: number): number[][] {
+  return coords.map((c) => [c[0] + dlng, c[1] + dlat, ...c.slice(2)]);
+}
+
+function shiftGeometry(g: GeoJSON.Geometry, dlng: number, dlat: number): GeoJSON.Geometry {
+  switch (g.type) {
+    case "Point":
+      return { type: "Point", coordinates: [g.coordinates[0] + dlng, g.coordinates[1] + dlat] };
+    case "LineString":
+      return { type: "LineString", coordinates: shiftCoords(g.coordinates, dlng, dlat) };
+    case "Polygon":
+      return { type: "Polygon", coordinates: g.coordinates.map((r) => shiftCoords(r, dlng, dlat)) };
+    default:
+      return g;
+  }
+}
+
+function rotateGeometryCoords(coords: number[][], center: Coord, angle: number): number[][] {
+  return rotateCoords(coords as Coord[], center, angle);
+}
+
+function rotateGeometry(g: GeoJSON.Geometry, center: Coord, angle: number): GeoJSON.Geometry {
+  switch (g.type) {
+    case "Point": {
+      const [rotated] = rotateCoords([g.coordinates as Coord], center, angle);
+      return { type: "Point", coordinates: rotated };
+    }
+    case "LineString":
+      return { type: "LineString", coordinates: rotateGeometryCoords(g.coordinates, center, angle) };
+    case "Polygon":
+      return { type: "Polygon", coordinates: g.coordinates.map((r) => rotateGeometryCoords(r, center, angle)) };
+    default:
+      return g;
+  }
+}
+
 export function EditorProvider({ children }: { children: React.ReactNode }) {
   const [map, setMap] = useState<MapData>(DEFAULT_MAP);
   const [layers, setLayers] = useState<LayerData[]>([DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>([]);
-  const [selectedFeatureId, setSelectedFeatureId] = useState<string | null>(null);
+  const [groups, setGroups] = useState<GroupData[]>([]);
+  const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
 
   const [drawing, dispatchDrawing] = useReducer(drawingReducer, INITIAL_DRAWING_STATE);
 
   const selectedFeature = useMemo(
-    () => features.find((f) => f.id === selectedFeatureId) ?? null,
-    [features, selectedFeatureId]
+    () => (selectedFeatureIds.length > 0 ? features.find((f) => f.id === selectedFeatureIds[0]) ?? null : null),
+    [features, selectedFeatureIds]
   );
 
   const drawModeRef = useRef(drawing.drawMode);
@@ -219,13 +269,15 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     cancelDrawing: () => {},
   });
 
-  type Snapshot = { features: FeatureData[]; layers: LayerData[] };
+  type Snapshot = { features: FeatureData[]; layers: LayerData[]; groups: GroupData[] };
   const HISTORY_LIMIT = 50;
   const historyRef = useRef<{ past: Snapshot[]; future: Snapshot[] }>({ past: [], future: [] });
   const featuresRef = useRef(features);
   featuresRef.current = features;
   const layersRef = useRef(layers);
   layersRef.current = layers;
+  const groupsRef = useRef(groups);
+  groupsRef.current = groups;
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -236,7 +288,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 
   const recordSnapshot = useCallback(() => {
     const h = historyRef.current;
-    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current) });
+    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current), groups: structuredClone(groupsRef.current) });
     if (h.past.length > HISTORY_LIMIT) h.past.shift();
     h.future = [];
     syncHistoryFlags();
@@ -246,10 +298,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     const h = historyRef.current;
     const snap = h.past.pop();
     if (!snap) return;
-    h.future.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current) });
+    h.future.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current), groups: structuredClone(groupsRef.current) });
     setFeatures(snap.features);
     setLayers(snap.layers);
-    setSelectedFeatureId(null);
+    setGroups(snap.groups);
+    setSelectedFeatureIds([]);
     syncHistoryFlags();
   }, [syncHistoryFlags]);
 
@@ -257,10 +310,11 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     const h = historyRef.current;
     const snap = h.future.pop();
     if (!snap) return;
-    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current) });
+    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current), groups: structuredClone(groupsRef.current) });
     setFeatures(snap.features);
     setLayers(snap.layers);
-    setSelectedFeatureId(null);
+    setGroups(snap.groups);
+    setSelectedFeatureIds([]);
     syncHistoryFlags();
   }, [syncHistoryFlags]);
 
@@ -376,7 +430,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         break;
     }
     setFeatures((prev) => [...prev, newFeature]);
-    setSelectedFeatureId(newFeature.id);
+    setSelectedFeatureIds([newFeature.id]);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
   }, [recordSnapshot]);
 
@@ -392,7 +446,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const deleteFeature = useCallback((id: string) => {
     recordSnapshot();
     setFeatures((prev) => prev.filter((f) => f.id !== id));
-    setSelectedFeatureId(null);
+    setSelectedFeatureIds([]);
   }, [recordSnapshot]);
 
   const addLayer = useCallback((name: string) => {
@@ -444,6 +498,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setFeatures(
       data.features.map((f) => ({ ...f, id: uuid() }) as FeatureData)
     );
+    setGroups(data.groups ?? []);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
     dispatchDrawing({
       type: "SET",
@@ -452,11 +507,112 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
         ...(bm ? { activeBaseMap: bm } : {}),
       },
     });
-    setSelectedFeatureId(null);
+    setSelectedFeatureIds([]);
   }, [recordSnapshot]);
 
   const selectFeature = useCallback((id: string | null) => {
-    setSelectedFeatureId(id);
+    setSelectedFeatureIds(id ? [id] : []);
+  }, []);
+
+  const selectFeatures = useCallback((ids: string[]) => {
+    setSelectedFeatureIds(ids);
+  }, []);
+
+  const createGroup = useCallback((featureIds: string[], label: string) => {
+    recordSnapshot();
+    const groupId = uuid();
+    const maxGroupOrder = groupsRef.current.length > 0
+      ? Math.max(...groupsRef.current.map((g) => g.order))
+      : -1;
+    const maxFeatureOrder = featuresRef.current.length > 0
+      ? Math.max(...featuresRef.current.map((f) => f.order))
+      : -1;
+    const groupOrder = Math.max(maxGroupOrder, maxFeatureOrder) + 1;
+    setGroups((prev) => [...prev, { id: groupId, label, order: groupOrder }]);
+    setFeatures((prev) =>
+      prev.map((f) =>
+        featureIds.includes(f.id) ? { ...f, groupId } as FeatureData : f
+      )
+    );
+  }, [recordSnapshot]);
+
+  const dissolveGroup = useCallback((groupId: string) => {
+    recordSnapshot();
+    setFeatures((prev) =>
+      prev.map((f) =>
+        f.groupId === groupId ? { ...f, groupId: undefined } as FeatureData : f
+      )
+    );
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+  }, [recordSnapshot]);
+
+  const updateGroup = useCallback((id: string, updates: Partial<GroupData>) => {
+    setGroups((prev) =>
+      prev.map((g) => (g.id === id ? { ...g, ...updates } : g))
+    );
+  }, []);
+
+  const reorderItems = useCallback((orderedIds: { id: string; kind: "feature" | "group" }[]) => {
+    recordSnapshot();
+    let order = 0;
+    const groupOrderMap = new Map<string, number>();
+    const featureOrderMap = new Map<string, number>();
+    for (const item of orderedIds) {
+      if (item.kind === "group") {
+        groupOrderMap.set(item.id, order);
+      } else {
+        featureOrderMap.set(item.id, order);
+      }
+      order++;
+    }
+    setGroups((prev) =>
+      prev.map((g) => {
+        const newOrder = groupOrderMap.get(g.id);
+        return newOrder !== undefined ? { ...g, order: newOrder } : g;
+      })
+    );
+    setFeatures((prev) =>
+      prev.map((f) => {
+        const newOrder = featureOrderMap.get(f.id);
+        return newOrder !== undefined ? { ...f, order: newOrder } as FeatureData : f;
+      })
+    );
+  }, [recordSnapshot]);
+
+  const addFeatureToGroup = useCallback((featureId: string, groupId: string) => {
+    recordSnapshot();
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, groupId } as FeatureData : f))
+    );
+  }, [recordSnapshot]);
+
+  const removeFeatureFromGroup = useCallback((featureId: string) => {
+    recordSnapshot();
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, groupId: undefined } as FeatureData : f))
+    );
+  }, [recordSnapshot]);
+
+  const moveGroup = useCallback((groupId: string, dlng: number, dlat: number) => {
+    setFeatures((prev) =>
+      prev.map((f) => {
+        if (f.groupId !== groupId) return f;
+        const g = f.geometry;
+        const shifted = shiftGeometry(g, dlng, dlat);
+        return { ...f, geometry: shifted } as FeatureData;
+      })
+    );
+  }, []);
+
+  const rotateGroup = useCallback((groupId: string, deltaAngle: number, center: [number, number]) => {
+    setFeatures((prev) =>
+      prev.map((f) => {
+        if (f.groupId !== groupId) return f;
+        const g = f.geometry;
+        const rotated = rotateGeometry(g, center as Coord, deltaAngle);
+        return { ...f, geometry: rotated } as FeatureData;
+      })
+    );
   }, []);
 
   const registerDrawingControls = useCallback(
@@ -476,8 +632,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   );
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, layers, features, selectedFeature }),
-    [map, layers, features, selectedFeature]
+    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature }),
+    [map, layers, features, groups, selectedFeatureIds, selectedFeature]
   );
 
   const actionsValue = useMemo<EditorActions>(
@@ -508,10 +664,19 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveTextBorderColor,
       setActiveTextBorderWidth,
       selectFeature,
+      selectFeatures,
       addFeature,
       updateFeature,
       deleteFeature,
       reorderFeatures,
+      createGroup,
+      dissolveGroup,
+      updateGroup,
+      reorderItems,
+      addFeatureToGroup,
+      removeFeatureFromGroup,
+      moveGroup,
+      rotateGroup,
       addLayer,
       toggleLayer,
       deleteLayer,
@@ -554,10 +719,19 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveTextBorderColor,
       setActiveTextBorderWidth,
       selectFeature,
+      selectFeatures,
       addFeature,
       updateFeature,
       deleteFeature,
       reorderFeatures,
+      createGroup,
+      dissolveGroup,
+      updateGroup,
+      reorderItems,
+      addFeatureToGroup,
+      removeFeatureFromGroup,
+      moveGroup,
+      rotateGroup,
       addLayer,
       toggleLayer,
       deleteLayer,

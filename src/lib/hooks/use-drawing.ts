@@ -21,7 +21,7 @@ export function useDrawing(
   mapRef: React.RefObject<maplibregl.Map | null>,
   drawMode: DrawMode,
   onFeatureDrawn: (geometry: GeoJSON.Geometry) => void,
-  onFeatureClick: (featureId: string) => void,
+  onFeatureClick: (featureId: string, shiftKey: boolean) => void,
   vertexInteractingRef: React.RefObject<boolean> | undefined,
   styleVersion: number
 ): DrawingControls {
@@ -80,7 +80,7 @@ export function useDrawing(
         if (queryLayers.length === 0) return;
         const clicked = map.queryRenderedFeatures(e.point, { layers: queryLayers });
         if (clicked.length > 0 && clicked[0].properties?.id) {
-          onFeatureClick(clicked[0].properties.id);
+          onFeatureClick(clicked[0].properties.id, e.originalEvent.shiftKey);
         }
         return;
       }

@@ -7,7 +7,7 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { Button } from "@/components/ui/button";
 
 export default function CodePanel({ onClose }: { onClose: () => void }) {
-  const { map, layers, features } = useEditorData();
+  const { map, layers, features, groups } = useEditorData();
   const { activeBaseMap } = useDrawingState();
   const { importMapData } = useEditorActions();
 
@@ -21,9 +21,9 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       internalUpdate.current = false;
       return;
     }
-    setValue(serialize(map, layers, features, activeBaseMap.id));
+    setValue(serialize(map, layers, features, activeBaseMap.id, groups));
     setError(null);
-  }, [map, layers, features, activeBaseMap]);
+  }, [map, layers, features, groups, activeBaseMap]);
 
   const handleChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {

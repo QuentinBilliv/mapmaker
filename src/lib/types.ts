@@ -80,6 +80,12 @@ export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] =
   { value: "mono", label: "Monospace", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
 ];
 
+export interface GroupData {
+  id: string;
+  label: string;
+  order: number;
+}
+
 interface FeatureBase {
   id: string;
   layerId: string;
@@ -88,6 +94,7 @@ interface FeatureBase {
   opacity: number;
   order: number;
   rotation?: number;
+  groupId?: string;
   sourceText: string;
   sourceUrl?: string;
   geometry: GeoJSON.Geometry;

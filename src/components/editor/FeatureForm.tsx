@@ -73,8 +73,44 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
   }
 }
 
+function GroupForm() {
+  const { selectedFeatureIds, features, groups } = useEditorData();
+  const { updateGroup, dissolveGroup, selectFeatures } = useEditorActions();
+
+  const firstFeature = features.find((f) => f.id === selectedFeatureIds[0]);
+  const group = firstFeature?.groupId ? groups.find((g) => g.id === firstFeature.groupId) : null;
+  if (!group) return null;
+
+  return (
+    <div className="absolute left-16 top-3 z-10 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
+      <PanelHeader title="Group" onClose={() => selectFeatures([])} />
+      <div className="p-3 space-y-3">
+        <Field label="Group label">
+          <Input
+            type="text"
+            value={group.label}
+            onChange={(e) => updateGroup(group.id, { label: e.target.value })}
+            placeholder="e.g. Legend block"
+          />
+        </Field>
+        <div className="text-xs text-muted-foreground">
+          {selectedFeatureIds.length} features in group
+        </div>
+        <div className="flex gap-2 pt-1">
+          <Button onClick={() => selectFeatures([])} className="flex-1">
+            OK
+          </Button>
+          <Button variant="outline" onClick={() => dissolveGroup(group.id)}>
+            Ungroup
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function FeatureForm() {
-  const { selectedFeature, layers } = useEditorData();
+  const { selectedFeature, selectedFeatureIds, layers } = useEditorData();
   const { updateFeature, deleteFeature, selectFeature, recordSnapshot } = useEditorActions();
 
   const [confirmOpen, setConfirmOpen] = useState(false);
@@ -142,6 +178,7 @@ export default function FeatureForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFeature?.id, isPoint, isLine, isText, updateFeature]);
 
+  if (selectedFeatureIds.length > 1) return <GroupForm />;
   if (!selectedFeature) return null;
 
   const handleCancel = () => {

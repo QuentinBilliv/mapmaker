@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, PointShape } from "@/lib/types";
+import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, GroupData, PointShape } from "@/lib/types";
 import {
   ensureShapeIcon,
   catalogIconId,
@@ -188,7 +188,8 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
 function syncPerFeatureLayers(
   map: maplibregl.Map,
   features: FeatureData[],
-  layers: LayerData[]
+  layers: LayerData[],
+  groups: GroupData[] = []
 ) {
   const style = map.getStyle();
   if (style?.layers) {
@@ -197,7 +198,7 @@ function syncPerFeatureLayers(
     }
   }
 
-  const sorted = visibleSorted(features, layers);
+  const sorted = visibleSorted(features, layers, groups);
 
   const before = map.getLayer(FIRST_OVERLAY) ? FIRST_OVERLAY : undefined;
 
@@ -327,22 +328,62 @@ interface BuildResult {
   pendingSvgs: Promise<string>[];
 }
 
-function visibleSorted(features: FeatureData[], layers: LayerData[]): FeatureData[] {
+function visibleSorted(features: FeatureData[], layers: LayerData[], groups: GroupData[] = []): FeatureData[] {
   const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
-  return [...features]
-    .filter((f) => visibleLayerIds.has(f.layerId))
-    .sort((a, b) => a.order - b.order);
+  const visible = features.filter((f) => visibleLayerIds.has(f.layerId));
+
+  if (groups.length === 0) {
+    return [...visible].sort((a, b) => a.order - b.order);
+  }
+
+  const groupMap = new Map(groups.map((g) => [g.id, g]));
+  const grouped = new Map<string, FeatureData[]>();
+  const standalone: FeatureData[] = [];
+
+  for (const f of visible) {
+    if (f.groupId && groupMap.has(f.groupId)) {
+      let arr = grouped.get(f.groupId);
+      if (!arr) { arr = []; grouped.set(f.groupId, arr); }
+      arr.push(f);
+    } else {
+      standalone.push(f);
+    }
+  }
+
+  Array.from(grouped.values()).forEach((arr) => {
+    arr.sort((a: FeatureData, b: FeatureData) => a.order - b.order);
+  });
+
+  type Item = { kind: "feature"; feature: FeatureData; order: number } | { kind: "group"; groupId: string; order: number };
+  const items: Item[] = standalone.map((f) => ({ kind: "feature", feature: f, order: f.order }));
+  Array.from(grouped.entries()).forEach(([gid]) => {
+    const g = groupMap.get(gid)!;
+    items.push({ kind: "group", groupId: gid, order: g.order });
+  });
+  items.sort((a, b) => a.order - b.order);
+
+  const result: FeatureData[] = [];
+  for (const item of items) {
+    if (item.kind === "feature") {
+      result.push(item.feature);
+    } else {
+      const members = grouped.get(item.groupId);
+      if (members) result.push(...members);
+    }
+  }
+  return result;
 }
 
 function buildGeoJSON(
   map: maplibregl.Map,
   features: FeatureData[],
-  layers: LayerData[]
+  layers: LayerData[],
+  groups: GroupData[] = []
 ): BuildResult {
   const pendingSvgs: Promise<string>[] = [];
   const arrowFeatures: GeoJSON.Feature[] = [];
 
-  const sorted = visibleSorted(features, layers);
+  const sorted = visibleSorted(features, layers, groups);
 
   const geojsonFeatures: GeoJSON.Feature[] = sorted
     .flatMap((f): GeoJSON.Feature[] => {
@@ -457,12 +498,13 @@ function buildGeoJSON(
 function setSourceData(
   map: maplibregl.Map,
   features: FeatureData[],
-  layers: LayerData[]
+  layers: LayerData[],
+  groups: GroupData[] = []
 ): Promise<string>[] {
   const source = map.getSource(FEATURES_SOURCE) as maplibregl.GeoJSONSource;
   const arrowSource = map.getSource(ARROW_SOURCE) as maplibregl.GeoJSONSource;
   if (!source) return [];
-  const { geojson, arrows, pendingSvgs } = buildGeoJSON(map, features, layers);
+  const { geojson, arrows, pendingSvgs } = buildGeoJSON(map, features, layers, groups);
   source.setData(geojson);
   if (arrowSource) arrowSource.setData(arrows);
   return pendingSvgs;
@@ -485,16 +527,17 @@ function fullUpdate(
   map: maplibregl.Map,
   features: FeatureData[],
   layers: LayerData[],
+  groups: GroupData[],
   cancelled: () => boolean
 ) {
   ensureSourceAndLayers(map);
-  const pending = setSourceData(map, features, layers);
-  syncPerFeatureLayers(map, features, layers);
+  const pending = setSourceData(map, features, layers, groups);
+  syncPerFeatureLayers(map, features, layers, groups);
   syncDecoSpacing(map, features);
   if (pending.length > 0) {
     Promise.all(pending).then(() => {
       if (cancelled()) return;
-      setSourceData(map, features, layers);
+      setSourceData(map, features, layers, groups);
     });
   }
 }
@@ -503,6 +546,7 @@ export function useFeatureRendering(
   mapRef: React.RefObject<maplibregl.Map | null>,
   features: FeatureData[],
   layers: LayerData[],
+  groups: GroupData[],
   styleVersion: number
 ) {
   useEffect(() => {
@@ -513,27 +557,27 @@ export function useFeatureRendering(
 
     const applyFeatures = () => {
       if (dead) return;
-      fullUpdate(map, features, layers, isCancelled);
+      fullUpdate(map, features, layers, groups, isCancelled);
     };
 
     if (map.getSource(FEATURES_SOURCE)) {
-      const pending = setSourceData(map, features, layers);
-      syncPerFeatureLayers(map, features, layers);
+      const pending = setSourceData(map, features, layers, groups);
+      syncPerFeatureLayers(map, features, layers, groups);
       syncDecoSpacing(map, features);
       if (pending.length > 0) {
         Promise.all(pending).then(() => {
           if (dead) return;
-          setSourceData(map, features, layers);
+          setSourceData(map, features, layers, groups);
         });
       }
     } else if (map.isStyleLoaded()) {
-      fullUpdate(map, features, layers, isCancelled);
+      fullUpdate(map, features, layers, groups, isCancelled);
     } else {
       map.once("idle", applyFeatures);
     }
 
     return () => { dead = true; };
-  }, [mapRef, features, layers, styleVersion]);
+  }, [mapRef, features, layers, groups, styleVersion]);
 }
 
 export { FEATURES_SOURCE, ZF };

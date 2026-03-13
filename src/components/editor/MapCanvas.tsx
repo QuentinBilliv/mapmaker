@@ -8,28 +8,66 @@ import { useDrawing } from "@/lib/hooks/use-drawing";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useVertexEditing } from "@/lib/hooks/use-vertex-editing";
 import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
+import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 
 export default function MapCanvas() {
-  const { map, features, layers, selectedFeature } = useEditorData();
+  const { map, features, layers, groups, selectedFeatureIds, selectedFeature } = useEditorData();
   const { drawMode, activeBaseMap } = useDrawingState();
-  const { addFeature, selectFeature, updateFeature, updateMap, registerDrawingControls, recordSnapshot } = useEditorActions();
+  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap);
 
+  const selectedFeatureIdsRef = useRef(selectedFeatureIds);
+  selectedFeatureIdsRef.current = selectedFeatureIds;
+  const featuresRef = useRef(features);
+  featuresRef.current = features;
+
   const onFeatureClick = useCallback(
-    (id: string) => selectFeature(id),
-    [selectFeature]
+    (id: string, shiftKey: boolean) => {
+      if (shiftKey) {
+        const current = selectedFeatureIdsRef.current;
+        if (current.includes(id)) {
+          selectFeatures(current.filter((fid) => fid !== id));
+        } else {
+          selectFeatures([...current, id]);
+        }
+        return;
+      }
+      const f = featuresRef.current.find((feat) => feat.id === id);
+      if (f?.groupId) {
+        const groupMembers = featuresRef.current.filter((feat) => feat.groupId === f.groupId).map((feat) => feat.id);
+        selectFeatures(groupMembers);
+      } else {
+        selectFeature(id);
+      }
+    },
+    [selectFeature, selectFeatures]
   );
 
-  useFeatureRendering(mapRef, features, layers, styleVersion);
-  const selectTarget = drawMode === "select" ? selectedFeature : null;
-  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot);
-  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot);
+  useFeatureRendering(mapRef, features, layers, groups, styleVersion);
+
+  const selectedGroupId = useMemo(() => {
+    if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;
+    const gid = features.find((f) => f.id === selectedFeatureIds[0])?.groupId;
+    if (!gid) return null;
+    const allMatch = selectedFeatureIds.every((id) => features.find((f) => f.id === id)?.groupId === gid);
+    return allMatch ? gid : null;
+  }, [drawMode, selectedFeatureIds, features]);
+
+  const groupMembers = useMemo(() => {
+    if (!selectedGroupId) return [];
+    return features.filter((f) => f.groupId === selectedGroupId);
+  }, [selectedGroupId, features]);
+
+  const selectTarget = drawMode === "select" && !selectedGroupId ? selectedFeature : null;
+  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
+  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
+  const groupInteractingRef = useGroupEditing(mapRef, selectedGroupId, groupMembers, moveGroup, rotateGroup, recordSnapshot, styleVersion);
   const combinedRef = useMemo(() => ({
-    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current); },
+    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current); },
     set current(_v: boolean) {},
-  }), [vertexInteractingRef, shapeInteractingRef]);
+  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef]);
   const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useMoveListener(mapRef, updateMap);
