@@ -5,12 +5,21 @@ import maplibregl from "maplibre-gl";
 import type { FeatureData } from "@/lib/types";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
-import { type Coord, toMercatorY, fromMercatorY } from "@/lib/geo-math";
+import { ROTATE_ICON_ID, ensureRotateIcon } from "@/lib/rotate-icon";
+import {
+  type Coord, type BboxInfo,
+  toMercatorY, fromMercatorY,
+  rotateCoords, computeBbox, rotateBbox,
+} from "@/lib/geo-math";
 
 const SRC = "shape-edit";
 const LAYER_HANDLE = "shape-edit-handles";
 const LAYER_CENTER = "shape-edit-center";
 const LAYER_OUTLINE = "shape-edit-outline";
+const LAYER_BBOX = "shape-edit-bbox";
+const LAYER_ROTATE_HIT = "shape-edit-rotate-hit";
+const LAYER_ROTATE_ICON = "shape-edit-rotate-icon";
+const LAYER_ROTATE_ARM = "shape-edit-rotate-arm";
 
 const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -65,7 +74,27 @@ function buildCircleGeometry(center: Coord, radius: number): GeoJSON.Geometry {
   return { type: "Polygon", coordinates: [ring] };
 }
 
-function rectHandles(a: Coord, b: Coord): GeoJSON.FeatureCollection {
+function getShapeCoords(f: FeatureData): Coord[] {
+  if (f.shapeOrigin === "rectangle") {
+    const rc = rectCorners(f);
+    if (!rc) return [];
+    return [
+      [rc.a[0], rc.a[1]], [rc.b[0], rc.a[1]],
+      [rc.b[0], rc.b[1]], [rc.a[0], rc.b[1]],
+    ];
+  }
+  const ring = getRingCoords(f);
+  return ring.length > 1 ? ring.slice(0, -1) : [];
+}
+
+function addBboxFeatures(features: GeoJSON.Feature[], bbox: BboxInfo) {
+  const bboxRing = [...bbox.corners, bbox.corners[0]];
+  features.push({ type: "Feature", geometry: { type: "LineString", coordinates: bboxRing }, properties: { t: "bbox" } });
+  features.push({ type: "Feature", geometry: { type: "LineString", coordinates: [bbox.topCenter, bbox.handlePos] }, properties: { t: "rotate-arm" } });
+  features.push({ type: "Feature", geometry: { type: "Point", coordinates: bbox.handlePos }, properties: { t: "rotate" } });
+}
+
+function rectHandles(a: Coord, b: Coord, bbox?: BboxInfo): GeoJSON.FeatureCollection {
   const corners: Coord[] = [
     [a[0], a[1]], [b[0], a[1]], [b[0], b[1]], [a[0], b[1]],
   ];
@@ -86,6 +115,8 @@ function rectHandles(a: Coord, b: Coord): GeoJSON.FeatureCollection {
     geometry: { type: "LineString", coordinates: outline },
     properties: { t: "outline" },
   });
+  const b2 = bbox ?? computeBbox(corners);
+  addBboxFeatures(features, b2);
   return { type: "FeatureCollection", features };
 }
 
@@ -101,25 +132,45 @@ function circleHandles(center: Coord, radius: number): GeoJSON.FeatureCollection
       fromMercatorY(mcy + radius * Math.sin(angle)),
     ]);
   }
-  return {
-    type: "FeatureCollection",
-    features: [
-      { type: "Feature", geometry: { type: "Point", coordinates: center }, properties: { t: "center" } },
-      { type: "Feature", geometry: { type: "Point", coordinates: edgePoint }, properties: { t: "edge" } },
-      { type: "Feature", geometry: { type: "LineString", coordinates: ring }, properties: { t: "outline" } },
-    ],
-  };
+  const features: GeoJSON.Feature[] = [
+    { type: "Feature", geometry: { type: "Point", coordinates: center }, properties: { t: "center" } },
+    { type: "Feature", geometry: { type: "Point", coordinates: edgePoint }, properties: { t: "edge" } },
+    { type: "Feature", geometry: { type: "LineString", coordinates: ring }, properties: { t: "outline" } },
+  ];
+  return { type: "FeatureCollection", features };
+}
+
+function buildRotateOverlay(
+  rotatedCoords: Coord[],
+  bbox: BboxInfo,
+): GeoJSON.FeatureCollection {
+  const features: GeoJSON.Feature[] = [];
+  const ring = [...rotatedCoords, rotatedCoords[0]];
+  features.push({ type: "Feature", geometry: { type: "LineString", coordinates: ring }, properties: { t: "outline" } });
+  features.push({ type: "Feature", geometry: { type: "Point", coordinates: bbox.center }, properties: { t: "center" } });
+  const bboxRing = [...bbox.corners, bbox.corners[0]];
+  features.push({ type: "Feature", geometry: { type: "LineString", coordinates: bboxRing }, properties: { t: "bbox" } });
+  features.push({ type: "Feature", geometry: { type: "LineString", coordinates: [bbox.topCenter, bbox.handlePos] }, properties: { t: "rotate-arm" } });
+  features.push({ type: "Feature", geometry: { type: "Point", coordinates: bbox.handlePos }, properties: { t: "rotate" } });
+  return { type: "FeatureCollection", features };
 }
 
 function ensureLayers(map: maplibregl.Map) {
   if (!map.getSource(SRC)) map.addSource(SRC, { type: "geojson", data: EMPTY });
   ensureMoveIcon(map);
+  ensureRotateIcon(map);
+  if (!map.getLayer(LAYER_BBOX)) {
+    map.addLayer({ id: LAYER_BBOX, type: "line", source: SRC, paint: { "line-color": COLORS.accent, "line-width": 1.5, "line-opacity": 0.5 }, filter: ["==", ["get", "t"], "bbox"] });
+  }
   if (!map.getLayer(LAYER_OUTLINE)) {
     map.addLayer({
       id: LAYER_OUTLINE, type: "line", source: SRC,
       paint: { "line-color": COLORS.accent, "line-width": 2, "line-dasharray": [3, 2] },
       filter: ["==", ["get", "t"], "outline"],
     });
+  }
+  if (!map.getLayer(LAYER_ROTATE_ARM)) {
+    map.addLayer({ id: LAYER_ROTATE_ARM, type: "line", source: SRC, paint: { "line-color": COLORS.accent, "line-width": 1, "line-opacity": 0.5 }, filter: ["==", ["get", "t"], "rotate-arm"] });
   }
   if (!map.getLayer(LAYER_HANDLE)) {
     map.addLayer({
@@ -130,7 +181,7 @@ function ensureLayers(map: maplibregl.Map) {
         "circle-stroke-color": ["case", ["==", ["get", "t"], "center"], "transparent", COLORS.white],
         "circle-stroke-width": 2,
       },
-      filter: ["==", "$type", "Point"],
+      filter: ["all", ["==", "$type", "Point"], ["!=", ["get", "t"], "rotate"]],
     });
   }
   if (!map.getLayer(LAYER_CENTER)) {
@@ -140,9 +191,27 @@ function ensureLayers(map: maplibregl.Map) {
       filter: ["==", ["get", "t"], "center"],
     });
   }
+  if (!map.getLayer(LAYER_ROTATE_HIT)) {
+    map.addLayer({
+      id: LAYER_ROTATE_HIT, type: "circle", source: SRC,
+      paint: { "circle-radius": 16, "circle-color": "transparent", "circle-stroke-color": "transparent", "circle-stroke-width": 0 },
+      filter: ["==", ["get", "t"], "rotate"],
+    });
+  }
+  if (!map.getLayer(LAYER_ROTATE_ICON)) {
+    map.addLayer({
+      id: LAYER_ROTATE_ICON, type: "symbol", source: SRC,
+      layout: { "icon-image": ROTATE_ICON_ID, "icon-allow-overlap": true, "icon-size": 1 },
+      filter: ["==", ["get", "t"], "rotate"],
+    });
+  }
+  if (map.getLayer(LAYER_BBOX)) map.moveLayer(LAYER_BBOX);
   if (map.getLayer(LAYER_OUTLINE)) map.moveLayer(LAYER_OUTLINE);
+  if (map.getLayer(LAYER_ROTATE_ARM)) map.moveLayer(LAYER_ROTATE_ARM);
   if (map.getLayer(LAYER_HANDLE)) map.moveLayer(LAYER_HANDLE);
   if (map.getLayer(LAYER_CENTER)) map.moveLayer(LAYER_CENTER);
+  if (map.getLayer(LAYER_ROTATE_HIT)) map.moveLayer(LAYER_ROTATE_HIT);
+  if (map.getLayer(LAYER_ROTATE_ICON)) map.moveLayer(LAYER_ROTATE_ICON);
 }
 
 function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
@@ -154,7 +223,15 @@ interface RectCornerDrag { kind: "rect-corner"; cornerIndex: number; id: string;
 interface RectCenterDrag { kind: "rect-center"; id: string; a: Coord; b: Coord; startLng: number; startLat: number }
 interface CircleCenterDrag { kind: "circle-center"; id: string; center: Coord; radius: number; startLng: number; startLat: number }
 interface CircleEdgeDrag { kind: "circle-edge"; id: string; center: Coord; radius: number }
-type DragState = RectCornerDrag | RectCenterDrag | CircleCenterDrag | CircleEdgeDrag;
+interface ShapeRotateDrag {
+  kind: "shape-rotate"; id: string;
+  origCoords: Coord[];
+  coords: Coord[];
+  center: Coord; startAngle: number;
+  origBbox: BboxInfo;
+  shapeOrigin: "rectangle" | "circle";
+}
+type DragState = RectCornerDrag | RectCenterDrag | CircleCenterDrag | CircleEdgeDrag | ShapeRotateDrag;
 
 export function useShapeEditing(
   mapRef: React.RefObject<maplibregl.Map | null>,
@@ -190,8 +267,33 @@ export function useShapeEditing(
 
     function onMouseDown(e: maplibregl.MapMouseEvent) {
       const f = featRef.current;
-      if (!f || !f.shapeOrigin || !map.getLayer(LAYER_HANDLE)) return;
+      if (!f || !f.shapeOrigin) return;
 
+      const rotateHits = (f.shapeOrigin === "rectangle" && map.getLayer(LAYER_ROTATE_HIT))
+        ? map.queryRenderedFeatures(e.point, { layers: [LAYER_ROTATE_HIT] })
+        : [];
+      if (rotateHits.length > 0) {
+        e.preventDefault();
+        interactingRef.current = true;
+        map.dragPan.disable();
+        map.getCanvas().style.cursor = "grabbing";
+        const coords = getShapeCoords(f);
+        const origBbox = computeBbox(coords);
+        const startAngle = Math.atan2(
+          toMercatorY(e.lngLat.lat) - toMercatorY(origBbox.center[1]),
+          e.lngLat.lng - origBbox.center[0]
+        );
+        dragRef.current = {
+          kind: "shape-rotate", id: f.id,
+          origCoords: coords.map(c => [...c] as Coord),
+          coords: coords.map(c => [...c] as Coord),
+          center: origBbox.center, startAngle, origBbox,
+          shapeOrigin: f.shapeOrigin as "rectangle" | "circle",
+        };
+        return;
+      }
+
+      if (!map.getLayer(LAYER_HANDLE)) return;
       const hits = map.queryRenderedFeatures(e.point, { layers: [LAYER_HANDLE] });
       if (hits.length === 0) return;
 
@@ -231,8 +333,19 @@ export function useShapeEditing(
       const d = dragRef.current;
       if (!d) {
         const f = featRef.current;
-        if (!f || !f.shapeOrigin || !map.getLayer(LAYER_HANDLE)) return;
-        const hits = map.queryRenderedFeatures(e.point, { layers: [LAYER_HANDLE] });
+        if (!f || !f.shapeOrigin) return;
+        const queryLayers = [LAYER_ROTATE_HIT, LAYER_HANDLE].filter(id => map.getLayer(id));
+        if (queryLayers.length === 0) return;
+        const rotateHits = map.getLayer(LAYER_ROTATE_HIT)
+          ? map.queryRenderedFeatures(e.point, { layers: [LAYER_ROTATE_HIT] })
+          : [];
+        if (rotateHits.length > 0) {
+          map.getCanvas().style.cursor = "crosshair";
+          return;
+        }
+        const hits = map.getLayer(LAYER_HANDLE)
+          ? map.queryRenderedFeatures(e.point, { layers: [LAYER_HANDLE] })
+          : [];
         map.getCanvas().style.cursor = hits.length > 0 ? "grab" : "";
         return;
       }
@@ -240,7 +353,17 @@ export function useShapeEditing(
       const lng = e.lngLat.lng;
       const lat = e.lngLat.lat;
 
-      if (d.kind === "rect-corner") {
+      if (d.kind === "shape-rotate") {
+        const angle = Math.atan2(
+          toMercatorY(lat) - toMercatorY(d.center[1]),
+          lng - d.center[0]
+        );
+        const delta = angle - d.startAngle;
+        const rotated = rotateCoords(d.origCoords, d.center, delta);
+        for (let i = 0; i < d.coords.length; i++) d.coords[i] = rotated[i];
+        const rotatedBbox = rotateBbox(d.origBbox, delta);
+        setOverlay(map, buildRotateOverlay(d.coords, rotatedBbox));
+      } else if (d.kind === "rect-corner") {
         const i = d.cornerIndex;
         const newA: Coord = [...d.a];
         const newB: Coord = [...d.b];
@@ -282,7 +405,11 @@ export function useShapeEditing(
       map.getCanvas().style.cursor = "";
       setTimeout(() => { interactingRef.current = false; }, 0);
 
-      if (d.kind === "rect-corner" || d.kind === "rect-center") {
+      if (d.kind === "shape-rotate") {
+        const ring = [...d.coords, d.coords[0]];
+        const geometry: GeoJSON.Geometry = { type: "Polygon", coordinates: [ring] };
+        updateRef.current(d.id, { geometry, shapeOrigin: undefined });
+      } else if (d.kind === "rect-corner" || d.kind === "rect-center") {
         updateRef.current(d.id, { geometry: buildRectGeometry(d.a, d.b) });
       } else if (d.kind === "circle-center") {
         updateRef.current(d.id, { geometry: buildCircleGeometry(d.center, d.radius) });

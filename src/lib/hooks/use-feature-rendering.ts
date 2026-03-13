@@ -192,6 +192,8 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       "icon-size": ["*", ["get", "size"], ICON_SCALE],
       "icon-allow-overlap": true,
       "icon-anchor": "center",
+      "icon-rotate": ["get", "rotation"],
+      "icon-rotation-alignment": "map",
     },
     paint: {
       "icon-opacity": ["get", "opacity"],
@@ -210,6 +212,8 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       "text-allow-overlap": true,
       "text-anchor": "center",
       "text-max-width": 30,
+      "text-rotate": ["get", "rotation"],
+      "text-rotation-alignment": "map",
     },
     paint: {
       "text-color": ["get", "color"],
@@ -310,6 +314,7 @@ function buildGeoJSON(
             opacity: f.opacity,
             featureType: "text",
             layerId: f.layerId,
+            rotation: f.rotation ?? 0,
             textContent: f.textContent ?? "Text",
             fontSize: f.fontSize ?? 24,
             textBorderEnabled: f.textBorderEnabled ?? true,
@@ -382,6 +387,7 @@ function buildGeoJSON(
           color: f.color,
           opacity: f.opacity,
           size: f.size ?? 1,
+          rotation: f.rotation ?? 0,
           featureType: f.type,
           layerId: f.layerId,
           iconId,

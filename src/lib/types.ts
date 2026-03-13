@@ -107,6 +107,7 @@ export interface FeatureData {
   textBorderEnabled?: boolean;
   textBorderColor?: string;
   textBorderWidth?: number;
+  rotation?: number;
   sourceText: string;
   sourceUrl?: string;
   geometry: GeoJSON.Geometry;
