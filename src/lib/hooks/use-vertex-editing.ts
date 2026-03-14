@@ -385,8 +385,8 @@ export function useVertexEditing(
       if (d.kind === "move" && d.feat.groupId && moveGroupRef.current) {
         const origCoords = getCoords(d.feat);
         const dlng = d.coords[0][0] - origCoords[0][0];
-        const dlat = d.coords[0][1] - origCoords[0][1];
-        moveGroupRef.current(d.feat.groupId, dlng, dlat);
+        const dMercY = toMercatorY(d.coords[0][1]) - toMercatorY(origCoords[0][1]);
+        moveGroupRef.current(d.feat.groupId, dlng, dMercY);
       } else if (d.kind === "rotate" && d.feat.groupId && rotateGroupRef.current) {
         const angle = Math.atan2(
           toMercatorY(d.coords[0][1]) - toMercatorY(d.center[1]),

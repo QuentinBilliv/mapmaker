@@ -446,8 +446,8 @@ export function useShapeEditing(
           const origRc = rectCorners(origF as PolygonFeature);
           if (origRc) {
             const dlng = d.a[0] - origRc.a[0];
-            const dlat = d.a[1] - origRc.a[1];
-            moveGroupRef.current(f.groupId, dlng, dlat);
+            const dMercY = toMercatorY(d.a[1]) - toMercatorY(origRc.a[1]);
+            moveGroupRef.current(f.groupId, dlng, dMercY);
           } else {
             updateRef.current(d.id, { geometry: buildRectGeometry(d.a, d.b) });
           }
@@ -460,8 +460,8 @@ export function useShapeEditing(
           const origCp = circleParams(origF as PolygonFeature);
           if (origCp) {
             const dlng = d.center[0] - origCp.center[0];
-            const dlat = d.center[1] - origCp.center[1];
-            moveGroupRef.current(f.groupId, dlng, dlat);
+            const dMercY = toMercatorY(d.center[1]) - toMercatorY(origCp.center[1]);
+            moveGroupRef.current(f.groupId, dlng, dMercY);
           } else {
             updateRef.current(d.id, { geometry: buildCircleGeometry(d.center, d.radius) });
           }

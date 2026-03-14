@@ -94,7 +94,7 @@ function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
   if (s) s.setData(data);
 }
 
-type MoveDrag = { kind: "move"; groupId: string; startLng: number; startLat: number; origBbox: BboxInfo };
+type MoveDrag = { kind: "move"; groupId: string; startLng: number; startMercY: number; origBbox: BboxInfo };
 type RotateDrag = { kind: "rotate"; groupId: string; center: Coord; startAngle: number; lastAngle: number; origBbox: BboxInfo };
 type DragState = MoveDrag | RotateDrag;
 
@@ -172,7 +172,7 @@ export function useGroupEditing(
         interactingRef.current = true;
         map.dragPan.disable();
         map.getCanvas().style.cursor = "grabbing";
-        dragRef.current = { kind: "move", groupId: gid, startLng: e.lngLat.lng, startLat: e.lngLat.lat, origBbox: bbox };
+        dragRef.current = { kind: "move", groupId: gid, startLng: e.lngLat.lng, startMercY: toMercatorY(e.lngLat.lat), origBbox: bbox };
         return;
       }
     }
@@ -182,10 +182,11 @@ export function useGroupEditing(
       if (d) {
         if (d.kind === "move") {
           const dlng = e.lngLat.lng - d.startLng;
-          const dlat = e.lngLat.lat - d.startLat;
-          moveGroupRef.current(d.groupId, dlng, dlat);
+          const curMercY = toMercatorY(e.lngLat.lat);
+          const dMercY = curMercY - d.startMercY;
+          moveGroupRef.current(d.groupId, dlng, dMercY);
           d.startLng = e.lngLat.lng;
-          d.startLat = e.lngLat.lat;
+          d.startMercY = curMercY;
           const mems = membersRef.current;
           const allCoords = getAllCoords(mems);
           if (allCoords.length >= 2) {

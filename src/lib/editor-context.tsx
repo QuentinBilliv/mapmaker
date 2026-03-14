@@ -29,7 +29,7 @@ import type {
   TextFont,
 } from "./types";
 import type { DeserializedMap } from "./mapmaker-format";
-import { type Coord, rotateCoords } from "./geo-math";
+import { type Coord, rotateCoords, toMercatorY, fromMercatorY } from "./geo-math";
 
 interface EditorDataState {
   map: MapData;
@@ -154,6 +154,7 @@ interface EditorActions {
   dissolveGroup: (groupId: string) => void;
   updateGroup: (id: string, updates: Partial<GroupData>) => void;
   reorderItems: (orderedIds: { id: string; kind: "feature" | "group" }[]) => void;
+  reorderGroupChildren: (groupId: string, orderedChildIds: string[]) => void;
   addFeatureToGroup: (featureId: string, groupId: string) => void;
   removeFeatureFromGroup: (featureId: string) => void;
   moveGroup: (groupId: string, dlng: number, dlat: number) => void;
@@ -205,18 +206,18 @@ export function useEditor() {
   return { ...useEditorData(), ...useDrawingState(), ...useEditorActions() };
 }
 
-function shiftCoords(coords: number[][], dlng: number, dlat: number): number[][] {
-  return coords.map((c) => [c[0] + dlng, c[1] + dlat, ...c.slice(2)]);
+function shiftCoords(coords: number[][], dlng: number, dMercY: number): number[][] {
+  return coords.map((c) => [c[0] + dlng, fromMercatorY(toMercatorY(c[1]) + dMercY), ...c.slice(2)]);
 }
 
-function shiftGeometry(g: GeoJSON.Geometry, dlng: number, dlat: number): GeoJSON.Geometry {
+function shiftGeometry(g: GeoJSON.Geometry, dlng: number, dMercY: number): GeoJSON.Geometry {
   switch (g.type) {
     case "Point":
-      return { type: "Point", coordinates: [g.coordinates[0] + dlng, g.coordinates[1] + dlat] };
+      return { type: "Point", coordinates: [g.coordinates[0] + dlng, fromMercatorY(toMercatorY(g.coordinates[1]) + dMercY)] };
     case "LineString":
-      return { type: "LineString", coordinates: shiftCoords(g.coordinates, dlng, dlat) };
+      return { type: "LineString", coordinates: shiftCoords(g.coordinates, dlng, dMercY) };
     case "Polygon":
-      return { type: "Polygon", coordinates: g.coordinates.map((r) => shiftCoords(r, dlng, dlat)) };
+      return { type: "Polygon", coordinates: g.coordinates.map((r) => shiftCoords(r, dlng, dMercY)) };
     default:
       return g;
   }
@@ -593,12 +594,22 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     );
   }, [recordSnapshot]);
 
-  const moveGroup = useCallback((groupId: string, dlng: number, dlat: number) => {
+  const reorderGroupChildren = useCallback((groupId: string, orderedChildIds: string[]) => {
+    setFeatures((prev) =>
+      prev.map((f) => {
+        if (f.groupId !== groupId) return f;
+        const idx = orderedChildIds.indexOf(f.id);
+        return idx === -1 ? f : { ...f, order: idx } as FeatureData;
+      })
+    );
+  }, []);
+
+  const moveGroup = useCallback((groupId: string, dlng: number, dMercY: number) => {
     setFeatures((prev) =>
       prev.map((f) => {
         if (f.groupId !== groupId) return f;
         const g = f.geometry;
-        const shifted = shiftGeometry(g, dlng, dlat);
+        const shifted = shiftGeometry(g, dlng, dMercY);
         return { ...f, geometry: shifted } as FeatureData;
       })
     );
@@ -673,6 +684,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       dissolveGroup,
       updateGroup,
       reorderItems,
+      reorderGroupChildren,
       addFeatureToGroup,
       removeFeatureFromGroup,
       moveGroup,
@@ -728,6 +740,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       dissolveGroup,
       updateGroup,
       reorderItems,
+      reorderGroupChildren,
       addFeatureToGroup,
       removeFeatureFromGroup,
       moveGroup,

@@ -42,10 +42,10 @@ type SidebarItem =
 export default function FeaturePanel() {
   const { features, layers, groups, selectedFeatureIds } = useEditorData();
   const {
-    selectFeature, selectFeatures, reorderItems, dissolveGroup,
+    selectFeature, selectFeatures, reorderItems, reorderGroupChildren, dissolveGroup,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
   } = useEditorActions();
-  const [dragOverId, setDragOverId] = useState<string | null>(null);
+  const [dragOverGap, setDragOverGap] = useState<string | null>(null);
   const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
   const draggedRef = useRef<{ id: string; kind: "feature" | "group" } | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
@@ -89,53 +89,137 @@ export default function FeaturePanel() {
     draggedRef.current = { id, kind };
   }
 
-  function handleDragOver(e: React.DragEvent, id: string) {
+  function resolveGap(e: React.DragEvent, gapBefore: string, gapAfter: string) {
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    return e.clientY < midY ? gapBefore : gapAfter;
+  }
+
+  function handleRowDragOver(e: React.DragEvent, gapBefore: string, gapAfter: string) {
     e.preventDefault();
-    if (draggedRef.current && draggedRef.current.id !== id) {
-      setDragOverId(id);
+    if (!draggedRef.current) return;
+    const gap = resolveGap(e, gapBefore, gapAfter);
+    setDragOverGap(gap);
+    setDragOverGroupId(null);
+  }
+
+  function handleGroupDragOver(e: React.DragEvent, groupId: string, gapBefore: string, gapAfter: string) {
+    e.preventDefault();
+    const dragged = draggedRef.current;
+    if (!dragged || dragged.id === groupId) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const inTopThird = e.clientY < rect.top + rect.height / 3;
+    const inBottomThird = e.clientY > rect.top + (rect.height * 2) / 3;
+    if (dragged.kind === "feature") {
+      if (inTopThird) {
+        setDragOverGap(gapBefore);
+        setDragOverGroupId(null);
+      } else if (inBottomThird) {
+        setDragOverGap(gapAfter);
+        setDragOverGroupId(null);
+      } else {
+        setDragOverGroupId(groupId);
+        setDragOverGap(null);
+      }
+    } else {
+      const gap = resolveGap(e, gapBefore, gapAfter);
+      setDragOverGap(gap);
       setDragOverGroupId(null);
     }
   }
 
-  function handleGroupDragOver(e: React.DragEvent, groupId: string) {
-    e.preventDefault();
-    const dragged = draggedRef.current;
-    if (!dragged) return;
-    if (dragged.kind === "feature" && dragged.id !== groupId) {
-      setDragOverGroupId(groupId);
-      setDragOverId(null);
+  function dropAtGap(gapId: string) {
+    if (gapId.startsWith("top-")) {
+      const insertIdx = parseInt(gapId.slice(4));
+      dropTopLevel(insertIdx);
+    } else if (gapId.startsWith("child-")) {
+      const rest = gapId.slice(6);
+      const lastDash = rest.lastIndexOf("-");
+      const groupId = rest.slice(0, lastDash);
+      const insertIdx = parseInt(rest.slice(lastDash + 1));
+      dropChild(groupId, insertIdx);
     }
   }
 
-  function handleGroupDrop(groupId: string) {
-    const dragged = draggedRef.current;
-    if (!dragged || dragged.kind !== "feature") { cleanup(); return; }
-    addFeatureToGroup(dragged.id, groupId);
-    cleanup();
+  function handleRowDrop(gapBefore: string, gapAfter: string, e: React.DragEvent) {
+    const gap = resolveGap(e, gapBefore, gapAfter);
+    dropAtGap(gap);
   }
 
-  function handleDrop(targetId: string) {
+  function handleGroupHeaderDrop(groupId: string, gapBefore: string, gapAfter: string, e: React.DragEvent) {
     const dragged = draggedRef.current;
-    if (!dragged || dragged.id === targetId) { cleanup(); return; }
+    if (!dragged) { cleanup(); return; }
+    if (dragged.kind === "feature") {
+      const rect = e.currentTarget.getBoundingClientRect();
+      const inTopThird = e.clientY < rect.top + rect.height / 3;
+      const inBottomThird = e.clientY > rect.top + (rect.height * 2) / 3;
+      if (inTopThird) {
+        dropAtGap(gapBefore);
+      } else if (inBottomThird) {
+        dropAtGap(gapAfter);
+      } else {
+        addFeatureToGroup(dragged.id, groupId);
+        cleanup();
+      }
+    } else {
+      const gap = resolveGap(e, gapBefore, gapAfter);
+      dropAtGap(gap);
+    }
+  }
 
+  function dropTopLevel(insertIdx: number) {
+    const dragged = draggedRef.current;
+    if (!dragged) { cleanup(); return; }
+    const draggedFeature = dragged.kind === "feature"
+      ? features.find((f) => f.id === dragged.id)
+      : null;
+    if (draggedFeature?.groupId) {
+      removeFeatureFromGroup(draggedFeature.id);
+    }
     const orderedIds = items.map((item): { id: string; kind: "feature" | "group" } =>
       item.kind === "group"
         ? { id: item.group.id, kind: "group" }
         : { id: item.feature.id, kind: "feature" }
     );
-
     const fromIdx = orderedIds.findIndex((o) => o.id === dragged.id);
-    const toIdx = orderedIds.findIndex((o) => o.id === targetId);
-    if (fromIdx === -1 || toIdx === -1) { cleanup(); return; }
-    orderedIds.splice(fromIdx, 1);
-    orderedIds.splice(toIdx, 0, dragged);
+    if (fromIdx !== -1) {
+      orderedIds.splice(fromIdx, 1);
+      const adj = insertIdx > fromIdx ? insertIdx - 1 : insertIdx;
+      orderedIds.splice(adj, 0, dragged);
+    } else {
+      orderedIds.splice(insertIdx, 0, dragged);
+    }
     reorderItems(orderedIds);
+    cleanup();
+  }
+
+  function dropChild(groupId: string, insertIdx: number) {
+    const dragged = draggedRef.current;
+    if (!dragged || dragged.kind !== "feature") { cleanup(); return; }
+    const groupItem = items.find((it) => it.kind === "group" && it.group.id === groupId) as
+      | { kind: "group"; group: GroupData; children: FeatureData[] }
+      | undefined;
+    if (!groupItem) { cleanup(); return; }
+    const draggedIsInGroup = features.find((f) => f.id === dragged.id)?.groupId === groupId;
+    if (!draggedIsInGroup) {
+      addFeatureToGroup(dragged.id, groupId);
+    }
+    const childIds = groupItem.children.map((c) => c.id);
+    const fromIdx = childIds.indexOf(dragged.id);
+    if (fromIdx !== -1) {
+      childIds.splice(fromIdx, 1);
+      const adj = insertIdx > fromIdx ? insertIdx - 1 : insertIdx;
+      childIds.splice(adj, 0, dragged.id);
+    } else {
+      childIds.splice(insertIdx, 0, dragged.id);
+    }
+    reorderGroupChildren(groupId, childIds);
     cleanup();
   }
 
   function cleanup() {
     draggedRef.current = null;
-    setDragOverId(null);
+    setDragOverGap(null);
     setDragOverGroupId(null);
   }
 
@@ -179,68 +263,82 @@ export default function FeaturePanel() {
           No features yet. Draw something on the map.
         </p>
       ) : (
-        <div className="overflow-y-auto flex-1">
-          {items.map((item) => {
+        <div className="overflow-y-auto flex-1" onDragLeave={(e) => { if (e.currentTarget === e.target) { setDragOverGap(null); setDragOverGroupId(null); } }}>
+          {items.map((item, i) => {
             if (item.kind === "group") {
-              const isCollapsed = collapsed.has(item.group.id);
+              const gid = item.group.id;
+              const isCollapsed = collapsed.has(gid);
               const hasSelectedChild = item.children.some((c) => selectedSet.has(c.id));
-              const isDropTarget = dragOverGroupId === item.group.id;
+              const isDropTarget = dragOverGroupId === gid;
               return (
-                <div key={item.group.id}>
+                <div key={gid}>
+                  {dragOverGap === `top-${i}` && <DropBar />}
                   <GroupRow
                     group={item.group}
                     childCount={item.children.length}
                     isCollapsed={isCollapsed}
                     isSelected={hasSelectedChild}
                     isDropTarget={isDropTarget}
-                    isDragOver={dragOverId === item.group.id}
-                    onToggle={() => toggleCollapsed(item.group.id)}
+                    onToggle={() => toggleCollapsed(gid)}
                     onClick={() => handleGroupClick(item.children)}
-                    onDissolve={() => dissolveGroup(item.group.id)}
-                    onRename={(label) => updateGroup(item.group.id, { label })}
-                    onDragStart={() => handleDragStart(item.group.id, "group")}
-                    onDragOver={(e) => handleGroupDragOver(e, item.group.id)}
-                    onDrop={() => handleGroupDrop(item.group.id)}
+                    onDissolve={() => dissolveGroup(gid)}
+                    onRename={(label) => updateGroup(gid, { label })}
+                    onDragStart={() => handleDragStart(gid, "group")}
+                    onDragOver={(e) => handleGroupDragOver(e, gid, `top-${i}`, `top-${i + 1}`)}
+                    onDrop={(e) => handleGroupHeaderDrop(gid, `top-${i}`, `top-${i + 1}`, e)}
                     onDragEnd={cleanup}
                   />
-                  {!isCollapsed && item.children.map((child) => (
-                    <FeatureRow
-                      key={child.id}
-                      feature={child}
-                      layerName={layerMap.get(child.layerId)?.name}
-                      isSelected={selectedSet.has(child.id)}
-                      isDragOver={dragOverId === child.id}
-                      indent
-                      onSelect={() => selectFeature(child.id)}
-                      onRemoveFromGroup={() => removeFeatureFromGroup(child.id)}
-                      onDragStart={() => handleDragStart(child.id, "feature")}
-                      onDragOver={(e) => handleDragOver(e, child.id)}
-                      onDrop={() => handleDrop(child.id)}
-                      onDragEnd={cleanup}
-                    />
+                  {!isCollapsed && item.children.map((child, ci) => (
+                    <div key={child.id}>
+                      {dragOverGap === `child-${gid}-${ci}` && <DropBar indent />}
+                      <FeatureRow
+                        feature={child}
+                        layerName={layerMap.get(child.layerId)?.name}
+                        isSelected={selectedSet.has(child.id)}
+                        indent
+                        onSelect={() => selectFeature(child.id)}
+                        onRemoveFromGroup={() => removeFeatureFromGroup(child.id)}
+                        onDragStart={() => handleDragStart(child.id, "feature")}
+                        onDragOver={(e) => handleRowDragOver(e, `child-${gid}-${ci}`, `child-${gid}-${ci + 1}`)}
+                        onDrop={(e) => handleRowDrop(`child-${gid}-${ci}`, `child-${gid}-${ci + 1}`, e)}
+                        onDragEnd={cleanup}
+                      />
+                    </div>
                   ))}
+                  {!isCollapsed && dragOverGap === `child-${gid}-${item.children.length}` && <DropBar indent />}
                 </div>
               );
             }
             return (
-              <FeatureRow
-                key={item.feature.id}
-                feature={item.feature}
-                layerName={layerMap.get(item.feature.layerId)?.name}
-                isSelected={selectedSet.has(item.feature.id)}
-                isDragOver={dragOverId === item.feature.id}
-                onSelect={() => selectFeature(item.feature.id)}
-                onDragStart={() => handleDragStart(item.feature.id, "feature")}
-                onDragOver={(e) => handleDragOver(e, item.feature.id)}
-                onDrop={() => handleDrop(item.feature.id)}
-                onDragEnd={cleanup}
-              />
+              <div key={item.feature.id}>
+                {dragOverGap === `top-${i}` && <DropBar />}
+                <FeatureRow
+                  feature={item.feature}
+                  layerName={layerMap.get(item.feature.layerId)?.name}
+                  isSelected={selectedSet.has(item.feature.id)}
+                  onSelect={() => selectFeature(item.feature.id)}
+                  onDragStart={() => handleDragStart(item.feature.id, "feature")}
+                  onDragOver={(e) => handleRowDragOver(e, `top-${i}`, `top-${i + 1}`)}
+                  onDrop={(e) => handleRowDrop(`top-${i}`, `top-${i + 1}`, e)}
+                  onDragEnd={cleanup}
+                />
+              </div>
             );
           })}
+          {dragOverGap === `top-${items.length}` && <DropBar />}
+          <div
+            className="flex-1 min-h-8"
+            onDragOver={(e) => { e.preventDefault(); if (draggedRef.current) { setDragOverGap(`top-${items.length}`); setDragOverGroupId(null); } }}
+            onDrop={() => dropTopLevel(items.length)}
+          />
         </div>
       )}
     </div>
   );
+}
+
+function DropBar({ indent }: { indent?: boolean }) {
+  return <div className={`h-0.5 bg-primary ${indent ? "ml-6" : ""}`} />;
 }
 
 function GroupRow({
@@ -249,7 +347,6 @@ function GroupRow({
   isCollapsed,
   isSelected,
   isDropTarget,
-  isDragOver,
   onToggle,
   onClick,
   onDissolve,
@@ -264,14 +361,13 @@ function GroupRow({
   isCollapsed: boolean;
   isSelected: boolean;
   isDropTarget: boolean;
-  isDragOver: boolean;
   onToggle: () => void;
   onClick: () => void;
   onDissolve: () => void;
   onRename: (label: string) => void;
   onDragStart: () => void;
   onDragOver: (e: React.DragEvent) => void;
-  onDrop: () => void;
+  onDrop: (e: React.DragEvent) => void;
   onDragEnd: () => void;
 }) {
   const [editing, setEditing] = useState(false);
@@ -298,7 +394,6 @@ function GroupRow({
       onClick={onClick}
       className={`flex items-center gap-1.5 px-3 py-1.5 cursor-grab text-sm border-b font-medium ${
         isDropTarget ? "bg-primary/10 border-b-2 border-b-primary" : ""
-      } ${isDragOver ? "border-t-2 border-t-primary" : ""
       } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"}`}
     >
       <button
@@ -340,7 +435,6 @@ function FeatureRow({
   feature,
   layerName,
   isSelected,
-  isDragOver,
   indent,
   onSelect,
   onRemoveFromGroup,
@@ -352,13 +446,12 @@ function FeatureRow({
   feature: FeatureData;
   layerName?: string;
   isSelected: boolean;
-  isDragOver: boolean;
   indent?: boolean;
   onSelect: () => void;
   onRemoveFromGroup?: () => void;
   onDragStart: () => void;
-  onDragOver: (e: React.DragEvent) => void;
-  onDrop: () => void;
+  onDragOver?: (e: React.DragEvent) => void;
+  onDrop?: (e: React.DragEvent) => void;
   onDragEnd: () => void;
 }) {
   return (
@@ -371,8 +464,7 @@ function FeatureRow({
       onClick={onSelect}
       className={`flex items-center gap-2 py-1.5 cursor-grab text-sm border-b last:border-b-0 ${
         indent ? "pl-6 pr-3" : "px-3"
-      } ${isDragOver ? "border-t-2 border-t-primary" : ""} ${
-        isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"
+      } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"
       }`}
     >
       <FeatureIcon feature={feature} />
