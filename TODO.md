@@ -8,7 +8,7 @@
 ## Court terme
 
 - [x] **Suppression** — Pouvoir supprimer une feature et vider la map
-- [ ] **Duplication** — Dupliquer une feature/groupe avec léger décalage pour distinguer l'original de la copie
+- [x] **Duplication** — Dupliquer une feature/groupe avec léger décalage pour distinguer l'original de la copie
 - [ ] **Masquer labels** — Possibilité de ne pas afficher le label sur la carte
 - [ ] **Persistence locale** — Register via localStorage (limite de features à définir + versionnage du format)
 

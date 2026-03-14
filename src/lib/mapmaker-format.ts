@@ -24,6 +24,7 @@ const mapmakerProps = z
     "mapmaker:type": z.enum(["polygon", "polyline", "point", "text"]),
     "mapmaker:layerId": z.string().max(100),
     "mapmaker:label": z.string().max(MAX_LABEL).default(""),
+    "mapmaker:showLabel": z.boolean().default(false),
     "mapmaker:color": colorSchema,
     "mapmaker:opacity": z.number().min(0).max(1),
     "mapmaker:size": z.number().min(0.1).max(20).optional(),
@@ -137,6 +138,7 @@ export function serialize(
         "mapmaker:type": f.type,
         "mapmaker:layerId": f.layerId,
         "mapmaker:label": f.label,
+        "mapmaker:showLabel": f.showLabel,
         "mapmaker:color": f.color,
         "mapmaker:opacity": f.opacity,
         "mapmaker:order": f.order,
@@ -234,6 +236,7 @@ export function deserialize(raw: string): DeserializedMap {
     const base = {
       layerId: p["mapmaker:layerId"],
       label: p["mapmaker:label"],
+      showLabel: p["mapmaker:showLabel"],
       color: p["mapmaker:color"],
       opacity: p["mapmaker:opacity"],
       order: p["mapmaker:order"] ?? idx,

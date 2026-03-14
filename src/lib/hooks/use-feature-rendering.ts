@@ -181,7 +181,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
       "text-halo-color": COLORS.white,
       "text-halo-width": 1,
     },
-    filter: ["!=", "featureType", "text"],
+    filter: ["all", ["!=", "featureType", "text"], ["==", "showLabel", true]],
   });
 }
 
@@ -472,6 +472,7 @@ function buildGeoJSON(
         properties: {
           id: f.id,
           label: f.label,
+          showLabel: f.showLabel,
           color: f.color,
           opacity: f.opacity,
           order: f.order,

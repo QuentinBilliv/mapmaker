@@ -90,6 +90,7 @@ interface FeatureBase {
   id: string;
   layerId: string;
   label: string;
+  showLabel: boolean;
   color: string;
   opacity: number;
   order: number;

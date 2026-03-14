@@ -27,3 +27,4 @@
 - GeoJSON format must stay clean and exportable independently of the platform
 - The `.mapmaker` export format (`mapmaker-format.ts`) must always serialize every field from `FeatureData`. When adding a new property to features, update both the export and import in `mapmaker-format.ts` so no data is lost on round-trip.
 - UI is functional over pretty — editor ergonomics matter most
+- All user-facing text (labels, placeholders, tooltips) must be in English

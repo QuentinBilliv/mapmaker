@@ -380,6 +380,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       id: uuid(),
       layerId: s.activeLayerId,
       label: s.activeLabel,
+      showLabel: false,
       color: s.activeColor,
       opacity: s.activeOpacity,
       order: nextOrder,

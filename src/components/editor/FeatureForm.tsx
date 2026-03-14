@@ -36,6 +36,7 @@ const TYPE_LABELS: Record<string, string> = {
 function featureToFormValues(f: FeatureData): FeatureFormValues {
   const defaults: FeatureFormValues = {
     label: f.label,
+    showLabel: f.showLabel,
     color: f.color,
     opacity: f.opacity,
     sourceText: f.sourceText,
@@ -148,6 +149,7 @@ export default function FeatureForm() {
       const v = result.data;
       updateFeature(selectedFeature.id, {
         label: v.label,
+        showLabel: v.showLabel,
         color: v.color,
         opacity: v.opacity,
         size: isPoint ? v.size : undefined,
@@ -239,6 +241,10 @@ function StyleFields() {
           {...register("label")}
           placeholder="e.g. Roman Empire"
         />
+        <label className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground cursor-pointer">
+          <input type="checkbox" {...register("showLabel")} className="rounded" />
+          Show label on map
+        </label>
       </Field>
       <div className="flex gap-3">
         <Field label="Color" className="flex-1" error={errors.color?.message}>
