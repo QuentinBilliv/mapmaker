@@ -149,6 +149,8 @@ interface EditorActions {
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
+  deleteGroup: (groupId: string) => void;
+  clearAllFeatures: () => void;
   reorderFeatures: (orderedIds: string[]) => void;
   createGroup: (featureIds: string[], label: string) => void;
   dissolveGroup: (groupId: string) => void;
@@ -450,6 +452,20 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setSelectedFeatureIds([]);
   }, [recordSnapshot]);
 
+  const deleteGroup = useCallback((groupId: string) => {
+    recordSnapshot();
+    setFeatures((prev) => prev.filter((f) => f.groupId !== groupId));
+    setGroups((prev) => prev.filter((g) => g.id !== groupId));
+    setSelectedFeatureIds([]);
+  }, [recordSnapshot]);
+
+  const clearAllFeatures = useCallback(() => {
+    recordSnapshot();
+    setFeatures([]);
+    setGroups([]);
+    setSelectedFeatureIds([]);
+  }, [recordSnapshot]);
+
   const addLayer = useCallback((name: string) => {
     recordSnapshot();
     const id = uuid();
@@ -679,6 +695,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addFeature,
       updateFeature,
       deleteFeature,
+      deleteGroup,
+      clearAllFeatures,
       reorderFeatures,
       createGroup,
       dissolveGroup,
@@ -735,6 +753,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       addFeature,
       updateFeature,
       deleteFeature,
+      deleteGroup,
+      clearAllFeatures,
       reorderFeatures,
       createGroup,
       dissolveGroup,

@@ -6,6 +6,7 @@ import type { FeatureData, GroupData } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { FaTrash } from "react-icons/fa6";
 
 function FeatureIcon({ feature }: { feature: FeatureData }) {
   if (feature.type === "text") {
@@ -44,6 +45,7 @@ export default function FeaturePanel() {
   const {
     selectFeature, selectFeatures, reorderItems, reorderGroupChildren, dissolveGroup,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
+    deleteFeature, deleteGroup, clearAllFeatures,
   } = useEditorActions();
   const [dragOverGap, setDragOverGap] = useState<string | null>(null);
   const [dragOverGroupId, setDragOverGroupId] = useState<string | null>(null);
@@ -255,6 +257,16 @@ export default function FeaturePanel() {
           >
             +
           </Button>
+          {features.length > 0 && (
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              onClick={clearAllFeatures}
+              title="Clear all features"
+            >
+              <FaTrash className="w-3 h-3" />
+            </Button>
+          )}
           <span className="text-xs text-muted-foreground">{features.length}</span>
         </div>
       </div>
@@ -282,6 +294,7 @@ export default function FeaturePanel() {
                     onToggle={() => toggleCollapsed(gid)}
                     onClick={() => handleGroupClick(item.children)}
                     onDissolve={() => dissolveGroup(gid)}
+                    onDelete={() => deleteGroup(gid)}
                     onRename={(label) => updateGroup(gid, { label })}
                     onDragStart={() => handleDragStart(gid, "group")}
                     onDragOver={(e) => handleGroupDragOver(e, gid, `top-${i}`, `top-${i + 1}`)}
@@ -297,6 +310,7 @@ export default function FeaturePanel() {
                         isSelected={selectedSet.has(child.id)}
                         indent
                         onSelect={() => selectFeature(child.id)}
+                        onDelete={() => deleteFeature(child.id)}
                         onRemoveFromGroup={() => removeFeatureFromGroup(child.id)}
                         onDragStart={() => handleDragStart(child.id, "feature")}
                         onDragOver={(e) => handleRowDragOver(e, `child-${gid}-${ci}`, `child-${gid}-${ci + 1}`)}
@@ -317,6 +331,7 @@ export default function FeaturePanel() {
                   layerName={layerMap.get(item.feature.layerId)?.name}
                   isSelected={selectedSet.has(item.feature.id)}
                   onSelect={() => selectFeature(item.feature.id)}
+                  onDelete={() => deleteFeature(item.feature.id)}
                   onDragStart={() => handleDragStart(item.feature.id, "feature")}
                   onDragOver={(e) => handleRowDragOver(e, `top-${i}`, `top-${i + 1}`)}
                   onDrop={(e) => handleRowDrop(`top-${i}`, `top-${i + 1}`, e)}
@@ -350,6 +365,7 @@ function GroupRow({
   onToggle,
   onClick,
   onDissolve,
+  onDelete,
   onRename,
   onDragStart,
   onDragOver,
@@ -364,6 +380,7 @@ function GroupRow({
   onToggle: () => void;
   onClick: () => void;
   onDissolve: () => void;
+  onDelete: () => void;
   onRename: (label: string) => void;
   onDragStart: () => void;
   onDragOver: (e: React.DragEvent) => void;
@@ -418,6 +435,13 @@ function GroupRow({
         </span>
       )}
       <span className="text-[10px] text-muted-foreground">{childCount}</span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5"
+        title="Delete group"
+      >
+        <FaTrash className="w-3 h-3" />
+      </button>
       <Button
         variant="ghost"
         size="icon-xs"
@@ -437,6 +461,7 @@ function FeatureRow({
   isSelected,
   indent,
   onSelect,
+  onDelete,
   onRemoveFromGroup,
   onDragStart,
   onDragOver,
@@ -448,6 +473,7 @@ function FeatureRow({
   isSelected: boolean;
   indent?: boolean;
   onSelect: () => void;
+  onDelete: () => void;
   onRemoveFromGroup?: () => void;
   onDragStart: () => void;
   onDragOver?: (e: React.DragEvent) => void;
@@ -462,7 +488,7 @@ function FeatureRow({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       onClick={onSelect}
-      className={`flex items-center gap-2 py-1.5 cursor-grab text-sm border-b last:border-b-0 ${
+      className={`group/row flex items-center gap-2 py-1.5 cursor-grab text-sm border-b last:border-b-0 ${
         indent ? "pl-6 pr-3" : "px-3"
       } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"
       }`}
@@ -471,6 +497,13 @@ function FeatureRow({
       <span className="flex-1 truncate">
         {feature.label || <span className="text-muted-foreground italic">Untitled</span>}
       </span>
+      <button
+        onClick={(e) => { e.stopPropagation(); onDelete(); }}
+        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5"
+        title="Delete feature"
+      >
+        <FaTrash className="w-3 h-3" />
+      </button>
       {onRemoveFromGroup && (
         <button
           onClick={(e) => { e.stopPropagation(); onRemoveFromGroup(); }}
