@@ -149,6 +149,8 @@ interface EditorActions {
   addFeature: (geometry: GeoJSON.Geometry) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
+  duplicateFeature: (id: string) => void;
+  duplicateGroup: (groupId: string) => void;
   deleteGroup: (groupId: string) => void;
   clearAllFeatures: () => void;
   reorderFeatures: (orderedIds: string[]) => void;
@@ -446,6 +448,51 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  const DUPLICATE_OFFSET_LNG = 0.005;
+  const DUPLICATE_OFFSET_MERC_Y = 0.005;
+
+  const duplicateFeature = useCallback((id: string) => {
+    recordSnapshot();
+    const source = featuresRef.current.find((f) => f.id === id);
+    if (!source) return;
+    const maxOrder = featuresRef.current.length > 0
+      ? Math.max(...featuresRef.current.map((f) => f.order))
+      : -1;
+    const clone = {
+      ...structuredClone(source),
+      id: uuid(),
+      order: maxOrder + 1,
+      geometry: shiftGeometry(source.geometry, DUPLICATE_OFFSET_LNG, DUPLICATE_OFFSET_MERC_Y),
+    } as FeatureData;
+    setFeatures((prev) => [...prev, clone]);
+    setSelectedFeatureIds([clone.id]);
+  }, [recordSnapshot]);
+
+  const duplicateGroup = useCallback((groupId: string) => {
+    recordSnapshot();
+    const group = groupsRef.current.find((g) => g.id === groupId);
+    if (!group) return;
+    const newGroupId = uuid();
+    const maxGroupOrder = groupsRef.current.length > 0
+      ? Math.max(...groupsRef.current.map((g) => g.order))
+      : -1;
+    const maxFeatureOrder = featuresRef.current.length > 0
+      ? Math.max(...featuresRef.current.map((f) => f.order))
+      : -1;
+    const groupOrder = Math.max(maxGroupOrder, maxFeatureOrder) + 1;
+    setGroups((prev) => [...prev, { id: newGroupId, label: group.label, order: groupOrder }]);
+    const children = featuresRef.current.filter((f) => f.groupId === groupId);
+    const clones = children.map((f, i) => ({
+      ...structuredClone(f),
+      id: uuid(),
+      groupId: newGroupId,
+      order: i,
+      geometry: shiftGeometry(f.geometry, DUPLICATE_OFFSET_LNG, DUPLICATE_OFFSET_MERC_Y),
+    } as FeatureData));
+    setFeatures((prev) => [...prev, ...clones]);
+    setSelectedFeatureIds(clones.map((c) => c.id));
+  }, [recordSnapshot]);
+
   const deleteFeature = useCallback((id: string) => {
     recordSnapshot();
     setFeatures((prev) => prev.filter((f) => f.id !== id));
@@ -694,6 +741,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       selectFeatures,
       addFeature,
       updateFeature,
+      duplicateFeature,
+      duplicateGroup,
       deleteFeature,
       deleteGroup,
       clearAllFeatures,
@@ -752,6 +801,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       selectFeatures,
       addFeature,
       updateFeature,
+      duplicateFeature,
+      duplicateGroup,
       deleteFeature,
       deleteGroup,
       clearAllFeatures,
