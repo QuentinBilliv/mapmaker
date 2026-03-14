@@ -13,7 +13,8 @@ import {
 import { v4 as uuid } from "uuid";
 import type { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
-import { DEFAULT_LAYER, DEFAULT_MAP, COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
+import { DEFAULT_LAYER, DEFAULT_MAP, COLORS, DEFAULT_BORDER_WIDTH, FEATURE_LIMIT } from "./defaults";
+import { saveToLocalStorage, loadFromLocalStorage } from "./local-storage";
 import { BASE_MAPS, type BaseMap } from "./map-style";
 import type {
   MapData,
@@ -38,6 +39,7 @@ interface EditorDataState {
   groups: GroupData[];
   selectedFeatureIds: string[];
   selectedFeature: FeatureData | null;
+  featureLimitReached: boolean;
 }
 
 interface DrawingState {
@@ -260,6 +262,33 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     [features, selectedFeatureIds]
   );
 
+  const featureLimitReached = features.length >= FEATURE_LIMIT;
+
+  // Load from localStorage on mount
+  const hasLoadedRef = useRef(false);
+  useEffect(() => {
+    if (hasLoadedRef.current) return;
+    hasLoadedRef.current = true;
+    const saved = loadFromLocalStorage();
+    if (!saved) return;
+    setMap(saved.map);
+    setLayers(saved.layers);
+    setFeatures(saved.features);
+    setGroups(saved.groups);
+    dispatchDrawing({ type: "SET", payload: { activeLayerId: saved.layers[0]?.id ?? DEFAULT_LAYER.id, activeBaseMap: saved.baseMap } });
+  }, []);
+
+  // Auto-save to localStorage (debounced, skip until initial load is done)
+  const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  useEffect(() => {
+    if (!hasLoadedRef.current) return;
+    clearTimeout(saveTimerRef.current);
+    saveTimerRef.current = setTimeout(() => {
+      saveToLocalStorage(map, layers, features, groups, drawing.activeBaseMap.id);
+    }, 500);
+    return () => clearTimeout(saveTimerRef.current);
+  }, [map, layers, features, groups, drawing.activeBaseMap]);
+
   const drawModeRef = useRef(drawing.drawMode);
   drawModeRef.current = drawing.drawMode;
 
@@ -368,6 +397,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const setActiveBaseMap = useCallback((baseMap: BaseMap) => set({ activeBaseMap: baseMap }), [set]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
+    if (featuresRef.current.length >= FEATURE_LIMIT) return;
     recordSnapshot();
     const s = drawingRef.current;
     const currentMode = drawModeRef.current;
@@ -453,6 +483,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const DUPLICATE_OFFSET_MERC_Y = 0.005;
 
   const duplicateFeature = useCallback((id: string) => {
+    if (featuresRef.current.length >= FEATURE_LIMIT) return;
     recordSnapshot();
     const source = featuresRef.current.find((f) => f.id === id);
     if (!source) return;
@@ -470,6 +501,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   }, [recordSnapshot]);
 
   const duplicateGroup = useCallback((groupId: string) => {
+    const groupChildren = featuresRef.current.filter((f) => f.groupId === groupId);
+    if (featuresRef.current.length + groupChildren.length > FEATURE_LIMIT) return;
     recordSnapshot();
     const group = groupsRef.current.find((g) => g.id === groupId);
     if (!group) return;
@@ -482,8 +515,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       : -1;
     const groupOrder = Math.max(maxGroupOrder, maxFeatureOrder) + 1;
     setGroups((prev) => [...prev, { id: newGroupId, label: group.label, order: groupOrder }]);
-    const children = featuresRef.current.filter((f) => f.groupId === groupId);
-    const clones = children.map((f, i) => ({
+    const clones = groupChildren.map((f, i) => ({
       ...structuredClone(f),
       id: uuid(),
       groupId: newGroupId,
@@ -561,7 +593,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setMap((prev) => ({ ...prev, ...data.map }));
     setLayers(data.layers);
     setFeatures(
-      data.features.map((f) => ({ ...f, id: uuid() }) as FeatureData)
+      data.features.slice(0, FEATURE_LIMIT).map((f) => ({ ...f, id: uuid() }) as FeatureData)
     );
     setGroups(data.groups ?? []);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
@@ -707,8 +739,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   );
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature }),
-    [map, layers, features, groups, selectedFeatureIds, selectedFeature]
+    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached }),
+    [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached]
   );
 
   const actionsValue = useMemo<EditorActions>(

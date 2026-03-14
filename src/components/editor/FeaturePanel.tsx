@@ -41,7 +41,7 @@ type SidebarItem =
   | { kind: "group"; group: GroupData; children: FeatureData[] };
 
 export default function FeaturePanel() {
-  const { features, layers, groups, selectedFeatureIds } = useEditorData();
+  const { features, layers, groups, selectedFeatureIds, featureLimitReached } = useEditorData();
   const {
     selectFeature, selectFeatures, reorderItems, reorderGroupChildren,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
@@ -270,6 +270,11 @@ export default function FeaturePanel() {
           <span className="text-xs text-muted-foreground">{features.length}</span>
         </div>
       </div>
+      {featureLimitReached && (
+        <p className="px-3 py-1.5 text-xs text-destructive bg-destructive/10 border-b">
+          Feature limit reached ({features.length}). Delete features to add more.
+        </p>
+      )}
       {features.length === 0 && groups.length === 0 ? (
         <p className="px-3 py-4 text-xs text-muted-foreground text-center">
           No features yet. Draw something on the map.

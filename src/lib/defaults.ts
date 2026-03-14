@@ -13,6 +13,7 @@ export const COLORS: Record<string, string> = {
 };
 
 export const DEFAULT_BORDER_WIDTH = 6;
+export const FEATURE_LIMIT = 50;
 
 export const DEFAULT_MAP: MapData = {
   id: "local",

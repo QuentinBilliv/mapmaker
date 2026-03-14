@@ -17,7 +17,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SliderField from "@/components/ui/SliderField";
 import ColorInput from "@/components/ui/ColorInput";
-import ConfirmDialog from "@/components/ui/confirm-dialog";
 import {
   Select,
   SelectContent,
@@ -114,7 +113,6 @@ export default function FeatureForm() {
   const { selectedFeature, selectedFeatureIds, layers } = useEditorData();
   const { updateFeature, deleteFeature, selectFeature, recordSnapshot } = useEditorActions();
 
-  const [confirmOpen, setConfirmOpen] = useState(false);
   const originalRef = useRef<FeatureUpdate | null>(null);
   const snapshotTakenRef = useRef(false);
 
@@ -214,14 +212,7 @@ export default function FeatureForm() {
           <FormActions
             onClose={() => selectFeature(null)}
             onCancel={handleCancel}
-            onDelete={() => setConfirmOpen(true)}
-          />
-          <ConfirmDialog
-            open={confirmOpen}
-            onOpenChange={setConfirmOpen}
-            title="Delete this feature?"
-            description="This action cannot be undone."
-            onConfirm={() => deleteFeature(selectedFeature.id)}
+            onDelete={() => deleteFeature(selectedFeature.id)}
           />
         </div>
       </div>
