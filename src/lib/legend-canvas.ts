@@ -254,6 +254,32 @@ function drawPolygon(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "po
   }
 }
 
+const FONT_MAP: Record<string, string> = {
+  sans: "sans-serif",
+  serif: "serif",
+  mono: "monospace",
+};
+
+function drawText(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "text" }, w: number, h: number) {
+  const fontSize = Math.min(h * 0.7, 24);
+  const font = FONT_MAP[f.fontFamily] ?? "sans-serif";
+  ctx.font = `${fontSize}px ${font}`;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.globalAlpha = f.opacity;
+
+  if (f.textBorderEnabled && f.textBorderWidth > 0) {
+    ctx.strokeStyle = f.textBorderColor;
+    ctx.lineWidth = f.textBorderWidth * 2;
+    ctx.lineJoin = "round";
+    ctx.strokeText("Text", w / 2, h / 2);
+  }
+
+  ctx.fillStyle = f.color;
+  ctx.fillText("Text", w / 2, h / 2);
+  ctx.globalAlpha = 1;
+}
+
 export async function drawShape(ctx: CanvasRenderingContext2D, feature: FeatureData, w: number, h: number) {
   switch (feature.type) {
     case "point":
@@ -262,5 +288,7 @@ export async function drawShape(ctx: CanvasRenderingContext2D, feature: FeatureD
       return drawLine(ctx, feature, w, h);
     case "polygon":
       return drawPolygon(ctx, feature, w, h);
+    case "text":
+      return drawText(ctx, feature, w, h);
   }
 }
