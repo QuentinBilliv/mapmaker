@@ -10,6 +10,7 @@ import FeatureForm from "@/components/editor/FeatureForm";
 import DrawingSettingsPanel from "@/components/editor/DrawingSettingsPanel";
 import MapMetadata from "@/components/editor/MapMetadata";
 import BaseMapSelector from "@/components/editor/BaseMapSelector";
+import Legend from "@/components/editor/Legend";
 import FeaturePanel from "@/components/editor/FeaturePanel";
 import CodePanel from "@/components/editor/CodePanel";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ export default function Home() {
           <DrawingSettingsPanel />
           <FeatureForm />
           <BaseMapSelector />
+          <Legend />
           <Button
             variant="outline"
             size="sm"

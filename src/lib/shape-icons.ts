@@ -5,6 +5,7 @@ import type { PointShape } from "./types";
 import { loadCatalogEntry } from "./icon-catalog";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
 import { sanitizeSvg } from "./svg-sanitizer";
+import { SHAPE_DRAWERS } from "./draw-primitives";
 
 const SIZE = 128;
 const HALF = SIZE / 2;
@@ -13,82 +14,9 @@ const R = HALF - PAD;
 
 export const ICON_SCALE = 0.25;
 
-type Drawer = (ctx: CanvasRenderingContext2D) => void;
 
-const SHAPE_PATHS: Record<PointShape, Drawer> = {
-  circle(ctx) {
-    ctx.arc(HALF, HALF, R, 0, Math.PI * 2);
-  },
-  triangle(ctx) {
-    ctx.moveTo(HALF, PAD);
-    ctx.lineTo(SIZE - PAD, SIZE - PAD);
-    ctx.lineTo(PAD, SIZE - PAD);
-    ctx.closePath();
-  },
-  square(ctx) {
-    ctx.rect(PAD, PAD, SIZE - PAD * 2, SIZE - PAD * 2);
-  },
-  diamond(ctx) {
-    ctx.moveTo(HALF, PAD);
-    ctx.lineTo(SIZE - PAD, HALF);
-    ctx.lineTo(HALF, SIZE - PAD);
-    ctx.lineTo(PAD, HALF);
-    ctx.closePath();
-  },
-  star(ctx) {
-    const outerR = R;
-    const innerR = R * 0.45;
-    for (let i = 0; i < 10; i++) {
-      const angle = (i * Math.PI) / 5 - Math.PI / 2;
-      const r = i % 2 === 0 ? outerR : innerR;
-      const x = HALF + Math.cos(angle) * r;
-      const y = HALF + Math.sin(angle) * r;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-  },
-  cross(ctx) {
-    const t = SIZE * 0.15;
-    ctx.moveTo(HALF - t, PAD);
-    ctx.lineTo(HALF + t, PAD);
-    ctx.lineTo(HALF + t, HALF - t);
-    ctx.lineTo(SIZE - PAD, HALF - t);
-    ctx.lineTo(SIZE - PAD, HALF + t);
-    ctx.lineTo(HALF + t, HALF + t);
-    ctx.lineTo(HALF + t, SIZE - PAD);
-    ctx.lineTo(HALF - t, SIZE - PAD);
-    ctx.lineTo(HALF - t, HALF + t);
-    ctx.lineTo(PAD, HALF + t);
-    ctx.lineTo(PAD, HALF - t);
-    ctx.lineTo(HALF - t, HALF - t);
-    ctx.closePath();
-  },
-  pentagon(ctx) {
-    for (let i = 0; i < 5; i++) {
-      const angle = (i * 2 * Math.PI) / 5 - Math.PI / 2;
-      const x = HALF + Math.cos(angle) * R;
-      const y = HALF + Math.sin(angle) * R;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-  },
-  hexagon(ctx) {
-    for (let i = 0; i < 6; i++) {
-      const angle = (i * 2 * Math.PI) / 6 - Math.PI / 6;
-      const x = HALF + Math.cos(angle) * R;
-      const y = HALF + Math.sin(angle) * R;
-      if (i === 0) ctx.moveTo(x, y);
-      else ctx.lineTo(x, y);
-    }
-    ctx.closePath();
-  },
-};
-
-
-function renderDrawer(
-  drawer: Drawer,
+function renderShape(
+  shape: PointShape,
   color: string,
   borderColor = COLORS.white,
   borderWidth = DEFAULT_BORDER_WIDTH
@@ -99,7 +27,7 @@ function renderDrawer(
   const ctx = canvas.getContext("2d")!;
 
   ctx.beginPath();
-  drawer(ctx);
+  SHAPE_DRAWERS[shape](ctx, HALF, HALF, R);
 
   ctx.fillStyle = color;
   ctx.fill();
@@ -127,7 +55,7 @@ export function ensureShapeIcon(
   const bc = borderColor.replace("#", "");
   const id = `shape-${shape}-${color.replace("#", "")}-${bc}-${borderWidth}`;
   if (!map.hasImage(id)) {
-    addIfMissing(map, id, renderDrawer(SHAPE_PATHS[shape], color, borderColor, borderWidth));
+    addIfMissing(map, id, renderShape(shape, color, borderColor, borderWidth));
   }
   return id;
 }
