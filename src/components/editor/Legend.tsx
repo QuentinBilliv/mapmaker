@@ -42,7 +42,7 @@ export default function Legend() {
 
   const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
   const legendFeatures = features
-    .filter((f) => f.showInLegend && f.label && visibleLayerIds.has(f.layerId))
+    .filter((f) => f.showInLegend && visibleLayerIds.has(f.layerId))
     .sort((a, b) => a.order - b.order);
 
   if (legendFeatures.length === 0) return null;

@@ -114,9 +114,10 @@ function drawLine(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "polyl
   const cy = h / 2;
   const hasForward = f.arrowStyle === "forward" || f.arrowStyle === "both";
   const hasBackward = f.arrowStyle === "both";
+  const arrowSize = 10;
   const pad = 4;
-  const x1 = hasBackward ? pad + 8 : pad;
-  const x2 = hasForward ? w - pad - 8 : w - pad;
+  const x1 = hasBackward ? pad + arrowSize : pad;
+  const x2 = hasForward ? w - pad - arrowSize : w - pad;
   const sw = Math.min(f.strokeWidth * 1.2, 6);
 
   ctx.globalAlpha = f.opacity;
@@ -136,11 +137,13 @@ function drawLine(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "polyl
   ctx.setLineDash([]);
 
   if (f.lineDecoration !== "none") {
-    const decoSize = h * 0.9;
+    const decoSize = h * 0.7;
     const span = x2 - x1;
-    const dx = x1 + span / 2;
     const offsetY = (DECO_OFFSET_Y[f.lineDecoration] ?? 0) * decoSize * 0.02;
-    DECO_DRAWERS[f.lineDecoration](ctx, dx, cy + offsetY, decoSize);
+    const dx1 = x1 + span * 0.33;
+    const dx2 = x1 + span * 0.66;
+    DECO_DRAWERS[f.lineDecoration](ctx, dx1, cy + offsetY, decoSize);
+    DECO_DRAWERS[f.lineDecoration](ctx, dx2, cy + offsetY, decoSize);
   }
 
   if (hasForward) drawArrowHead(ctx, w - pad, cy, 1);
