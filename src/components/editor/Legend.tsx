@@ -60,7 +60,7 @@ export default function Legend() {
   return (
     <div className="absolute bottom-8 left-3 z-10">
       {open ? (
-        <div className="bg-popover/90 backdrop-blur-sm rounded-lg shadow-lg p-3 max-w-64 max-h-72 overflow-y-auto">
+        <div className="bg-popover/90 backdrop-blur-sm rounded-lg shadow-lg p-3 max-h-72 overflow-y-auto">
           <div className="flex items-center justify-between mb-2">
             <span className="text-xs font-semibold text-foreground">Legend</span>
             <button
@@ -73,16 +73,18 @@ export default function Legend() {
           {groupedByLayer.map(({ layer, items }) => (
             <div key={layer.id}>
               {multiLayer && (
-                <div className="text-[10px] font-medium text-muted-foreground mt-1.5 mb-0.5 uppercase tracking-wide">
+                <div className="text-[10px] font-medium text-muted-foreground mt-1.5 mb-0.5 uppercase tracking-wide col-span-3">
                   {layer.name}
                 </div>
               )}
-              {items.map((f) => (
-                <div key={f.id} className="flex items-center gap-2 py-1">
-                  <CanvasSwatch feature={f} />
-                  <span className="text-xs text-foreground truncate">{f.label}</span>
-                </div>
-              ))}
+              <div className="grid grid-cols-3 gap-x-3 gap-y-1">
+                {items.map((f) => (
+                  <div key={f.id} className="flex flex-col items-center gap-0.5">
+                    <CanvasSwatch feature={f} />
+                    {f.label && <span className="text-[10px] text-foreground text-center leading-tight truncate max-w-16">{f.label}</span>}
+                  </div>
+                ))}
+              </div>
             </div>
           ))}
         </div>
