@@ -1,5 +1,9 @@
 import type { FeatureData, LineStyle, FillPattern } from "./types";
 import { SHAPE_DRAWERS, DECO_DRAWERS, DECO_OFFSET_Y } from "./draw-primitives";
+import { loadCatalogEntry } from "./icon-catalog";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { sanitizeSvg } from "./svg-sanitizer";
 
 const DASH_MAP: Record<LineStyle, number[] | undefined> = {
   solid: undefined,
@@ -38,7 +42,55 @@ function drawArrowHead(ctx: CanvasRenderingContext2D, x: number, cy: number, dir
   ctx.fill();
 }
 
-function drawPoint(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "point" }, w: number, h: number) {
+function loadImage(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error("Failed to load image"));
+    img.src = src;
+  });
+}
+
+async function drawIconFromSvg(ctx: CanvasRenderingContext2D, svgMarkup: string, color: string, opacity: number, w: number, h: number) {
+  const blob = new Blob([svgMarkup], { type: "image/svg+xml" });
+  const url = URL.createObjectURL(blob);
+  try {
+    const img = await loadImage(url);
+    const size = Math.min(w, h) * 0.7;
+    const scale = Math.min(size / img.width, size / img.height);
+    const iw = img.width * scale;
+    const ih = img.height * scale;
+    const cx = (w - iw) / 2;
+    const cy = (h - ih) / 2;
+
+    ctx.globalAlpha = opacity;
+    ctx.drawImage(img, cx, cy, iw, ih);
+    ctx.globalCompositeOperation = "source-in";
+    ctx.fillStyle = color;
+    ctx.fillRect(0, 0, w, h);
+    ctx.globalCompositeOperation = "source-over";
+    ctx.globalAlpha = 1;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+}
+
+async function drawPoint(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "point" }, w: number, h: number) {
+  if (f.icon) {
+    const entry = await loadCatalogEntry(f.icon);
+    if (entry) {
+      const svgMarkup = renderToStaticMarkup(createElement(entry.Icon, { size: Math.min(w, h) * 0.7 }));
+      await drawIconFromSvg(ctx, svgMarkup, f.color, f.opacity, w, h);
+      return;
+    }
+  }
+
+  if (f.customSvg) {
+    const sanitized = sanitizeSvg(f.customSvg);
+    await drawIconFromSvg(ctx, sanitized, f.color, f.opacity, w, h);
+    return;
+  }
+
   const cx = w / 2;
   const cy = h / 2;
   const r = Math.min(w, h) * 0.35;
@@ -202,7 +254,7 @@ function drawPolygon(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "po
   }
 }
 
-export function drawShape(ctx: CanvasRenderingContext2D, feature: FeatureData, w: number, h: number) {
+export async function drawShape(ctx: CanvasRenderingContext2D, feature: FeatureData, w: number, h: number) {
   switch (feature.type) {
     case "point":
       return drawPoint(ctx, feature, w, h);

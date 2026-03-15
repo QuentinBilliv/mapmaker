@@ -411,6 +411,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       layerId: s.activeLayerId,
       label: s.activeLabel,
       showLabel: false,
+      showInLegend: false,
       color: s.activeColor,
       opacity: s.activeOpacity,
       order: nextOrder,

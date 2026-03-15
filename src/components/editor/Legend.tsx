@@ -16,9 +16,13 @@ function CanvasSwatch({ feature }: { feature: FeatureData }) {
   useEffect(() => {
     const canvas = ref.current;
     if (!canvas) return;
+    let cancelled = false;
     const ctx = canvas.getContext("2d")!;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawShape(ctx, feature, canvas.width, canvas.height);
+    drawShape(ctx, feature, canvas.width, canvas.height).then(() => {
+      if (cancelled) return;
+    });
+    return () => { cancelled = true; };
   }, [feature]);
 
   return (
@@ -38,7 +42,7 @@ export default function Legend() {
 
   const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
   const legendFeatures = features
-    .filter((f) => f.label && visibleLayerIds.has(f.layerId) && f.type !== "text")
+    .filter((f) => f.showInLegend && f.label && visibleLayerIds.has(f.layerId) && f.type !== "text")
     .sort((a, b) => a.order - b.order);
 
   if (legendFeatures.length === 0) return null;

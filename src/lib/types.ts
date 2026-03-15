@@ -96,6 +96,7 @@ interface FeatureBase {
   order: number;
   rotation?: number;
   groupId?: string;
+  showInLegend: boolean;
   sourceText: string;
   sourceUrl?: string;
   geometry: GeoJSON.Geometry;
