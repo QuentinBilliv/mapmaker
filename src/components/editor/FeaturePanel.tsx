@@ -3,38 +3,10 @@
 import { useMemo, useRef, useState } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import type { FeatureData, GroupData } from "@/lib/types";
-import { ShapePreview } from "@/components/ui/marker-icons";
+import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaTrash, FaCopy } from "react-icons/fa6";
-
-function FeatureIcon({ feature }: { feature: FeatureData }) {
-  if (feature.type === "text") {
-    return (
-      <span className="text-xs font-bold shrink-0" style={{ color: feature.color }}>
-        T
-      </span>
-    );
-  }
-  if (feature.type === "point" && feature.shape) {
-    return (
-      <span className="shrink-0" style={{ color: feature.color }}>
-        <ShapePreview shape={feature.shape} />
-      </span>
-    );
-  }
-  let icon = "⬡";
-  if (feature.type === "polyline") {
-    if (feature.arrowStyle === "both") icon = "↔";
-    else if (feature.arrowStyle === "forward") icon = "→";
-    else icon = "╱";
-  }
-  return (
-    <span className="text-xs shrink-0" style={{ color: feature.color }}>
-      {icon}
-    </span>
-  );
-}
 
 type SidebarItem =
   | { kind: "feature"; feature: FeatureData }
@@ -492,7 +464,7 @@ function FeatureRow({
       } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"
       }`}
     >
-      <FeatureIcon feature={feature} />
+      <FeatureSwatch feature={feature} width={44} height={28} />
       <span className="flex-1 truncate">
         {feature.label || <span className="text-muted-foreground italic">Untitled</span>}
       </span>

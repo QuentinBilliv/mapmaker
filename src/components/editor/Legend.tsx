@@ -1,40 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { useEditorData } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
-import type { FeatureData } from "@/lib/types";
-import { drawShape } from "@/lib/legend-canvas";
-
-const SWATCH_W = 56;
-const SWATCH_H = 32;
-const PR = 2;
-
-function CanvasSwatch({ feature }: { feature: FeatureData }) {
-  const ref = useRef<HTMLCanvasElement>(null);
-
-  useEffect(() => {
-    const canvas = ref.current;
-    if (!canvas) return;
-    let cancelled = false;
-    const ctx = canvas.getContext("2d")!;
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawShape(ctx, feature, canvas.width, canvas.height).then(() => {
-      if (cancelled) return;
-    });
-    return () => { cancelled = true; };
-  }, [feature]);
-
-  return (
-    <canvas
-      ref={ref}
-      width={SWATCH_W * PR}
-      height={SWATCH_H * PR}
-      className="shrink-0"
-      style={{ width: SWATCH_W, height: SWATCH_H }}
-    />
-  );
-}
+import { FeatureSwatch } from "@/components/ui/feature-swatch";
 
 export default function Legend() {
   const { features } = useEditorData();
@@ -62,7 +31,7 @@ export default function Legend() {
           <div className="grid grid-cols-3 gap-x-3 gap-y-1">
             {legendFeatures.map((f) => (
               <div key={f.id} className="flex flex-col items-center gap-0.5">
-                <CanvasSwatch feature={f} />
+                <FeatureSwatch feature={f} />
                 {f.label && <span className="text-[10px] text-foreground text-center leading-tight truncate max-w-16">{f.label}</span>}
               </div>
             ))}
