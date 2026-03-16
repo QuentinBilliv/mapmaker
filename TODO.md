@@ -17,7 +17,7 @@
 - [x] **Légende** — Ajouter la légende de la carte
 - [x] **Banque GeoJSON** — Bibliothèque de formes prédéfinies (pays, régions, concepts)
 - [ ] **Paramètres avancés** — Ajout de coordonnées manuelles et autres paramètres complexes
-- [ ] **Import/Export GeoJSON** — Importer un GeoJSON existant, exporter en GeoJSON pur (sans format .mapmaker)
+- [x] **Import GeoJSON** — Importer un GeoJSON existant via paste dans le CodePanel
 - [ ] **Recherche géo** — Barre de recherche pour centrer la carte sur une adresse/lieu
 - [ ] **Raccourcis clavier** — Ctrl+D dupliquer, Suppr supprimer, etc.
 
