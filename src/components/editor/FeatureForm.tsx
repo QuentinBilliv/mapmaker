@@ -200,9 +200,15 @@ export default function FeatureForm() {
         <div className="p-3 space-y-3">
           <StyleFields />
           {selectedFeature.type === "text" ? (
-            <TextFields />
+            <>
+              <TextFields />
+              <CoordinateFields feature={selectedFeature} />
+            </>
           ) : selectedFeature.type === "point" ? (
-            <PointFields />
+            <>
+              <PointFields />
+              <CoordinateFields feature={selectedFeature} />
+            </>
           ) : (
             <>
               <StrokeFields showArrows={isLine} />
@@ -279,6 +285,60 @@ function PointFields() {
         </Field>
       </div>
     </>
+  );
+}
+
+function CoordinateFields({ feature }: { feature: FeatureData }) {
+  const { updateFeature, recordSnapshot } = useEditorActions();
+  const coords = feature.geometry.type === "Point" ? feature.geometry.coordinates : null;
+  const [lng, setLng] = useState(coords ? String(Math.round(coords[0] * 1e6) / 1e6) : "");
+  const [lat, setLat] = useState(coords ? String(Math.round(coords[1] * 1e6) / 1e6) : "");
+  const snapshotTakenRef = useRef(false);
+
+  useEffect(() => {
+    if (!coords) return;
+    setLng(String(Math.round(coords[0] * 1e6) / 1e6));
+    setLat(String(Math.round(coords[1] * 1e6) / 1e6));
+    snapshotTakenRef.current = false;
+  }, [coords?.[0], coords?.[1]]);
+
+  if (!coords) return null;
+
+  const commit = (newLng: string, newLat: string) => {
+    const parsedLng = parseFloat(newLng);
+    const parsedLat = parseFloat(newLat);
+    if (isNaN(parsedLng) || isNaN(parsedLat)) return;
+    if (parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) return;
+    if (!snapshotTakenRef.current) {
+      snapshotTakenRef.current = true;
+      recordSnapshot();
+    }
+    updateFeature(feature.id, {
+      geometry: { type: "Point", coordinates: [parsedLng, parsedLat] },
+    });
+  };
+
+  return (
+    <div className="flex gap-3">
+      <Field label="Longitude" className="flex-1">
+        <Input
+          type="text"
+          inputMode="decimal"
+          value={lng}
+          onChange={(e) => { setLng(e.target.value); commit(e.target.value, lat); }}
+          onBlur={() => { const v = parseFloat(lng); if (!isNaN(v)) setLng(String(Math.round(v * 1e6) / 1e6)); }}
+        />
+      </Field>
+      <Field label="Latitude" className="flex-1">
+        <Input
+          type="text"
+          inputMode="decimal"
+          value={lat}
+          onChange={(e) => { setLat(e.target.value); commit(lng, e.target.value); }}
+          onBlur={() => { const v = parseFloat(lat); if (!isNaN(v)) setLat(String(Math.round(v * 1e6) / 1e6)); }}
+        />
+      </Field>
+    </div>
   );
 }
 
