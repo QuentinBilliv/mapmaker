@@ -149,6 +149,7 @@ interface EditorActions {
   selectFeature: (id: string | null) => void;
   selectFeatures: (ids: string[]) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
+  addBankFeature: (geometry: GeoJSON.Geometry, label: string, sourceText: string) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   duplicateFeature: (id: string) => void;
@@ -471,6 +472,66 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
   }, [recordSnapshot]);
 
+  const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string, sourceText: string) => {
+    if (featuresRef.current.length >= FEATURE_LIMIT) return;
+    recordSnapshot();
+    const s = drawingRef.current;
+    const featureType = geometryTypeToFeatureType(geometry.type);
+    const nextOrder = featuresRef.current.length > 0
+      ? Math.max(...featuresRef.current.map((f) => f.order)) + 1
+      : 0;
+    const base = {
+      id: uuid(),
+      layerId: s.activeLayerId,
+      label,
+      showLabel: false,
+      showInLegend: false,
+      color: s.activeColor,
+      opacity: s.activeOpacity,
+      order: nextOrder,
+      sourceText,
+      geometry,
+    };
+    let newFeature: FeatureData;
+    switch (featureType) {
+      case "polygon":
+        newFeature = {
+          ...base, type: "polygon",
+          smoothing: 0,
+          strokeWidth: 3,
+          lineStyle: "solid",
+          lineDecoration: "none",
+          decorationSpacing: 50,
+          fillPattern: "none",
+        };
+        break;
+      case "polyline":
+        newFeature = {
+          ...base, type: "polyline",
+          smoothing: 0,
+          strokeWidth: 3,
+          lineStyle: "solid",
+          arrowStyle: "none",
+          lineDecoration: "none",
+          decorationSpacing: 50,
+        };
+        break;
+      case "point":
+        newFeature = {
+          ...base, type: "point",
+          size: 1,
+          shape: "circle",
+          borderColor: COLORS.white,
+          borderWidth: DEFAULT_BORDER_WIDTH,
+        };
+        break;
+      default:
+        return;
+    }
+    setFeatures((prev) => [...prev, newFeature]);
+    setSelectedFeatureIds([newFeature.id]);
+  }, [recordSnapshot]);
+
   const updateFeature = useCallback(
     (id: string, updates: FeatureUpdate) => {
       setFeatures((prev) =>
@@ -774,6 +835,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       selectFeature,
       selectFeatures,
       addFeature,
+      addBankFeature,
       updateFeature,
       duplicateFeature,
       duplicateGroup,
@@ -834,6 +896,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       selectFeature,
       selectFeatures,
       addFeature,
+      addBankFeature,
       updateFeature,
       duplicateFeature,
       duplicateGroup,

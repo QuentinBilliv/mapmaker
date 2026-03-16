@@ -6,9 +6,10 @@ import { DrawMode } from "@/lib/draw-engine";
 import { POINT_SHAPES } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
-import { FaRotateLeft, FaRotateRight } from "react-icons/fa6";
+import { FaRotateLeft, FaRotateRight, FaEarthAmericas } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import GeoBankDialog from "@/components/editor/GeoBankDialog";
 
 const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
   { mode: "select", label: "Select", icon: "↖" },
@@ -30,6 +31,8 @@ export default function DrawingToolbar() {
       <ToolButtons />
       <Separator />
       <UndoRedoButtons />
+      <Separator />
+      <GeoBankButton />
       {drawMode === "point" && (
         <>
           <Separator />
@@ -74,6 +77,19 @@ function UndoRedoButtons() {
         <FaRotateRight />
       </Button>
     </div>
+  );
+}
+
+function GeoBankButton() {
+  const [open, setOpen] = useState(false);
+
+  return (
+    <>
+      <Button variant="ghost" size="icon" onClick={() => setOpen(true)} title="GeoJSON Bank">
+        <FaEarthAmericas />
+      </Button>
+      <GeoBankDialog open={open} onOpenChange={setOpen} />
+    </>
   );
 }
 
