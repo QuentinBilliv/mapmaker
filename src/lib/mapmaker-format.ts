@@ -69,7 +69,7 @@ const mapmakerProps = z
 
 const position = z.array(z.number()).min(2).max(3);
 
-const geometrySchema = z.discriminatedUnion("type", [
+export const geometrySchema = z.discriminatedUnion("type", [
   z.object({ type: z.literal("Point"), coordinates: position }),
   z.object({ type: z.literal("MultiPoint"), coordinates: z.array(position) }),
   z.object({ type: z.literal("LineString"), coordinates: z.array(position).min(2) }),
