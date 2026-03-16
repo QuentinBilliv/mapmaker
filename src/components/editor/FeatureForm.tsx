@@ -111,7 +111,7 @@ function GroupForm() {
 }
 
 export default function FeatureForm() {
-  const { selectedFeature, selectedFeatureIds, layers } = useEditorData();
+  const { selectedFeature, selectedFeatureIds } = useEditorData();
   const { updateFeature, deleteFeature, selectFeature, recordSnapshot } = useEditorActions();
 
   const originalRef = useRef<FeatureUpdate | null>(null);
@@ -209,7 +209,6 @@ export default function FeatureForm() {
               {selectedFeature.type === "polygon" && <FillPatternSelect />}
             </>
           )}
-          <LayerSelect layers={layers} />
           <SourceFields />
           <FormActions
             onClose={() => selectFeature(null)}
@@ -518,26 +517,6 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
         <FormSlider name="smoothing" min={0} max={100} step={5} scale={100} className="mt-2" />
       </Field>
     </>
-  );
-}
-
-function LayerSelect({ layers }: { layers: { id: string; name: string }[] }) {
-  const { watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
-  const layerId = watch("layerId");
-
-  return (
-    <Field label="Layer" error={errors.layerId?.message}>
-      <Select value={layerId} onValueChange={(v) => setValue("layerId", v)}>
-        <SelectTrigger className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {layers.map((l) => (
-            <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </Field>
   );
 }
 

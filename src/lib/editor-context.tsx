@@ -49,7 +49,6 @@ interface DrawingState {
   activeSourceUrl: string;
   activeColor: string;
   activeOpacity: number;
-  activeLayerId: string;
   activeSize: number;
   activeShape: PointShape;
   activeIcon: string | null;
@@ -82,7 +81,6 @@ const INITIAL_DRAWING_STATE: DrawingState = {
   activeSourceUrl: "",
   activeColor: COLORS.primary,
   activeOpacity: 1,
-  activeLayerId: DEFAULT_LAYER.id,
   activeSize: 1,
   activeShape: "circle",
   activeIcon: null,
@@ -127,7 +125,6 @@ interface EditorActions {
   setActiveSourceUrl: (url: string) => void;
   setActiveColor: (color: string) => void;
   setActiveOpacity: (opacity: number) => void;
-  setActiveLayerId: (id: string) => void;
   setActiveSize: (size: number) => void;
   setActiveShape: (shape: PointShape) => void;
   setActiveIcon: (icon: string | null) => void;
@@ -166,9 +163,6 @@ interface EditorActions {
   removeFeatureFromGroup: (featureId: string) => void;
   moveGroup: (groupId: string, dlng: number, dlat: number) => void;
   rotateGroup: (groupId: string, deltaAngle: number, center: [number, number]) => void;
-  addLayer: (name: string) => void;
-  toggleLayer: (id: string) => void;
-  deleteLayer: (id: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
   updateMap: (updates: Partial<MapData>) => void;
   importMapData: (data: DeserializedMap) => void;
@@ -276,7 +270,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setLayers(saved.layers);
     setFeatures(saved.features);
     setGroups(saved.groups);
-    dispatchDrawing({ type: "SET", payload: { activeLayerId: saved.layers[0]?.id ?? DEFAULT_LAYER.id, activeBaseMap: saved.baseMap } });
+    dispatchDrawing({ type: "SET", payload: { activeBaseMap: saved.baseMap } });
   }, []);
 
   // Auto-save to localStorage (debounced, skip until initial load is done)
@@ -313,6 +307,8 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   layersRef.current = layers;
   const groupsRef = useRef(groups);
   groupsRef.current = groups;
+  const selectedIdsRef = useRef(selectedFeatureIds);
+  selectedIdsRef.current = selectedFeatureIds;
   const [canUndo, setCanUndo] = useState(false);
   const [canRedo, setCanRedo] = useState(false);
 
@@ -376,7 +372,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
   const setActiveSourceUrl = useCallback((url: string) => set({ activeSourceUrl: url }), [set]);
   const setActiveColor = useCallback((color: string) => set({ activeColor: color }), [set]);
   const setActiveOpacity = useCallback((opacity: number) => set({ activeOpacity: opacity }), [set]);
-  const setActiveLayerId = useCallback((id: string) => set({ activeLayerId: id }), [set]);
   const setActiveSize = useCallback((size: number) => set({ activeSize: size }), [set]);
   const setActiveShape = useCallback((shape: PointShape) => set({ activeShape: shape }), [set]);
   const setActiveIcon = useCallback((icon: string | null) => set({ activeIcon: icon }), [set]);
@@ -409,7 +404,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       : 0;
     const base = {
       id: uuid(),
-      layerId: s.activeLayerId,
+      layerId: DEFAULT_LAYER.id,
       label: s.activeLabel,
       showLabel: false,
       showInLegend: false,
@@ -482,7 +477,7 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       : 0;
     const base = {
       id: uuid(),
-      layerId: s.activeLayerId,
+      layerId: DEFAULT_LAYER.id,
       label,
       showLabel: false,
       showInLegend: false,
@@ -608,31 +603,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     setSelectedFeatureIds([]);
   }, [recordSnapshot]);
 
-  const addLayer = useCallback((name: string) => {
-    recordSnapshot();
-    const id = uuid();
-    setLayers((prev) => [...prev, { id, name, visible: true, order: prev.length }]);
-    set({ activeLayerId: id });
-  }, [set, recordSnapshot]);
-
-  const toggleLayer = useCallback((id: string) => {
-    recordSnapshot();
-    setLayers((prev) =>
-      prev.map((l) => (l.id === id ? { ...l, visible: !l.visible } : l))
-    );
-  }, [recordSnapshot]);
-
-  const deleteLayer = useCallback((id: string) => {
-    recordSnapshot();
-    setLayers((prev) => {
-      const remaining = prev.filter((l) => l.id !== id);
-      if (remaining.length === 0) return prev;
-      return remaining;
-    });
-    setFeatures((prev) => prev.filter((f) => f.layerId !== id));
-    set({ activeLayerId: DEFAULT_LAYER.id });
-  }, [set, recordSnapshot]);
-
   const reorderFeatures = useCallback((orderedIds: string[]) => {
     recordSnapshot();
     setFeatures((prev) => {
@@ -659,13 +629,9 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     );
     setGroups(data.groups ?? []);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
-    dispatchDrawing({
-      type: "SET",
-      payload: {
-        activeLayerId: data.layers[0]?.id ?? DEFAULT_LAYER.id,
-        ...(bm ? { activeBaseMap: bm } : {}),
-      },
-    });
+    if (bm) {
+      dispatchDrawing({ type: "SET", payload: { activeBaseMap: bm } });
+    }
     setSelectedFeatureIds([]);
   }, [recordSnapshot]);
 
@@ -800,6 +766,57 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     []
   );
 
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      const target = e.target;
+      const inInput = target instanceof HTMLInputElement || target instanceof HTMLTextAreaElement;
+      const mod = e.metaKey || e.ctrlKey;
+
+      if (mod && e.key.toLowerCase() === "d") {
+        e.preventDefault();
+        const ids = selectedIdsRef.current;
+        if (ids.length === 0) return;
+        const first = featuresRef.current.find((f) => f.id === ids[0]);
+        if (ids.length > 1 && first?.groupId) {
+          duplicateGroup(first.groupId);
+        } else if (first) {
+          duplicateFeature(first.id);
+        }
+        return;
+      }
+
+      if ((e.key === "Delete" || e.key === "Backspace") && !inInput) {
+        const ids = selectedIdsRef.current;
+        if (ids.length === 0) return;
+        const first = featuresRef.current.find((f) => f.id === ids[0]);
+        if (ids.length > 1 && first?.groupId) {
+          deleteGroup(first.groupId);
+        } else if (first) {
+          deleteFeature(first.id);
+        }
+        return;
+      }
+
+      if (e.key === "Escape" && !inInput && drawModeRef.current === "select") {
+        setSelectedFeatureIds([]);
+        return;
+      }
+
+      if (inInput || mod || e.altKey) return;
+      const modeMap: Record<string, DrawMode> = {
+        v: "select", p: "polygon", l: "polyline", m: "point",
+        r: "rectangle", c: "circle", t: "text",
+      };
+      const mode = modeMap[e.key.toLowerCase()];
+      if (mode) {
+        e.preventDefault();
+        dispatchDrawing({ type: "SET", payload: { drawMode: mode } });
+      }
+    };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [duplicateFeature, duplicateGroup, deleteFeature, deleteGroup]);
+
   const dataValue = useMemo<EditorDataState>(
     () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached }),
     [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached]
@@ -813,7 +830,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSourceUrl,
       setActiveColor,
       setActiveOpacity,
-      setActiveLayerId,
       setActiveSize,
       setActiveShape,
       setActiveIcon,
@@ -852,9 +868,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       removeFeatureFromGroup,
       moveGroup,
       rotateGroup,
-      addLayer,
-      toggleLayer,
-      deleteLayer,
       setActiveBaseMap,
       updateMap,
       importMapData,
@@ -874,7 +887,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       setActiveSourceUrl,
       setActiveColor,
       setActiveOpacity,
-      setActiveLayerId,
       setActiveSize,
       setActiveShape,
       setActiveIcon,
@@ -913,9 +925,6 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
       removeFeatureFromGroup,
       moveGroup,
       rotateGroup,
-      addLayer,
-      toggleLayer,
-      deleteLayer,
       setActiveBaseMap,
       updateMap,
       importMapData,

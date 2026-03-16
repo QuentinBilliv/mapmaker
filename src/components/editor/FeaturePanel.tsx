@@ -41,7 +41,7 @@ type SidebarItem =
   | { kind: "group"; group: GroupData; children: FeatureData[] };
 
 export default function FeaturePanel() {
-  const { features, layers, groups, selectedFeatureIds, featureLimitReached } = useEditorData();
+  const { features, groups, selectedFeatureIds, featureLimitReached } = useEditorData();
   const {
     selectFeature, selectFeatures, reorderItems, reorderGroupChildren,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
@@ -52,7 +52,6 @@ export default function FeaturePanel() {
   const draggedRef = useRef<{ id: string; kind: "feature" | "group" } | null>(null);
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
-  const layerMap = new Map(layers.map((l) => [l.id, l]));
   const selectedSet = useMemo(() => new Set(selectedFeatureIds), [selectedFeatureIds]);
 
   const items = useMemo(() => {
@@ -311,7 +310,6 @@ export default function FeaturePanel() {
                       {dragOverGap === `child-${gid}-${ci}` && <DropBar indent />}
                       <FeatureRow
                         feature={child}
-                        layerName={layerMap.get(child.layerId)?.name}
                         isSelected={selectedSet.has(child.id)}
                         indent
                         onSelect={() => selectFeature(child.id)}
@@ -333,7 +331,6 @@ export default function FeaturePanel() {
                 {dragOverGap === `top-${i}` && <DropBar />}
                 <FeatureRow
                   feature={item.feature}
-                  layerName={layerMap.get(item.feature.layerId)?.name}
                   isSelected={selectedSet.has(item.feature.id)}
                   onSelect={() => selectFeature(item.feature.id)}
                   onDuplicate={() => duplicateFeature(item.feature.id)}
@@ -461,7 +458,6 @@ function GroupRow({
 
 function FeatureRow({
   feature,
-  layerName,
   isSelected,
   indent,
   onSelect,
@@ -473,7 +469,6 @@ function FeatureRow({
   onDragEnd,
 }: {
   feature: FeatureData;
-  layerName?: string;
   isSelected: boolean;
   indent?: boolean;
   onSelect: () => void;
@@ -515,11 +510,6 @@ function FeatureRow({
       >
         <FaTrash className="w-3 h-3" />
       </button>
-      {layerName && (
-        <span className="text-[10px] text-muted-foreground truncate max-w-16">
-          {layerName}
-        </span>
-      )}
     </div>
   );
 }

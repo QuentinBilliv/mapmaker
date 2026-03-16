@@ -2,7 +2,7 @@
 
 ## Questions ouvertes
 
-- [ ] **Layers** — Retirer le concept de Layer pour simplifier l'UX ? (garder dans le code avec un layer par défaut, masquer l'UI)
+- [x] **Layers** — Retirer le concept de Layer pour simplifier l'UX ? (garder dans le code avec un layer par défaut, masquer l'UI)
 - [ ] **Dark mode** — À voir l'utilité réelle
 
 ## Court terme
@@ -19,7 +19,7 @@
 - [ ] **Paramètres avancés** — Ajout de coordonnées manuelles et autres paramètres complexes
 - [x] **Import GeoJSON** — Importer un GeoJSON existant via paste dans le CodePanel
 - [ ] **Recherche géo** — Barre de recherche pour centrer la carte sur une adresse/lieu
-- [ ] **Raccourcis clavier** — Ctrl+D dupliquer, Suppr supprimer, etc.
+- [x] **Raccourcis clavier** — Ctrl+D dupliquer, Suppr supprimer, etc.
 
 ## Long terme
 

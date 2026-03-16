@@ -328,19 +328,16 @@ interface BuildResult {
   pendingSvgs: Promise<string>[];
 }
 
-function visibleSorted(features: FeatureData[], layers: LayerData[], groups: GroupData[] = []): FeatureData[] {
-  const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
-  const visible = features.filter((f) => visibleLayerIds.has(f.layerId));
-
+function visibleSorted(features: FeatureData[], _layers: LayerData[], groups: GroupData[] = []): FeatureData[] {
   if (groups.length === 0) {
-    return [...visible].sort((a, b) => a.order - b.order);
+    return [...features].sort((a, b) => a.order - b.order);
   }
 
   const groupMap = new Map(groups.map((g) => [g.id, g]));
   const grouped = new Map<string, FeatureData[]>();
   const standalone: FeatureData[] = [];
 
-  for (const f of visible) {
+  for (const f of features) {
     if (f.groupId && groupMap.has(f.groupId)) {
       let arr = grouped.get(f.groupId);
       if (!arr) { arr = []; grouped.set(f.groupId, arr); }

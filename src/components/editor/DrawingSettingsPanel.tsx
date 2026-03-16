@@ -1,6 +1,6 @@
 "use client";
 
-import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
+import { useDrawingState, useEditorActions } from "@/lib/editor-context";
 import { LINE_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type LineDecoration, type FillPattern } from "@/lib/types";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
@@ -29,7 +29,6 @@ const MODE_LABELS: Record<string, string> = {
 const DRAWING_MODES = ["polygon", "rectangle", "circle", "polyline", "arrow", "double-arrow"];
 
 export default function DrawingSettingsPanel() {
-  const { layers } = useEditorData();
   const {
     drawMode,
     activeLabel,
@@ -42,7 +41,6 @@ export default function DrawingSettingsPanel() {
     activeLineStyle,
     activeLineDecoration,
     activeDecorationSpacing,
-    activeLayerId,
     activeFillPattern,
   } = useDrawingState();
   const {
@@ -57,7 +55,6 @@ export default function DrawingSettingsPanel() {
     setActiveLineStyle,
     setActiveLineDecoration,
     setActiveDecorationSpacing,
-    setActiveLayerId,
     setActiveFillPattern,
     finishDrawing,
     cancelDrawing,
@@ -190,18 +187,6 @@ export default function DrawingSettingsPanel() {
             />
           </Field>
         )}
-        <Field label="Layer">
-          <Select value={activeLayerId} onValueChange={setActiveLayerId}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {layers.map((l) => (
-                <SelectItem key={l.id} value={l.id}>{l.name}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
         <Field label="Source / Citation">
           <Textarea
             value={activeSourceText}

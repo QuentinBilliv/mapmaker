@@ -37,25 +37,14 @@ function CanvasSwatch({ feature }: { feature: FeatureData }) {
 }
 
 export default function Legend() {
-  const { features, layers } = useEditorData();
+  const { features } = useEditorData();
   const [open, setOpen] = useState(false);
 
-  const visibleLayerIds = new Set(layers.filter((l) => l.visible).map((l) => l.id));
   const legendFeatures = features
-    .filter((f) => f.showInLegend && visibleLayerIds.has(f.layerId))
+    .filter((f) => f.showInLegend)
     .sort((a, b) => a.order - b.order);
 
   if (legendFeatures.length === 0) return null;
-
-  const groupedByLayer = layers
-    .filter((l) => l.visible)
-    .map((layer) => ({
-      layer,
-      items: legendFeatures.filter((f) => f.layerId === layer.id),
-    }))
-    .filter((g) => g.items.length > 0);
-
-  const multiLayer = groupedByLayer.length > 1;
 
   return (
     <div className="absolute bottom-8 left-3 z-10">
@@ -70,23 +59,14 @@ export default function Legend() {
               ✕
             </button>
           </div>
-          {groupedByLayer.map(({ layer, items }) => (
-            <div key={layer.id}>
-              {multiLayer && (
-                <div className="text-[10px] font-medium text-muted-foreground mt-1.5 mb-0.5 uppercase tracking-wide col-span-3">
-                  {layer.name}
-                </div>
-              )}
-              <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-                {items.map((f) => (
-                  <div key={f.id} className="flex flex-col items-center gap-0.5">
-                    <CanvasSwatch feature={f} />
-                    {f.label && <span className="text-[10px] text-foreground text-center leading-tight truncate max-w-16">{f.label}</span>}
-                  </div>
-                ))}
+          <div className="grid grid-cols-3 gap-x-3 gap-y-1">
+            {legendFeatures.map((f) => (
+              <div key={f.id} className="flex flex-col items-center gap-0.5">
+                <CanvasSwatch feature={f} />
+                {f.label && <span className="text-[10px] text-foreground text-center leading-tight truncate max-w-16">{f.label}</span>}
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
       ) : (
         <Button

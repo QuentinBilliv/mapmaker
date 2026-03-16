@@ -5,7 +5,7 @@ import { EditorProvider } from "@/lib/editor-context";
 import MapCanvas from "@/components/editor/MapCanvas";
 import MapCanvasErrorBoundary from "@/components/editor/MapCanvasErrorBoundary";
 import DrawingToolbar from "@/components/editor/DrawingToolbar";
-import LayerPanel from "@/components/editor/LayerPanel";
+
 import FeatureForm from "@/components/editor/FeatureForm";
 import DrawingSettingsPanel from "@/components/editor/DrawingSettingsPanel";
 import MapMetadata from "@/components/editor/MapMetadata";
@@ -41,7 +41,6 @@ export default function Home() {
           </Button>
         </div>
         <aside className="w-72 h-full border-l bg-popover flex flex-col overflow-hidden shrink-0">
-          <LayerPanel />
           <FeaturePanel />
         </aside>
         {showCode && (
