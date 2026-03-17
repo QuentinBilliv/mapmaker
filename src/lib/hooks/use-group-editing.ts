@@ -29,6 +29,10 @@ function getAllCoords(members: FeatureData[]): Coord[] {
       for (const c of g.coordinates) coords.push(c as Coord);
     } else if (g.type === "Polygon") {
       for (const c of g.coordinates[0]) coords.push(c as Coord);
+    } else if (g.type === "MultiPolygon") {
+      for (const poly of g.coordinates) for (const c of poly[0]) coords.push(c as Coord);
+    } else if (g.type === "MultiLineString") {
+      for (const line of g.coordinates) for (const c of line) coords.push(c as Coord);
     }
   }
   return coords;

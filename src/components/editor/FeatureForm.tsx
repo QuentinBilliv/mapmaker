@@ -10,7 +10,7 @@ import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERN
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
-import { polylineLength, polygonArea, formatDistance, formatArea } from "@/lib/geo-math";
+import { polylineLength, polygonArea, multiPolygonArea, formatDistance, formatArea } from "@/lib/geo-math";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -648,6 +648,14 @@ function MeasurementInfo({ feature }: { feature: FeatureData }) {
     return (
       <p className="text-[10px] text-muted-foreground">
         Perimeter: {formatDistance(perimeter)} — Area: {formatArea(area)}
+      </p>
+    );
+  }
+  if (feature.type === "polygon" && g.type === "MultiPolygon") {
+    const area = multiPolygonArea(g.coordinates);
+    return (
+      <p className="text-[10px] text-muted-foreground">
+        Area: {formatArea(area)}
       </p>
     );
   }

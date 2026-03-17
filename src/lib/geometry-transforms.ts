@@ -21,6 +21,10 @@ export function shiftGeometry(g: GeoJSON.Geometry, dlng: number, dMercY: number)
       return { type: "LineString", coordinates: shiftCoords(g.coordinates, dlng, dMercY) };
     case "Polygon":
       return { type: "Polygon", coordinates: g.coordinates.map((r) => shiftCoords(r, dlng, dMercY)) };
+    case "MultiPolygon":
+      return { type: "MultiPolygon", coordinates: g.coordinates.map((p) => p.map((r) => shiftCoords(r, dlng, dMercY))) };
+    case "MultiLineString":
+      return { type: "MultiLineString", coordinates: g.coordinates.map((l) => shiftCoords(l, dlng, dMercY)) };
     default:
       return g;
   }
@@ -36,6 +40,10 @@ export function rotateGeometry(g: GeoJSON.Geometry, center: Coord, angle: number
       return { type: "LineString", coordinates: rotateCoords(g.coordinates as Coord[], center, angle) };
     case "Polygon":
       return { type: "Polygon", coordinates: g.coordinates.map((r) => rotateCoords(r as Coord[], center, angle)) };
+    case "MultiPolygon":
+      return { type: "MultiPolygon", coordinates: g.coordinates.map((p) => p.map((r) => rotateCoords(r as Coord[], center, angle))) };
+    case "MultiLineString":
+      return { type: "MultiLineString", coordinates: g.coordinates.map((l) => rotateCoords(l as Coord[], center, angle)) };
     default:
       return g;
   }

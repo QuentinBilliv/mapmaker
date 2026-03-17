@@ -25,6 +25,16 @@ function getCoords(f: FeatureData): Coord[] {
   if (g.type === "Point") return [(g as GeoJSON.Point).coordinates as Coord];
   if (g.type === "LineString") return (g as GeoJSON.LineString).coordinates as Coord[];
   if (g.type === "Polygon") return ((g as GeoJSON.Polygon).coordinates[0].slice(0, -1)) as Coord[];
+  if (g.type === "MultiPolygon") {
+    const all: Coord[] = [];
+    for (const poly of (g as GeoJSON.MultiPolygon).coordinates) all.push(...(poly[0].slice(0, -1) as Coord[]));
+    return all;
+  }
+  if (g.type === "MultiLineString") {
+    const all: Coord[] = [];
+    for (const line of (g as GeoJSON.MultiLineString).coordinates) all.push(...(line as Coord[]));
+    return all;
+  }
   return [];
 }
 

@@ -85,5 +85,23 @@ export function smoothGeometry(
     };
   }
 
+  if (geometry.type === "MultiPolygon") {
+    return {
+      type: "MultiPolygon",
+      coordinates: geometry.coordinates.map((poly) =>
+        poly.map((ring) => roundRing(ring as Coord[], radius))
+      ),
+    };
+  }
+
+  if (geometry.type === "MultiLineString") {
+    return {
+      type: "MultiLineString",
+      coordinates: geometry.coordinates.map((line) =>
+        roundLine(line as Coord[], radius)
+      ),
+    };
+  }
+
   return geometry;
 }

@@ -24,12 +24,21 @@ export function polylineLength(coords: number[][]): number {
 }
 
 export function polygonArea(ring: number[][]): number {
+  if (ring.length < 3) return 0;
   let total = 0;
   for (let i = 0; i < ring.length; i++) {
     const j = (i + 1) % ring.length;
     total += toRad(ring[j][0] - ring[i][0]) * (2 + Math.sin(toRad(ring[i][1])) + Math.sin(toRad(ring[j][1])));
   }
   return Math.abs((total * R * R) / 2);
+}
+
+export function multiPolygonArea(coords: number[][][][]): number {
+  let total = 0;
+  for (const poly of coords) {
+    if (poly[0]) total += polygonArea(poly[0]);
+  }
+  return total;
 }
 
 export function formatDistance(meters: number): string {
