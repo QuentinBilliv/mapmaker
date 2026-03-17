@@ -10,7 +10,7 @@ export default function PlatformLayout({
     <div className="h-screen flex flex-col">
       <Navbar />
       <MigrationGuard />
-      <main className="flex-1 overflow-auto">{children}</main>
+      <main className="flex-1 overflow-hidden flex flex-col">{children}</main>
     </div>
   );
 }
