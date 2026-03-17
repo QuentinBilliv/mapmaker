@@ -10,6 +10,7 @@ import { FaRotateLeft, FaRotateRight, FaEarthAmericas } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import GeoBankDialog from "@/components/editor/GeoBankDialog";
+import GeoSearchButton from "@/components/editor/GeoSearchBar";
 
 const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
   { mode: "select", label: "Select", icon: "↖" },
@@ -33,6 +34,7 @@ export default function DrawingToolbar() {
       <UndoRedoButtons />
       <Separator />
       <GeoBankButton />
+      <GeoSearchButton />
       {drawMode === "point" && (
         <>
           <Separator />

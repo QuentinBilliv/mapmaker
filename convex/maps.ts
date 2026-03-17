@@ -83,7 +83,7 @@ export const createMap = mutation({
     const now = Date.now();
     return await ctx.db.insert("maps", {
       ownerId: user._id,
-      title: "New map",
+      title: "My map",
       description: "",
       tags: [],
       license: "CC BY",

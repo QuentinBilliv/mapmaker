@@ -11,7 +11,7 @@ import BaseMapSelector from "./BaseMapSelector";
 import Legend from "./Legend";
 import FeaturePanel from "./FeaturePanel";
 import CodePanel from "./CodePanel";
-import GeoSearchBar from "./GeoSearchBar";
+
 import { Button } from "@/components/ui/button";
 
 export default function EditorShell() {
@@ -24,7 +24,7 @@ export default function EditorShell() {
           <MapCanvas />
         </MapCanvasErrorBoundary>
         <DrawingToolbar />
-        <GeoSearchBar />
+
         <MapMetadata />
         <DrawingSettingsPanel />
         <FeatureForm />
