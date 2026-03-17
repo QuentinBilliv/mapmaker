@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@base-ui/react": "^1.2.0",
+    "@convex-dev/auth": "^0.0.91",
     "@hookform/resolvers": "^5.2.2",
     "@maplibre/maplibre-gl-style-spec": "^24.7.0",
     "@turf/bezier-spline": "^7.3.4",
@@ -19,7 +20,8 @@
     "autoprefixer": "^10.4.27",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
-"lucide-react": "^0.577.0",
+    "convex": "^1.33.1",
+    "lucide-react": "^0.577.0",
     "maplibre-gl": "^5.19.0",
     "next": "14.2.35",
     "react": "^18",

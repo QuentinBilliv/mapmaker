@@ -6,11 +6,13 @@ import { Label } from "@/components/ui/label";
 export default function Field({
   label,
   error,
+  required,
   className,
   children,
 }: {
   label: string;
   error?: string;
+  required?: boolean;
   className?: string;
   children: React.ReactNode;
 }) {
@@ -25,7 +27,9 @@ export default function Field({
 
   return (
     <div className={className}>
-      <Label htmlFor={autoId} className="text-xs text-muted-foreground mb-1">{label}</Label>
+      <Label htmlFor={autoId} className="text-xs text-muted-foreground mb-1">
+        {label}{required && <span className="text-destructive ml-0.5">*</span>}
+      </Label>
       {enhanced}
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}
     </div>

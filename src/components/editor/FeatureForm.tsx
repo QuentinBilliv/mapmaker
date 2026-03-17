@@ -10,6 +10,7 @@ import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERN
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
+import { polylineLength, polygonArea, formatDistance, formatArea } from "@/lib/geo-math";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -213,6 +214,7 @@ export default function FeatureForm() {
             <>
               <StrokeFields showArrows={isLine} />
               {selectedFeature.type === "polygon" && <FillPatternSelect />}
+              <MeasurementInfo feature={selectedFeature} />
             </>
           )}
           <SourceFields />
@@ -623,6 +625,28 @@ function FillPatternSelect() {
       </div>
     </Field>
   );
+}
+
+function MeasurementInfo({ feature }: { feature: FeatureData }) {
+  const g = feature.geometry;
+  if (feature.type === "polyline" && g.type === "LineString") {
+    return (
+      <p className="text-[10px] text-muted-foreground">
+        Length: {formatDistance(polylineLength(g.coordinates))}
+      </p>
+    );
+  }
+  if (feature.type === "polygon" && g.type === "Polygon" && g.coordinates[0]) {
+    const ring = g.coordinates[0];
+    const perimeter = polylineLength(ring);
+    const area = polygonArea(ring);
+    return (
+      <p className="text-[10px] text-muted-foreground">
+        Perimeter: {formatDistance(perimeter)} — Area: {formatArea(area)}
+      </p>
+    );
+  }
+  return null;
 }
 
 function FormSlider({

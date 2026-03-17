@@ -1,5 +1,50 @@
 export type Coord = [number, number];
 
+const R = 6_371_000;
+
+function toRad(deg: number) {
+  return (deg * Math.PI) / 180;
+}
+
+function haversine(a: Coord, b: Coord): number {
+  const dLat = toRad(b[1] - a[1]);
+  const dLon = toRad(b[0] - a[0]);
+  const sinLat = Math.sin(dLat / 2);
+  const sinLon = Math.sin(dLon / 2);
+  const h = sinLat * sinLat + Math.cos(toRad(a[1])) * Math.cos(toRad(b[1])) * sinLon * sinLon;
+  return 2 * R * Math.asin(Math.sqrt(h));
+}
+
+export function polylineLength(coords: number[][]): number {
+  let total = 0;
+  for (let i = 1; i < coords.length; i++) {
+    total += haversine(coords[i - 1] as Coord, coords[i] as Coord);
+  }
+  return total;
+}
+
+export function polygonArea(ring: number[][]): number {
+  let total = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const j = (i + 1) % ring.length;
+    total += toRad(ring[j][0] - ring[i][0]) * (2 + Math.sin(toRad(ring[i][1])) + Math.sin(toRad(ring[j][1])));
+  }
+  return Math.abs((total * R * R) / 2);
+}
+
+export function formatDistance(meters: number): string {
+  if (meters < 1000) return `${Math.round(meters)} m`;
+  if (meters < 100_000) return `${(meters / 1000).toFixed(1)} km`;
+  return `${Math.round(meters / 1000)} km`;
+}
+
+export function formatArea(sqMeters: number): string {
+  if (sqMeters < 10_000) return `${Math.round(sqMeters)} m²`;
+  if (sqMeters < 1_000_000) return `${(sqMeters / 10_000).toFixed(1)} ha`;
+  if (sqMeters < 1e10) return `${(sqMeters / 1_000_000).toFixed(1)} km²`;
+  return `${Math.round(sqMeters / 1_000_000)} km²`;
+}
+
 export function toMercatorY(lat: number): number {
   const rad = (lat * Math.PI) / 180;
   return (180 / Math.PI) * Math.log(Math.tan(Math.PI / 4 + rad / 2));

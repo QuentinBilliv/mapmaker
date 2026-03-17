@@ -243,14 +243,34 @@ function rotateGeometry(g: GeoJSON.Geometry, center: Coord, angle: number): GeoJ
   }
 }
 
-export function EditorProvider({ children }: { children: React.ReactNode }) {
-  const [map, setMap] = useState<MapData>(DEFAULT_MAP);
-  const [layers, setLayers] = useState<LayerData[]>([DEFAULT_LAYER]);
-  const [features, setFeatures] = useState<FeatureData[]>([]);
-  const [groups, setGroups] = useState<GroupData[]>([]);
+export interface StoredMapState {
+  map: MapData;
+  layers: LayerData[];
+  features: FeatureData[];
+  groups: GroupData[];
+  baseMapId: string;
+}
+
+interface EditorProviderProps {
+  children: React.ReactNode;
+  initialData?: StoredMapState;
+  onSave?: (state: StoredMapState) => void;
+}
+
+export function EditorProvider({ children, initialData, onSave }: EditorProviderProps) {
+  const [map, setMap] = useState<MapData>(initialData?.map ?? DEFAULT_MAP);
+  const [layers, setLayers] = useState<LayerData[]>(initialData?.layers ?? [DEFAULT_LAYER]);
+  const [features, setFeatures] = useState<FeatureData[]>(initialData?.features ?? []);
+  const [groups, setGroups] = useState<GroupData[]>(initialData?.groups ?? []);
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
 
-  const [drawing, dispatchDrawing] = useReducer(drawingReducer, INITIAL_DRAWING_STATE);
+  const initialBaseMap = initialData?.baseMapId
+    ? BASE_MAPS.find((b) => b.id === initialData.baseMapId) ?? BASE_MAPS[0]
+    : BASE_MAPS[0];
+  const [drawing, dispatchDrawing] = useReducer(drawingReducer, {
+    ...INITIAL_DRAWING_STATE,
+    activeBaseMap: initialBaseMap,
+  });
 
   const selectedFeature = useMemo(
     () => (selectedFeatureIds.length > 0 ? features.find((f) => f.id === selectedFeatureIds[0]) ?? null : null),
@@ -259,8 +279,10 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
 
   const featureLimitReached = features.length >= FEATURE_LIMIT;
 
-  // Load from localStorage on mount
-  const hasLoadedRef = useRef(false);
+  const hasLoadedRef = useRef(!!initialData);
+  const onSaveRef = useRef(onSave);
+  onSaveRef.current = onSave;
+
   useEffect(() => {
     if (hasLoadedRef.current) return;
     hasLoadedRef.current = true;
@@ -273,13 +295,23 @@ export function EditorProvider({ children }: { children: React.ReactNode }) {
     dispatchDrawing({ type: "SET", payload: { activeBaseMap: saved.baseMap } });
   }, []);
 
-  // Auto-save to localStorage (debounced, skip until initial load is done)
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   useEffect(() => {
     if (!hasLoadedRef.current) return;
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
-      saveToLocalStorage(map, layers, features, groups, drawing.activeBaseMap.id);
+      const state: StoredMapState = {
+        map,
+        layers,
+        features,
+        groups,
+        baseMapId: drawing.activeBaseMap.id,
+      };
+      if (onSaveRef.current) {
+        onSaveRef.current(state);
+      } else {
+        saveToLocalStorage(map, layers, features, groups, drawing.activeBaseMap.id);
+      }
     }, 500);
     return () => clearTimeout(saveTimerRef.current);
   }, [map, layers, features, groups, drawing.activeBaseMap]);

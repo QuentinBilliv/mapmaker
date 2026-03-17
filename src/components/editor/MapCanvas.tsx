@@ -71,8 +71,22 @@ export default function MapCanvas() {
   const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useMoveListener(mapRef, updateMap);
+  useFlyToListener(mapRef);
 
   return <div ref={containerRef} className="w-full h-full" />;
+}
+
+function useFlyToListener(mapRef: React.RefObject<maplibregl.Map | null>) {
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const map = mapRef.current;
+      if (!map) return;
+      const { center, zoom } = (e as CustomEvent).detail;
+      map.flyTo({ center, zoom, duration: 1500 });
+    };
+    window.addEventListener("mapmaker:flyto", handler);
+    return () => window.removeEventListener("mapmaker:flyto", handler);
+  }, [mapRef]);
 }
 
 function useMoveListener(
