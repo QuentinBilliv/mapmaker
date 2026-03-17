@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { useDrawingState, useEditorActions } from "@/lib/editor-context";
+import { useDrawingState, useEditorData, useEditorActions } from "@/lib/editor-context";
 import { DrawMode } from "@/lib/draw-engine";
 import { POINT_SHAPES } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
@@ -68,7 +68,8 @@ function ToolButtons() {
 }
 
 function UndoRedoButtons() {
-  const { undo, redo, canUndo, canRedo } = useEditorActions();
+  const { canUndo, canRedo } = useEditorData();
+  const { undo, redo } = useEditorActions();
 
   return (
     <div className="flex flex-col gap-1">

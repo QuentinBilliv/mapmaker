@@ -11,6 +11,7 @@ import {
   toMercatorY, fromMercatorY,
   rotateCoords, computeBbox, rotateBbox,
 } from "@/lib/geo-math";
+import { EMPTY_FC, setOverlayData, beginDrag, endDrag } from "./editing-helpers";
 
 const SRC = "shape-edit";
 const LAYER_HANDLE = "shape-edit-handles";
@@ -21,7 +22,7 @@ const LAYER_ROTATE_HIT = "shape-edit-rotate-hit";
 const LAYER_ROTATE_ICON = "shape-edit-rotate-icon";
 const LAYER_ROTATE_ARM = "shape-edit-rotate-arm";
 
-const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+const EMPTY = EMPTY_FC;
 
 function isShapePolygon(f: FeatureData): f is PolygonFeature & { shapeOrigin: "rectangle" | "circle" } {
   return f.type === "polygon" && !!f.shapeOrigin;
@@ -126,16 +127,8 @@ function rectHandles(a: Coord, b: Coord, bbox?: BboxInfo): GeoJSON.FeatureCollec
 
 function circleHandles(center: Coord, radius: number): GeoJSON.FeatureCollection {
   const edgePoint: Coord = [center[0] + radius, fromMercatorY(toMercatorY(center[1]))];
-  const segments = 64;
-  const ring: Coord[] = [];
-  const mcy = toMercatorY(center[1]);
-  for (let i = 0; i <= segments; i++) {
-    const angle = (2 * Math.PI * i) / segments;
-    ring.push([
-      center[0] + radius * Math.cos(angle),
-      fromMercatorY(mcy + radius * Math.sin(angle)),
-    ]);
-  }
+  const geom = buildCircleGeometry(center, radius) as GeoJSON.Polygon;
+  const ring = geom.coordinates[0];
   const features: GeoJSON.Feature[] = [
     { type: "Feature", geometry: { type: "Point", coordinates: center }, properties: { t: "center" } },
     { type: "Feature", geometry: { type: "Point", coordinates: edgePoint }, properties: { t: "edge" } },
@@ -219,8 +212,7 @@ function ensureLayers(map: maplibregl.Map) {
 }
 
 function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
-  const s = map.getSource(SRC) as maplibregl.GeoJSONSource | undefined;
-  if (s) s.setData(data);
+  setOverlayData(map, SRC, data);
 }
 
 interface RectCornerDrag { kind: "rect-corner"; cornerIndex: number; id: string; a: Coord; b: Coord }
@@ -290,10 +282,7 @@ export function useShapeEditing(
         : [];
       if (rotateHits.length > 0) {
         recordRef.current?.();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
-        map.getCanvas().style.cursor = "grabbing";
+        beginDrag(map, e, interactingRef);
         const coords = getShapeCoords(f);
         const origBbox = computeBbox(coords);
         const startAngle = Math.atan2(
@@ -316,10 +305,7 @@ export function useShapeEditing(
 
       const props = hits[0].properties;
       recordRef.current?.();
-      e.preventDefault();
-      interactingRef.current = true;
-      map.dragPan.disable();
-      map.getCanvas().style.cursor = "grabbing";
+      beginDrag(map, e, interactingRef);
 
       if (f.shapeOrigin === "rectangle") {
         const rc = rectCorners(f);
@@ -419,9 +405,7 @@ export function useShapeEditing(
       const d = dragRef.current;
       if (!d) return;
       dragRef.current = null;
-      map.dragPan.enable();
-      map.getCanvas().style.cursor = "";
-      setTimeout(() => { interactingRef.current = false; }, 0);
+      endDrag(map, interactingRef);
 
       const f = featRef.current;
       if (d.kind === "shape-rotate") {

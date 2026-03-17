@@ -4,11 +4,11 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useReducer,
   useRef,
   useState,
+  useEffect,
 } from "react";
 import { v4 as uuid } from "uuid";
 import type { DrawMode } from "./draw-engine";
@@ -30,7 +30,10 @@ import type {
   TextFont,
 } from "./types";
 import type { DeserializedMap } from "./mapmaker-format";
-import { type Coord, rotateCoords, toMercatorY, fromMercatorY } from "./geo-math";
+import { type Coord } from "./geo-math";
+import { nextOrder, shiftGeometry, rotateGeometry } from "./geometry-transforms";
+import { type DrawingState, type DrawingAction, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
+import { useUndoRedo } from "./hooks/use-undo-redo";
 
 interface EditorDataState {
   map: MapData;
@@ -40,82 +43,8 @@ interface EditorDataState {
   selectedFeatureIds: string[];
   selectedFeature: FeatureData | null;
   featureLimitReached: boolean;
-}
-
-interface DrawingState {
-  drawMode: DrawMode;
-  activeLabel: string;
-  activeSourceText: string;
-  activeSourceUrl: string;
-  activeColor: string;
-  activeOpacity: number;
-  activeSize: number;
-  activeShape: PointShape;
-  activeIcon: string | null;
-  activeBorderColor: string;
-  activeBorderWidth: number;
-  activeSmoothing: number;
-  activeStrokeWidth: number;
-  activeLineStyle: LineStyle;
-  activeArrowStyle: ArrowStyle;
-  activeLineDecoration: LineDecoration;
-  activeDecorationSpacing: number;
-  activeFillPattern: FillPattern;
-  activeTextContent: string;
-  activeFontSize: number;
-  activeFontFamily: TextFont;
-  activeTextBorderEnabled: boolean;
-  activeTextBorderColor: string;
-  activeTextBorderWidth: number;
-  activeBaseMap: BaseMap;
-}
-
-type DrawingAction =
-  | { type: "SET"; payload: Partial<DrawingState> }
-  | { type: "RESET_AFTER_ADD"; isText: boolean };
-
-const INITIAL_DRAWING_STATE: DrawingState = {
-  drawMode: "select",
-  activeLabel: "",
-  activeSourceText: "",
-  activeSourceUrl: "",
-  activeColor: COLORS.primary,
-  activeOpacity: 1,
-  activeSize: 1,
-  activeShape: "circle",
-  activeIcon: null,
-  activeBorderColor: COLORS.white,
-  activeBorderWidth: DEFAULT_BORDER_WIDTH,
-  activeSmoothing: 0,
-  activeStrokeWidth: 3,
-  activeLineStyle: "solid",
-  activeArrowStyle: "none",
-  activeLineDecoration: "none",
-  activeDecorationSpacing: 50,
-  activeFillPattern: "none",
-  activeTextContent: "",
-  activeFontSize: 24,
-  activeFontFamily: "sans",
-  activeTextBorderEnabled: true,
-  activeTextBorderColor: COLORS.white,
-  activeTextBorderWidth: 2,
-  activeBaseMap: BASE_MAPS[0],
-};
-
-function drawingReducer(state: DrawingState, action: DrawingAction): DrawingState {
-  switch (action.type) {
-    case "SET":
-      return { ...state, ...action.payload };
-    case "RESET_AFTER_ADD":
-      return {
-        ...state,
-        drawMode: "select",
-        activeLabel: "",
-        activeSourceText: "",
-        activeSourceUrl: "",
-        ...(action.isText ? { activeTextContent: "" } : {}),
-      };
-  }
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 interface EditorActions {
@@ -175,8 +104,6 @@ interface EditorActions {
   recordSnapshot: () => void;
   undo: () => void;
   redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
 }
 
 const DataContext = createContext<EditorDataState | null>(null);
@@ -205,42 +132,6 @@ export function useEditorActions() {
 
 export function useEditor() {
   return { ...useEditorData(), ...useDrawingState(), ...useEditorActions() };
-}
-
-function shiftCoords(coords: number[][], dlng: number, dMercY: number): number[][] {
-  return coords.map((c) => [c[0] + dlng, fromMercatorY(toMercatorY(c[1]) + dMercY), ...c.slice(2)]);
-}
-
-function shiftGeometry(g: GeoJSON.Geometry, dlng: number, dMercY: number): GeoJSON.Geometry {
-  switch (g.type) {
-    case "Point":
-      return { type: "Point", coordinates: [g.coordinates[0] + dlng, fromMercatorY(toMercatorY(g.coordinates[1]) + dMercY)] };
-    case "LineString":
-      return { type: "LineString", coordinates: shiftCoords(g.coordinates, dlng, dMercY) };
-    case "Polygon":
-      return { type: "Polygon", coordinates: g.coordinates.map((r) => shiftCoords(r, dlng, dMercY)) };
-    default:
-      return g;
-  }
-}
-
-function rotateGeometryCoords(coords: number[][], center: Coord, angle: number): number[][] {
-  return rotateCoords(coords as Coord[], center, angle);
-}
-
-function rotateGeometry(g: GeoJSON.Geometry, center: Coord, angle: number): GeoJSON.Geometry {
-  switch (g.type) {
-    case "Point": {
-      const [rotated] = rotateCoords([g.coordinates as Coord], center, angle);
-      return { type: "Point", coordinates: rotated };
-    }
-    case "LineString":
-      return { type: "LineString", coordinates: rotateGeometryCoords(g.coordinates, center, angle) };
-    case "Polygon":
-      return { type: "Polygon", coordinates: g.coordinates.map((r) => rotateGeometryCoords(r, center, angle)) };
-    default:
-      return g;
-  }
 }
 
 export interface StoredMapState {
@@ -330,9 +221,6 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     cancelDrawing: () => {},
   });
 
-  type Snapshot = { features: FeatureData[]; layers: LayerData[]; groups: GroupData[] };
-  const HISTORY_LIMIT = 50;
-  const historyRef = useRef<{ past: Snapshot[]; future: Snapshot[] }>({ past: [], future: [] });
   const featuresRef = useRef(features);
   featuresRef.current = features;
   const layersRef = useRef(layers);
@@ -341,57 +229,11 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   groupsRef.current = groups;
   const selectedIdsRef = useRef(selectedFeatureIds);
   selectedIdsRef.current = selectedFeatureIds;
-  const [canUndo, setCanUndo] = useState(false);
-  const [canRedo, setCanRedo] = useState(false);
 
-  const syncHistoryFlags = useCallback(() => {
-    setCanUndo(historyRef.current.past.length > 0);
-    setCanRedo(historyRef.current.future.length > 0);
-  }, []);
-
-  const recordSnapshot = useCallback(() => {
-    const h = historyRef.current;
-    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current), groups: structuredClone(groupsRef.current) });
-    if (h.past.length > HISTORY_LIMIT) h.past.shift();
-    h.future = [];
-    syncHistoryFlags();
-  }, [syncHistoryFlags]);
-
-  const undo = useCallback(() => {
-    const h = historyRef.current;
-    const snap = h.past.pop();
-    if (!snap) return;
-    h.future.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current), groups: structuredClone(groupsRef.current) });
-    setFeatures(snap.features);
-    setLayers(snap.layers);
-    setGroups(snap.groups);
-    setSelectedFeatureIds([]);
-    syncHistoryFlags();
-  }, [syncHistoryFlags]);
-
-  const redo = useCallback(() => {
-    const h = historyRef.current;
-    const snap = h.future.pop();
-    if (!snap) return;
-    h.past.push({ features: structuredClone(featuresRef.current), layers: structuredClone(layersRef.current), groups: structuredClone(groupsRef.current) });
-    setFeatures(snap.features);
-    setLayers(snap.layers);
-    setGroups(snap.groups);
-    setSelectedFeatureIds([]);
-    syncHistoryFlags();
-  }, [syncHistoryFlags]);
-
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const mod = e.metaKey || e.ctrlKey;
-      if (!mod || e.key.toLowerCase() !== "z") return;
-      e.preventDefault();
-      if (e.shiftKey) redo();
-      else undo();
-    };
-    window.addEventListener("keydown", handler);
-    return () => window.removeEventListener("keydown", handler);
-  }, [undo, redo]);
+  const { canUndo, canRedo, recordSnapshot, undo, redo } = useUndoRedo(
+    featuresRef, layersRef, groupsRef,
+    setFeatures, setLayers, setGroups, setSelectedFeatureIds,
+  );
 
   const set = useCallback(
     (payload: Partial<DrawingState>) => dispatchDrawing({ type: "SET", payload }),
@@ -431,9 +273,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     const currentMode = drawModeRef.current;
     const isText = currentMode === "text";
     const featureType = isText ? "text" as const : geometryTypeToFeatureType(geometry.type);
-    const nextOrder = featuresRef.current.length > 0
-      ? Math.max(...featuresRef.current.map((f) => f.order)) + 1
-      : 0;
+    const order = nextOrder(featuresRef.current);
     const base = {
       id: uuid(),
       layerId: DEFAULT_LAYER.id,
@@ -442,7 +282,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       showInLegend: false,
       color: s.activeColor,
       opacity: s.activeOpacity,
-      order: nextOrder,
+      order,
       sourceText: s.activeSourceText,
       sourceUrl: s.activeSourceUrl || undefined,
       geometry,
@@ -504,9 +344,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     recordSnapshot();
     const s = drawingRef.current;
     const featureType = geometryTypeToFeatureType(geometry.type);
-    const nextOrder = featuresRef.current.length > 0
-      ? Math.max(...featuresRef.current.map((f) => f.order)) + 1
-      : 0;
+    const order = nextOrder(featuresRef.current);
     const base = {
       id: uuid(),
       layerId: DEFAULT_LAYER.id,
@@ -515,7 +353,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       showInLegend: false,
       color: s.activeColor,
       opacity: s.activeOpacity,
-      order: nextOrder,
+      order,
       sourceText,
       geometry,
     };
@@ -576,13 +414,10 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     recordSnapshot();
     const source = featuresRef.current.find((f) => f.id === id);
     if (!source) return;
-    const maxOrder = featuresRef.current.length > 0
-      ? Math.max(...featuresRef.current.map((f) => f.order))
-      : -1;
     const clone = {
       ...structuredClone(source),
       id: uuid(),
-      order: maxOrder + 1,
+      order: nextOrder(featuresRef.current),
       geometry: shiftGeometry(source.geometry, DUPLICATE_OFFSET_LNG, DUPLICATE_OFFSET_MERC_Y),
     } as FeatureData;
     setFeatures((prev) => [...prev, clone]);
@@ -596,13 +431,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     const group = groupsRef.current.find((g) => g.id === groupId);
     if (!group) return;
     const newGroupId = uuid();
-    const maxGroupOrder = groupsRef.current.length > 0
-      ? Math.max(...groupsRef.current.map((g) => g.order))
-      : -1;
-    const maxFeatureOrder = featuresRef.current.length > 0
-      ? Math.max(...featuresRef.current.map((f) => f.order))
-      : -1;
-    const groupOrder = Math.max(maxGroupOrder, maxFeatureOrder) + 1;
+    const groupOrder = Math.max(nextOrder(groupsRef.current), nextOrder(featuresRef.current));
     setGroups((prev) => [...prev, { id: newGroupId, label: group.label, order: groupOrder }]);
     const clones = groupChildren.map((f, i) => ({
       ...structuredClone(f),
@@ -678,13 +507,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   const createGroup = useCallback((featureIds: string[], label: string) => {
     recordSnapshot();
     const groupId = uuid();
-    const maxGroupOrder = groupsRef.current.length > 0
-      ? Math.max(...groupsRef.current.map((g) => g.order))
-      : -1;
-    const maxFeatureOrder = featuresRef.current.length > 0
-      ? Math.max(...featuresRef.current.map((f) => f.order))
-      : -1;
-    const groupOrder = Math.max(maxGroupOrder, maxFeatureOrder) + 1;
+    const groupOrder = Math.max(nextOrder(groupsRef.current), nextOrder(featuresRef.current));
     setGroups((prev) => [...prev, { id: groupId, label, order: groupOrder }]);
     setFeatures((prev) =>
       prev.map((f) =>
@@ -850,8 +673,8 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   }, [duplicateFeature, duplicateGroup, deleteFeature, deleteGroup]);
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached }),
-    [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached]
+    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, canUndo, canRedo }),
+    [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(
@@ -909,8 +732,6 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       recordSnapshot,
       undo,
       redo,
-      canUndo,
-      canRedo,
     }),
     [
       setDrawMode,
@@ -966,8 +787,6 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       recordSnapshot,
       undo,
       redo,
-      canUndo,
-      canRedo,
     ]
   );
 

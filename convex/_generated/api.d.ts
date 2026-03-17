@@ -15,6 +15,7 @@ import type * as http from "../http.js";
 import type * as maps from "../maps.js";
 import type * as shared from "../shared.js";
 import type * as users from "../users.js";
+import type * as validators from "../validators.js";
 
 import type {
   ApiFromModules,
@@ -30,6 +31,7 @@ declare const fullApi: ApiFromModules<{
   maps: typeof maps;
   shared: typeof shared;
   users: typeof users;
+  validators: typeof validators;
 }>;
 
 /**

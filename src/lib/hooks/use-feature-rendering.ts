@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, GroupData, PointShape } from "@/lib/types";
 import {
@@ -191,14 +191,19 @@ function syncPerFeatureLayers(
   layers: LayerData[],
   groups: GroupData[] = []
 ) {
+  syncPerFeatureLayersSorted(map, visibleSorted(features, layers, groups));
+}
+
+function syncPerFeatureLayersSorted(
+  map: maplibregl.Map,
+  sorted: FeatureData[],
+) {
   const style = map.getStyle();
   if (style?.layers) {
     for (const l of [...style.layers]) {
       if (l.id.startsWith(ZF)) map.removeLayer(l.id);
     }
   }
-
-  const sorted = visibleSorted(features, layers, groups);
 
   const before = map.getLayer(FIRST_OVERLAY) ? FIRST_OVERLAY : undefined;
 
@@ -377,10 +382,15 @@ function buildGeoJSON(
   layers: LayerData[],
   groups: GroupData[] = []
 ): BuildResult {
+  return buildGeoJSONSorted(map, visibleSorted(features, layers, groups));
+}
+
+function buildGeoJSONSorted(
+  map: maplibregl.Map,
+  sorted: FeatureData[],
+): BuildResult {
   const pendingSvgs: Promise<string>[] = [];
   const arrowFeatures: GeoJSON.Feature[] = [];
-
-  const sorted = visibleSorted(features, layers, groups);
 
   const geojsonFeatures: GeoJSON.Feature[] = sorted
     .flatMap((f): GeoJSON.Feature[] => {
@@ -499,10 +509,20 @@ function setSourceData(
   layers: LayerData[],
   groups: GroupData[] = []
 ): Promise<string>[] {
+  return setSourceDataSorted(map, visibleSorted(features, layers, groups), features, layers, groups);
+}
+
+function setSourceDataSorted(
+  map: maplibregl.Map,
+  sorted: FeatureData[],
+  features: FeatureData[],
+  layers: LayerData[],
+  groups: GroupData[] = []
+): Promise<string>[] {
   const source = map.getSource(FEATURES_SOURCE) as maplibregl.GeoJSONSource;
   const arrowSource = map.getSource(ARROW_SOURCE) as maplibregl.GeoJSONSource;
   if (!source) return [];
-  const { geojson, arrows, pendingSvgs } = buildGeoJSON(map, features, layers, groups);
+  const { geojson, arrows, pendingSvgs } = buildGeoJSONSorted(map, sorted);
   source.setData(geojson);
   if (arrowSource) arrowSource.setData(arrows);
   return pendingSvgs;
@@ -529,8 +549,9 @@ function fullUpdate(
   cancelled: () => boolean
 ) {
   ensureSourceAndLayers(map);
-  const pending = setSourceData(map, features, layers, groups);
-  syncPerFeatureLayers(map, features, layers, groups);
+  const sorted = visibleSorted(features, layers, groups);
+  const pending = setSourceDataSorted(map, sorted, features, layers, groups);
+  syncPerFeatureLayersSorted(map, sorted);
   syncDecoSpacing(map, features);
   if (pending.length > 0) {
     Promise.all(pending).then(() => {
@@ -540,6 +561,18 @@ function fullUpdate(
   }
 }
 
+function structuralKey(sorted: FeatureData[]): string {
+  let key = "";
+  for (const f of sorted) {
+    if (f.type === "polygon" || f.type === "polyline") {
+      key += `${f.id}:${f.type[0]}:${f.lineStyle}:${f.lineDecoration};`;
+    } else {
+      key += `${f.id}:${f.type[0]};`;
+    }
+  }
+  return key;
+}
+
 export function useFeatureRendering(
   mapRef: React.RefObject<maplibregl.Map | null>,
   features: FeatureData[],
@@ -547,31 +580,40 @@ export function useFeatureRendering(
   groups: GroupData[],
   styleVersion: number
 ) {
+  const lastKeyRef = useRef("");
+
   useEffect(() => {
     const map = mapRef.current;
     if (!map) return;
     let dead = false;
     const isCancelled = () => dead;
 
-    const applyFeatures = () => {
-      if (dead) return;
-      fullUpdate(map, features, layers, groups, isCancelled);
-    };
-
     if (map.getSource(FEATURES_SOURCE)) {
-      const pending = setSourceData(map, features, layers, groups);
-      syncPerFeatureLayers(map, features, layers, groups);
+      const sorted = visibleSorted(features, layers, groups);
+      const pending = setSourceDataSorted(map, sorted, features, layers, groups);
+      const key = structuralKey(sorted);
+      if (key !== lastKeyRef.current) {
+        lastKeyRef.current = key;
+        syncPerFeatureLayersSorted(map, sorted);
+      }
       syncDecoSpacing(map, features);
       if (pending.length > 0) {
         Promise.all(pending).then(() => {
           if (dead) return;
-          setSourceData(map, features, layers, groups);
+          setSourceDataSorted(map, sorted, features, layers, groups);
         });
       }
-    } else if (map.isStyleLoaded()) {
-      fullUpdate(map, features, layers, groups, isCancelled);
     } else {
-      map.once("idle", applyFeatures);
+      const applyFeatures = () => {
+        if (dead) return;
+        lastKeyRef.current = structuralKey(visibleSorted(features, layers, groups));
+        fullUpdate(map, features, layers, groups, isCancelled);
+      };
+      if (map.isStyleLoaded()) {
+        applyFeatures();
+      } else {
+        map.once("idle", applyFeatures);
+      }
     }
 
     return () => { dead = true; };

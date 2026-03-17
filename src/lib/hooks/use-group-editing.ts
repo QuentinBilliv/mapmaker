@@ -7,6 +7,7 @@ import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 import { ROTATE_ICON_ID, ensureRotateIcon } from "@/lib/rotate-icon";
 import { type Coord, type BboxInfo, toMercatorY, computeBbox } from "@/lib/geo-math";
+import { EMPTY_FC, setOverlayData, beginDrag, endDrag } from "./editing-helpers";
 
 const SRC = "group-edit";
 const LAYER_BBOX = "group-edit-bbox";
@@ -16,7 +17,7 @@ const LAYER_ROTATE_HIT = "group-edit-rotate-hit";
 const LAYER_ROTATE_ICON = "group-edit-rotate-icon";
 const LAYER_ROTATE_ARM = "group-edit-rotate-arm";
 
-const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+const EMPTY = EMPTY_FC;
 
 function getAllCoords(members: FeatureData[]): Coord[] {
   const coords: Coord[] = [];
@@ -90,8 +91,7 @@ function ensureLayers(map: maplibregl.Map) {
 }
 
 function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
-  const s = map.getSource(SRC) as maplibregl.GeoJSONSource | undefined;
-  if (s) s.setData(data);
+  setOverlayData(map, SRC, data);
 }
 
 type MoveDrag = { kind: "move"; groupId: string; startLng: number; startMercY: number; origBbox: BboxInfo };
@@ -151,10 +151,7 @@ export function useGroupEditing(
         : [];
       if (rotateHits.length > 0) {
         recordRef.current();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
-        map.getCanvas().style.cursor = "grabbing";
+        beginDrag(map, e, interactingRef);
         const startAngle = Math.atan2(
           toMercatorY(e.lngLat.lat) - toMercatorY(bbox.center[1]),
           e.lngLat.lng - bbox.center[0]
@@ -168,10 +165,7 @@ export function useGroupEditing(
         : [];
       if (moveHits.length > 0) {
         recordRef.current();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
-        map.getCanvas().style.cursor = "grabbing";
+        beginDrag(map, e, interactingRef);
         dragRef.current = { kind: "move", groupId: gid, startLng: e.lngLat.lng, startMercY: toMercatorY(e.lngLat.lat), origBbox: bbox };
         return;
       }
@@ -227,9 +221,7 @@ export function useGroupEditing(
       const d = dragRef.current;
       if (!d) return;
       dragRef.current = null;
-      map.dragPan.enable();
-      map.getCanvas().style.cursor = "";
-      setTimeout(() => { interactingRef.current = false; }, 0);
+      endDrag(map, interactingRef);
       const mems = membersRef.current;
       const allCoords = getAllCoords(mems);
       if (allCoords.length >= 2) {

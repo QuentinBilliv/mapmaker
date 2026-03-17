@@ -7,6 +7,7 @@ import {
   TIER_LIMITS,
   validateMapPayload,
 } from "./helpers";
+import { vMapPayloadArgs } from "./validators";
 
 export const getMyMaps = query({
   args: {},
@@ -103,16 +104,7 @@ export const createMap = mutation({
 export const saveMap = mutation({
   args: {
     mapId: v.id("maps"),
-    title: v.string(),
-    description: v.string(),
-    tags: v.array(v.string()),
-    license: v.string(),
-    center: v.array(v.number()),
-    zoom: v.number(),
-    baseMapId: v.string(),
-    layers: v.any(),
-    features: v.any(),
-    groups: v.any(),
+    ...vMapPayloadArgs,
   },
   handler: async (ctx, args) => {
     validateMapPayload(args);
@@ -153,18 +145,7 @@ export const toggleVisibility = mutation({
 });
 
 export const migrateFromLocalStorage = mutation({
-  args: {
-    title: v.string(),
-    description: v.string(),
-    tags: v.array(v.string()),
-    license: v.string(),
-    center: v.array(v.number()),
-    zoom: v.number(),
-    baseMapId: v.string(),
-    layers: v.any(),
-    features: v.any(),
-    groups: v.any(),
-  },
+  args: vMapPayloadArgs,
   handler: async (ctx, args) => {
     validateMapPayload(args);
     const user = await getAuthenticatedUser(ctx);

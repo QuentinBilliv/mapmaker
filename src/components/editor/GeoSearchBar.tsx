@@ -66,6 +66,7 @@ function GeoSearchPopover({ onClose }: { onClose: () => void }) {
         const res = await fetch(url, {
           headers: { "Accept-Language": "en" },
         });
+        if (!res.ok) throw new Error("Search failed");
         const data: SearchResult[] = await res.json();
         setResults(data);
         setShowResults(data.length > 0);

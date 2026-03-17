@@ -6,7 +6,8 @@ import type { FeatureData, FeatureUpdate } from "@/lib/types";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
 import { ROTATE_ICON_ID, ensureRotateIcon } from "@/lib/rotate-icon";
-import { type Coord, type BboxInfo, toMercatorY, rotateCoords, computeBbox, rotateBbox } from "@/lib/geo-math";
+import { type Coord, type BboxInfo, toMercatorY, fromMercatorY, rotateCoords, computeBbox, rotateBbox } from "@/lib/geo-math";
+import { EMPTY_FC, setOverlayData, beginDrag, endDrag } from "./editing-helpers";
 
 const SRC = "vertex-edit";
 const LAYER_VERTEX = "vertex-edit-points";
@@ -28,6 +29,7 @@ function getCoords(f: FeatureData): Coord[] {
 }
 
 function centroid(coords: Coord[]): Coord {
+  if (coords.length === 0) return [0, 0];
   let x = 0, y = 0;
   for (const c of coords) { x += c[0]; y += c[1]; }
   return [x / coords.length, y / coords.length];
@@ -100,7 +102,7 @@ function buildFC(
   return { type: "FeatureCollection", features: feats };
 }
 
-const EMPTY: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
+const EMPTY = EMPTY_FC;
 
 function ensureLayers(map: maplibregl.Map) {
   if (!map.getSource(SRC)) map.addSource(SRC, { type: "geojson", data: EMPTY });
@@ -161,12 +163,11 @@ function ensureLayers(map: maplibregl.Map) {
 }
 
 function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
-  const s = map.getSource(SRC) as maplibregl.GeoJSONSource | undefined;
-  if (s) s.setData(data);
+  setOverlayData(map, SRC, data);
 }
 
 type VertexDrag = { kind: "vertex"; idx: number; id: string; coords: Coord[]; feat: FeatureData };
-type MoveDrag = { kind: "move"; id: string; coords: Coord[]; feat: FeatureData; startLng: number; startLat: number };
+type MoveDrag = { kind: "move"; id: string; coords: Coord[]; feat: FeatureData; startLng: number; startMercY: number };
 type RotateDrag = {
   kind: "rotate"; id: string;
   origCoords: Coord[]; coords: Coord[];
@@ -238,10 +239,7 @@ export function useVertexEditing(
         : [];
       if (rotateHits.length > 0) {
         recordRef.current?.();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
-        map.getCanvas().style.cursor = "grabbing";
+        beginDrag(map, e, interactingRef);
         const coords = getCoords(f);
         const isPoint = f.type === "point" || f.type === "text";
 
@@ -280,13 +278,10 @@ export function useVertexEditing(
         : [];
       if (moveHits.length > 0) {
         recordRef.current?.();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
-        map.getCanvas().style.cursor = "grabbing";
+        beginDrag(map, e, interactingRef);
         dragRef.current = {
           kind: "move", id: f.id, coords: [...getCoords(f)], feat: f,
-          startLng: e.lngLat.lng, startLat: e.lngLat.lat,
+          startLng: e.lngLat.lng, startMercY: toMercatorY(e.lngLat.lat),
         };
         return;
       }
@@ -299,11 +294,8 @@ export function useVertexEditing(
         const idx = vHits[0].properties?.index;
         if (typeof idx !== "number") return;
         recordRef.current?.();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
+        beginDrag(map, e, interactingRef);
         dragRef.current = { kind: "vertex", idx, id: f.id, coords: [...getCoords(f)], feat: f };
-        map.getCanvas().style.cursor = "grabbing";
         return;
       }
 
@@ -313,13 +305,10 @@ export function useVertexEditing(
         const idx = mHits[0].properties?.index;
         if (typeof idx !== "number") return;
         recordRef.current?.();
-        e.preventDefault();
-        interactingRef.current = true;
-        map.dragPan.disable();
+        beginDrag(map, e, interactingRef);
         const coords = [...getCoords(f)];
         coords.splice(idx + 1, 0, [e.lngLat.lng, e.lngLat.lat]);
         dragRef.current = { kind: "vertex", idx: idx + 1, id: f.id, coords, feat: f };
-        map.getCanvas().style.cursor = "grabbing";
       }
     }
 
@@ -331,12 +320,13 @@ export function useVertexEditing(
           setOverlay(map, buildFC(d.coords, d.feat));
         } else if (d.kind === "move") {
           const dlng = e.lngLat.lng - d.startLng;
-          const dlat = e.lngLat.lat - d.startLat;
+          const curMercY = toMercatorY(e.lngLat.lat);
+          const dMercY = curMercY - d.startMercY;
           for (let i = 0; i < d.coords.length; i++) {
-            d.coords[i] = [d.coords[i][0] + dlng, d.coords[i][1] + dlat];
+            d.coords[i] = [d.coords[i][0] + dlng, fromMercatorY(toMercatorY(d.coords[i][1]) + dMercY)];
           }
           d.startLng = e.lngLat.lng;
-          d.startLat = e.lngLat.lat;
+          d.startMercY = curMercY;
           setOverlay(map, buildFC(d.coords, d.feat));
         } else if (d.kind === "rotate") {
           const angle = Math.atan2(
@@ -378,9 +368,7 @@ export function useVertexEditing(
       const d = dragRef.current;
       if (!d) return;
       dragRef.current = null;
-      map.dragPan.enable();
-      map.getCanvas().style.cursor = "";
-      setTimeout(() => { interactingRef.current = false; }, 0);
+      endDrag(map, interactingRef);
 
       if (d.kind === "move" && d.feat.groupId && moveGroupRef.current) {
         const origCoords = getCoords(d.feat);

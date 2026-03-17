@@ -66,4 +66,30 @@ describe("sanitizeSvg", () => {
     expect(result).not.toContain("url(");
     expect(result).toContain("rect");
   });
+
+  it("removes animate elements", () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"><animate attributeName="href" values="javascript:alert(1)"/><rect width="10" height="10"/></svg>';
+    const result = sanitizeSvg(svg);
+    expect(result).not.toContain("animate");
+    expect(result).toContain("rect");
+  });
+
+  it("removes set elements", () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"><set attributeName="onload" to="alert(1)"/><rect width="10" height="10"/></svg>';
+    const result = sanitizeSvg(svg);
+    expect(result).not.toContain("<set");
+  });
+
+  it("strips data:image URIs", () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"><image href="data:image/svg+xml;base64,PHN2Zz4="/></svg>';
+    const result = sanitizeSvg(svg);
+    expect(result).not.toContain("data:");
+  });
+
+  it("strips inline style with url()", () => {
+    const svg = '<svg xmlns="http://www.w3.org/2000/svg"><rect style="fill:url(data:image/svg+xml;base64,PHN2Zz4=)" width="10" height="10"/></svg>';
+    const result = sanitizeSvg(svg);
+    expect(result).not.toContain("url(");
+    expect(result).toContain("rect");
+  });
 });

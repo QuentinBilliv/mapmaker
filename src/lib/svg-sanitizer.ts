@@ -1,5 +1,6 @@
 const FORBIDDEN_ELEMENTS = new Set([
   "script", "foreignobject", "iframe", "embed", "object",
+  "animate", "animatetransform", "animatemotion", "set",
 ]);
 
 export function sanitizeSvg(raw: string): string {
@@ -45,7 +46,12 @@ function stripAttributes(el: Element) {
       continue;
     }
 
-    if (value.startsWith("javascript:") || value.startsWith("data:text")) {
+    if (value.startsWith("javascript:") || value.startsWith("data:")) {
+      el.removeAttribute(attr.name);
+      continue;
+    }
+
+    if (name === "style" && value.includes("url(")) {
       el.removeAttribute(attr.name);
       continue;
     }

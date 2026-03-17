@@ -29,6 +29,12 @@ function proxy(params: Record<string, string>) {
   return `/api/geobank?${qs}`;
 }
 
+async function fetchJson<T>(url: string): Promise<T> {
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+  return res.json();
+}
+
 let countriesCache: GeoBankCountry[] | null = null;
 const geometryCache = new Map<string, GeoJSON.FeatureCollection>();
 
@@ -36,9 +42,9 @@ export async function fetchCountries(): Promise<GeoBankCountry[]> {
   if (countriesCache) return countriesCache;
 
   const [adm0, adm1, adm2] = await Promise.all([
-    fetch(proxy({ iso: "ALL", adm: "ADM0" })).then((r) => r.json()) as Promise<ApiResponse[]>,
-    fetch(proxy({ iso: "ALL", adm: "ADM1" })).then((r) => r.json()).catch(() => []) as Promise<ApiResponse[]>,
-    fetch(proxy({ iso: "ALL", adm: "ADM2" })).then((r) => r.json()).catch(() => []) as Promise<ApiResponse[]>,
+    fetchJson<ApiResponse[]>(proxy({ iso: "ALL", adm: "ADM0" })),
+    fetchJson<ApiResponse[]>(proxy({ iso: "ALL", adm: "ADM1" })).catch(() => []),
+    fetchJson<ApiResponse[]>(proxy({ iso: "ALL", adm: "ADM2" })).catch(() => []),
   ]);
 
   const adm1Set = new Set(adm1.map((e) => e.boundaryISO));
@@ -71,13 +77,13 @@ export async function fetchBoundary(
     return { geojson: cached, canonicalType: "" };
   }
 
-  const meta: ApiResponse = await fetch(
+  const meta = await fetchJson<ApiResponse>(
     proxy({ iso, adm: `ADM${admLevel}` })
-  ).then((r) => r.json());
+  );
 
-  const geojson: GeoJSON.FeatureCollection = await fetch(
+  const geojson = await fetchJson<GeoJSON.FeatureCollection>(
     proxy({ url: meta.simplifiedGeometryGeoJSON })
-  ).then((r) => r.json());
+  );
 
   geometryCache.set(cacheKey, geojson);
   return { geojson, canonicalType: meta.boundaryCanonical };

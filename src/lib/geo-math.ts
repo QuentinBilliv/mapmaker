@@ -80,6 +80,14 @@ export interface BboxInfo {
 }
 
 export function computeBbox(coords: Coord[]): BboxInfo {
+  if (coords.length === 0) {
+    return {
+      corners: [[0, 0], [0, 0], [0, 0], [0, 0]],
+      center: [0, 0],
+      topCenter: [0, 0],
+      handlePos: [0, 0.0003],
+    };
+  }
   let minLng = Infinity, maxLng = -Infinity, minLat = Infinity, maxLat = -Infinity;
   for (const c of coords) {
     if (c[0] < minLng) minLng = c[0];

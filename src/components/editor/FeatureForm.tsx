@@ -357,6 +357,11 @@ function MarkerSelect() {
     const file = e.target.files?.[0];
     if (!file) return;
     setSvgError(null);
+    if (file.size > 256 * 1024) {
+      setSvgError("SVG file must be under 256 KB");
+      e.target.value = "";
+      return;
+    }
     const reader = new FileReader();
     reader.onload = () => {
       try {
