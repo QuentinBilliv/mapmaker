@@ -235,7 +235,7 @@ function syncPerFeatureLayersSorted(
               "line-opacity": 1,
               ...(dash ? { "line-dasharray": dash } : {}),
             },
-            filter: ["all", ["==", ["geometry-type"], "Polygon"], idFilter],
+            filter: ["all", ["any", ["==", ["geometry-type"], "Polygon"], ["==", ["get", "_role"], "outline"]], idFilter],
           }, before);
         }
         break;
@@ -473,27 +473,35 @@ function buildGeoJSONSorted(
         patternId = ensurePatternImage(map, f.fillPattern, f.color, f.opacity);
       }
 
-      return [{
-        type: "Feature" as const,
-        geometry: displayGeometry,
-        properties: {
-          id: f.id,
-          label: f.label,
-          showLabel: f.showLabel,
-          color: f.color,
-          opacity: f.opacity,
-          order: f.order,
-          size: f.type === "point" ? f.size : 1,
-          rotation: f.rotation ?? 0,
-          featureType: f.type,
-          layerId: f.layerId,
-          iconId,
-          patternId,
-          strokeWidth: hasStroke ? f.strokeWidth : 0,
-          lineStyle: hasStroke ? (f.lineDecoration === "crosses-free" ? "__hidden" : f.lineStyle) : "solid",
-          lineDecoration: hasStroke ? f.lineDecoration : "none",
-        },
-      }];
+      const props = {
+        id: f.id,
+        label: f.label,
+        showLabel: f.showLabel,
+        color: f.color,
+        opacity: f.opacity,
+        order: f.order,
+        size: f.type === "point" ? f.size : 1,
+        rotation: f.rotation ?? 0,
+        featureType: f.type,
+        layerId: f.layerId,
+        iconId,
+        patternId,
+        strokeWidth: hasStroke ? f.strokeWidth : 0,
+        lineStyle: hasStroke ? (f.lineDecoration === "crosses-free" ? "__hidden" : f.lineStyle) : "solid",
+        lineDecoration: hasStroke ? f.lineDecoration : "none",
+      };
+
+      if (f.type === "polygon" && displayGeometry.type === "MultiPolygon") {
+        const outlineCoords = displayGeometry.coordinates.flatMap((poly) =>
+          poly.map((ring) => ring as number[][])
+        );
+        return [
+          { type: "Feature" as const, geometry: displayGeometry, properties: { ...props, _role: "fill" } },
+          { type: "Feature" as const, geometry: { type: "MultiLineString" as const, coordinates: outlineCoords }, properties: { ...props, _role: "outline" } },
+        ];
+      }
+
+      return [{ type: "Feature" as const, geometry: displayGeometry, properties: props }];
     });
 
   return {

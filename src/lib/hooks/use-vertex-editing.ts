@@ -20,22 +20,56 @@ const LAYER_ROTATE_ICON = "vertex-edit-rotate-icon";
 const LAYER_ROTATE_ARM = "vertex-edit-rotate-arm";
 const LAYER_BBOX = "vertex-edit-bbox";
 
-function getCoords(f: FeatureData): Coord[] {
+interface RingSegment {
+  offset: number;
+  count: number;
+  closed: boolean;
+}
+
+interface CoordsInfo {
+  coords: Coord[];
+  segments: RingSegment[];
+}
+
+function getCoords(f: FeatureData): CoordsInfo {
   const g = f.geometry;
-  if (g.type === "Point") return [(g as GeoJSON.Point).coordinates as Coord];
-  if (g.type === "LineString") return (g as GeoJSON.LineString).coordinates as Coord[];
-  if (g.type === "Polygon") return ((g as GeoJSON.Polygon).coordinates[0].slice(0, -1)) as Coord[];
+  if (g.type === "Point") return { coords: [g.coordinates as Coord], segments: [{ offset: 0, count: 1, closed: false }] };
+  if (g.type === "LineString") {
+    const c = g.coordinates as Coord[];
+    return { coords: c, segments: [{ offset: 0, count: c.length, closed: false }] };
+  }
+  if (g.type === "Polygon") {
+    const coords: Coord[] = [];
+    const segments: RingSegment[] = [];
+    for (const ring of g.coordinates) {
+      const open = (ring as Coord[]).slice(0, -1);
+      segments.push({ offset: coords.length, count: open.length, closed: true });
+      coords.push(...open);
+    }
+    return { coords, segments };
+  }
   if (g.type === "MultiPolygon") {
-    const all: Coord[] = [];
-    for (const poly of (g as GeoJSON.MultiPolygon).coordinates) all.push(...(poly[0].slice(0, -1) as Coord[]));
-    return all;
+    const coords: Coord[] = [];
+    const segments: RingSegment[] = [];
+    for (const poly of g.coordinates) {
+      for (const ring of poly) {
+        const open = (ring as Coord[]).slice(0, -1);
+        segments.push({ offset: coords.length, count: open.length, closed: true });
+        coords.push(...open);
+      }
+    }
+    return { coords, segments };
   }
   if (g.type === "MultiLineString") {
-    const all: Coord[] = [];
-    for (const line of (g as GeoJSON.MultiLineString).coordinates) all.push(...(line as Coord[]));
-    return all;
+    const coords: Coord[] = [];
+    const segments: RingSegment[] = [];
+    for (const line of g.coordinates) {
+      segments.push({ offset: coords.length, count: line.length, closed: false });
+      coords.push(...(line as Coord[]));
+    }
+    return { coords, segments };
   }
-  return [];
+  return { coords: [], segments: [] };
 }
 
 function centroid(coords: Coord[]): Coord {
@@ -45,10 +79,36 @@ function centroid(coords: Coord[]): Coord {
   return [x / coords.length, y / coords.length];
 }
 
-function toGeometry(coords: Coord[], f: FeatureData): GeoJSON.Geometry {
+function toGeometry(coords: Coord[], f: FeatureData, segments: RingSegment[]): GeoJSON.Geometry {
   if (f.type === "point" || f.type === "text") return { type: "Point", coordinates: coords[0] };
-  if (f.type === "polygon") return { type: "Polygon", coordinates: [[...coords, coords[0]]] };
-  return { type: "LineString", coordinates: coords };
+  const g = f.geometry;
+  if (g.type === "Polygon") {
+    const rings = segments.map((s) => {
+      const ring = coords.slice(s.offset, s.offset + s.count);
+      return [...ring, ring[0]];
+    });
+    return { type: "Polygon", coordinates: rings };
+  }
+  if (g.type === "MultiPolygon") {
+    const polys: number[][][][] = [];
+    let si = 0;
+    for (const poly of g.coordinates) {
+      const rings: number[][][] = [];
+      for (let r = 0; r < poly.length; r++) {
+        const s = segments[si++];
+        const ring = coords.slice(s.offset, s.offset + s.count);
+        rings.push([...ring, ring[0]]);
+      }
+      polys.push(rings);
+    }
+    return { type: "MultiPolygon", coordinates: polys };
+  }
+  if (g.type === "MultiLineString") {
+    const lines = segments.map((s) => coords.slice(s.offset, s.offset + s.count));
+    return { type: "MultiLineString", coordinates: lines };
+  }
+  if (g.type === "LineString") return { type: "LineString", coordinates: coords };
+  return g;
 }
 
 function pointRotateHandle(coord: Coord, map: maplibregl.Map): BboxInfo {
@@ -75,25 +135,33 @@ function pointRotateHandle(coord: Coord, map: maplibregl.Map): BboxInfo {
 function buildFC(
   coords: Coord[],
   f: FeatureData,
+  segments: RingSegment[],
   bbox?: BboxInfo,
 ): GeoJSON.FeatureCollection {
   const feats: GeoJSON.Feature[] = [];
   const isPoint = f.type === "point" || f.type === "text";
-  const isPoly = f.type === "polygon";
 
   if (!isPoint) {
     for (let i = 0; i < coords.length; i++) {
       feats.push({ type: "Feature", geometry: { type: "Point", coordinates: coords[i] }, properties: { t: "v", index: i } });
     }
-    const edges: [Coord, Coord][] = isPoly
-      ? coords.map((c, i) => [c, coords[(i + 1) % coords.length]])
-      : coords.slice(0, -1).map((c, i) => [c, coords[i + 1]]);
-    for (let i = 0; i < edges.length; i++) {
-      const [a, b] = edges[i];
-      feats.push({ type: "Feature", geometry: { type: "Point", coordinates: [(a[0]+b[0])/2, (a[1]+b[1])/2] }, properties: { t: "m", index: i } });
+    let midIdx = 0;
+    for (const seg of segments) {
+      const end = seg.offset + seg.count;
+      const edgeCount = seg.closed ? seg.count : seg.count - 1;
+      for (let i = 0; i < edgeCount; i++) {
+        const ai = seg.offset + i;
+        const bi = seg.closed ? seg.offset + ((i + 1) % seg.count) : ai + 1;
+        const a = coords[ai], b = coords[bi];
+        feats.push({ type: "Feature", geometry: { type: "Point", coordinates: [(a[0]+b[0])/2, (a[1]+b[1])/2] }, properties: { t: "m", index: midIdx++ } });
+      }
+      const line = coords.slice(seg.offset, end);
+      if (seg.closed && line.length >= 2) {
+        feats.push({ type: "Feature", geometry: { type: "LineString", coordinates: [...line, line[0]] }, properties: { t: "e" } });
+      } else if (line.length >= 2) {
+        feats.push({ type: "Feature", geometry: { type: "LineString", coordinates: line }, properties: { t: "e" } });
+      }
     }
-    const line = isPoly ? [...coords, coords[0]] : coords;
-    if (line.length >= 2) feats.push({ type: "Feature", geometry: { type: "LineString", coordinates: line }, properties: { t: "e" } });
   }
 
   const b = bbox ?? ((!isPoint && coords.length >= 2) ? computeBbox(coords) : null);
@@ -176,11 +244,11 @@ function setOverlay(map: maplibregl.Map, data: GeoJSON.FeatureCollection) {
   setOverlayData(map, SRC, data);
 }
 
-type VertexDrag = { kind: "vertex"; idx: number; id: string; coords: Coord[]; feat: FeatureData };
-type MoveDrag = { kind: "move"; id: string; coords: Coord[]; feat: FeatureData; startLng: number; startMercY: number };
+type VertexDrag = { kind: "vertex"; idx: number; id: string; coords: Coord[]; segments: RingSegment[]; feat: FeatureData };
+type MoveDrag = { kind: "move"; id: string; coords: Coord[]; segments: RingSegment[]; feat: FeatureData; startLng: number; startMercY: number };
 type RotateDrag = {
   kind: "rotate"; id: string;
-  origCoords: Coord[]; coords: Coord[];
+  origCoords: Coord[]; coords: Coord[]; segments: RingSegment[];
   feat: FeatureData;
   center: Coord; startAngle: number;
   origBbox: BboxInfo;
@@ -231,12 +299,12 @@ export function useVertexEditing(
       const f = featRef.current;
       if (!f || (f.type === "polygon" && f.shapeOrigin)) { setOverlay(map, EMPTY); return; }
       const isPoint = f.type === "point" || f.type === "text";
+      const { coords, segments } = getCoords(f);
       if (isPoint) {
-        const coords = getCoords(f);
         const bbox = pointRotateHandle(coords[0], map);
-        setOverlay(map, buildFC(coords, f, bbox));
+        setOverlay(map, buildFC(coords, f, segments, bbox));
       } else {
-        setOverlay(map, buildFC(getCoords(f), f));
+        setOverlay(map, buildFC(coords, f, segments));
       }
     }
 
@@ -250,7 +318,7 @@ export function useVertexEditing(
       if (rotateHits.length > 0) {
         recordRef.current?.();
         beginDrag(map, e, interactingRef);
-        const coords = getCoords(f);
+        const { coords, segments } = getCoords(f);
         const isPoint = f.type === "point" || f.type === "text";
 
         if (isPoint) {
@@ -277,6 +345,7 @@ export function useVertexEditing(
             kind: "rotate", id: f.id,
             origCoords: coords.map(c => [...c] as Coord),
             coords: coords.map(c => [...c] as Coord),
+            segments,
             feat: f, center: origBbox.center, startAngle, origBbox,
           };
         }
@@ -289,8 +358,9 @@ export function useVertexEditing(
       if (moveHits.length > 0) {
         recordRef.current?.();
         beginDrag(map, e, interactingRef);
+        const { coords, segments } = getCoords(f);
         dragRef.current = {
-          kind: "move", id: f.id, coords: [...getCoords(f)], feat: f,
+          kind: "move", id: f.id, coords: [...coords], segments, feat: f,
           startLng: e.lngLat.lng, startMercY: toMercatorY(e.lngLat.lat),
         };
         return;
@@ -305,20 +375,42 @@ export function useVertexEditing(
         if (typeof idx !== "number") return;
         recordRef.current?.();
         beginDrag(map, e, interactingRef);
-        dragRef.current = { kind: "vertex", idx, id: f.id, coords: [...getCoords(f)], feat: f };
+        const { coords, segments } = getCoords(f);
+        dragRef.current = { kind: "vertex", idx, id: f.id, coords: [...coords], segments, feat: f };
         return;
       }
 
       if (!map.getLayer(LAYER_MID)) return;
       const mHits = map.queryRenderedFeatures(e.point, { layers: [LAYER_MID] });
       if (mHits.length > 0) {
-        const idx = mHits[0].properties?.index;
-        if (typeof idx !== "number") return;
+        const midIdx = mHits[0].properties?.index;
+        if (typeof midIdx !== "number") return;
         recordRef.current?.();
         beginDrag(map, e, interactingRef);
-        const coords = [...getCoords(f)];
-        coords.splice(idx + 1, 0, [e.lngLat.lng, e.lngLat.lat]);
-        dragRef.current = { kind: "vertex", idx: idx + 1, id: f.id, coords, feat: f };
+        const { coords, segments } = getCoords(f);
+        const newCoords = [...coords];
+        let globalIdx = 0;
+        let remaining = midIdx;
+        for (const seg of segments) {
+          const edgeCount = seg.closed ? seg.count : seg.count - 1;
+          if (remaining < edgeCount) {
+            globalIdx = seg.offset + remaining + 1;
+            break;
+          }
+          remaining -= edgeCount;
+          globalIdx = seg.offset + seg.count;
+        }
+        newCoords.splice(globalIdx, 0, [e.lngLat.lng, e.lngLat.lat]);
+        const newSegments = segments.map((s) => {
+          if (globalIdx > s.offset && globalIdx <= s.offset + s.count) {
+            return { ...s, count: s.count + 1 };
+          }
+          if (globalIdx <= s.offset) {
+            return { ...s, offset: s.offset + 1 };
+          }
+          return s;
+        });
+        dragRef.current = { kind: "vertex", idx: globalIdx, id: f.id, coords: newCoords, segments: newSegments, feat: f };
       }
     }
 
@@ -327,7 +419,7 @@ export function useVertexEditing(
       if (d) {
         if (d.kind === "vertex") {
           d.coords[d.idx] = [e.lngLat.lng, e.lngLat.lat];
-          setOverlay(map, buildFC(d.coords, d.feat));
+          setOverlay(map, buildFC(d.coords, d.feat, d.segments));
         } else if (d.kind === "move") {
           const dlng = e.lngLat.lng - d.startLng;
           const curMercY = toMercatorY(e.lngLat.lat);
@@ -337,7 +429,7 @@ export function useVertexEditing(
           }
           d.startLng = e.lngLat.lng;
           d.startMercY = curMercY;
-          setOverlay(map, buildFC(d.coords, d.feat));
+          setOverlay(map, buildFC(d.coords, d.feat, d.segments));
         } else if (d.kind === "rotate") {
           const angle = Math.atan2(
             toMercatorY(e.lngLat.lat) - toMercatorY(d.center[1]),
@@ -347,7 +439,7 @@ export function useVertexEditing(
           const rotated = rotateCoords(d.origCoords, d.center, delta);
           for (let i = 0; i < d.coords.length; i++) d.coords[i] = rotated[i];
           const rotatedBbox = rotateBbox(d.origBbox, delta);
-          setOverlay(map, buildFC(d.coords, d.feat, rotatedBbox));
+          setOverlay(map, buildFC(d.coords, d.feat, d.segments, rotatedBbox));
         } else if (d.kind === "point-rotate") {
           const angle = Math.atan2(
             toMercatorY(e.lngLat.lat) - toMercatorY(d.center[1]),
@@ -356,7 +448,7 @@ export function useVertexEditing(
           const delta = angle - d.startAngle;
           d.currentRotation = d.baseRotation - (delta * 180) / Math.PI;
           const rotatedBbox = rotateBbox(d.origBbox, delta);
-          setOverlay(map, buildFC([d.center], d.feat, rotatedBbox));
+          setOverlay(map, buildFC([d.center], d.feat, [{ offset: 0, count: 1, closed: false }], rotatedBbox));
           updateRef.current(d.id, { rotation: d.currentRotation });
         }
         return;
@@ -381,7 +473,7 @@ export function useVertexEditing(
       endDrag(map, interactingRef);
 
       if (d.kind === "move" && d.feat.groupId && moveGroupRef.current) {
-        const origCoords = getCoords(d.feat);
+        const { coords: origCoords } = getCoords(d.feat);
         const dlng = d.coords[0][0] - origCoords[0][0];
         const dMercY = toMercatorY(d.coords[0][1]) - toMercatorY(origCoords[0][1]);
         moveGroupRef.current(d.feat.groupId, dlng, dMercY);
@@ -394,13 +486,13 @@ export function useVertexEditing(
           d.origCoords[0][0] - d.center[0]
         );
         const groupMembers = featuresRef.current.filter((f) => f.groupId === d.feat.groupId);
-        const allCoords = groupMembers.flatMap((f) => getCoords(f));
+        const allCoords = groupMembers.flatMap((f) => getCoords(f).coords);
         const groupCenter = centroid(allCoords);
         rotateGroupRef.current(d.feat.groupId, angle, groupCenter);
       } else if (d.kind === "point-rotate") {
         updateRef.current(d.id, { rotation: d.currentRotation });
       } else {
-        updateRef.current(d.id, { geometry: toGeometry(d.coords, d.feat) });
+        updateRef.current(d.id, { geometry: toGeometry(d.coords, d.feat, d.segments) });
       }
     }
 
@@ -443,12 +535,12 @@ export function useVertexEditing(
       const f = featRef.current;
       if (!f || (f.type === "polygon" && f.shapeOrigin)) { setOverlay(map, EMPTY); return; }
       const isPoint = f.type === "point" || f.type === "text";
+      const { coords, segments } = getCoords(f);
       if (isPoint) {
-        const coords = getCoords(f);
         const bbox = pointRotateHandle(coords[0], map);
-        setOverlay(map, buildFC(coords, f, bbox));
+        setOverlay(map, buildFC(coords, f, segments, bbox));
       } else {
-        setOverlay(map, buildFC(getCoords(f), f));
+        setOverlay(map, buildFC(coords, f, segments));
       }
     };
 
