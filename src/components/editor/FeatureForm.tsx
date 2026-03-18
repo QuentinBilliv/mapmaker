@@ -16,6 +16,7 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
 import SliderField from "@/components/ui/SliderField";
 import ColorInput from "@/components/ui/ColorInput";
 import {
@@ -244,11 +245,11 @@ function StyleFields() {
           placeholder="e.g. Roman Empire"
         />
         <label className="flex items-center gap-1.5 mt-1 text-xs text-muted-foreground cursor-pointer">
-          <input type="checkbox" checked={!!showLabel} onChange={(e) => setValue("showLabel", e.target.checked, { shouldDirty: true })} className="rounded" />
+          <Checkbox checked={!!showLabel} onCheckedChange={(v) => setValue("showLabel", !!v, { shouldDirty: true })} />
           Show label on map
         </label>
         <label className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground cursor-pointer">
-          <input type="checkbox" checked={!!showInLegend} onChange={(e) => setValue("showInLegend", e.target.checked, { shouldDirty: true })} className="rounded" />
+          <Checkbox checked={!!showInLegend} onCheckedChange={(v) => setValue("showInLegend", !!v, { shouldDirty: true })} />
           Show in legend
         </label>
       </Field>

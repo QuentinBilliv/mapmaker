@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import Link from "next/link";
 import type { Id } from "@convex/_generated/dataModel";
 
@@ -46,11 +47,11 @@ export default function AccountPage() {
                   .catch(console.error);
               }}
             >
-              <input
+              <Input
                 autoFocus
                 value={nameValue}
                 onChange={(e) => setNameValue(e.target.value)}
-                className="text-lg font-semibold border-b bg-transparent outline-none w-48"
+                className="text-lg font-semibold h-auto py-0.5 w-48"
                 maxLength={50}
               />
               <Button type="submit" size="sm" className="text-xs">Save</Button>

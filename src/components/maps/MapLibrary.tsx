@@ -5,6 +5,7 @@ import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import MapCard from "./MapCard";
+import { Input } from "@/components/ui/input";
 import {
   Pagination,
   PaginationContent,
@@ -59,12 +60,12 @@ export default function MapLibrary() {
     <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-semibold">Public Maps</h1>
-        <input
+        <Input
           type="text"
           placeholder="Filter by tag..."
           value={tagFilter}
           onChange={(e) => { setTagFilter(e.target.value); setPage(1); }}
-          className="text-sm border rounded px-2 py-1 w-48 bg-background"
+          className="w-48 h-8"
         />
       </div>
       {hasFilters && (

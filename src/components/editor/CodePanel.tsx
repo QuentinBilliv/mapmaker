@@ -16,6 +16,7 @@ function sanitizeLabel(raw: unknown): string {
 }
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
 
 type Mode = "mapmaker" | "geojson";
 
@@ -159,8 +160,8 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       </div>
       {mode === "mapmaker" ? (
         <div className="flex-1 relative">
-          <textarea
-            className="absolute inset-0 w-full h-full resize-none bg-background text-foreground text-xs font-mono p-3 focus:outline-none"
+          <Textarea
+            className="absolute inset-0 w-full h-full resize-none rounded-none border-0 shadow-none text-xs font-mono p-3 focus-visible:ring-0"
             value={value}
             onChange={handleMapmakerChange}
             spellCheck={false}
@@ -170,8 +171,8 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       ) : (
         <div className="flex-1 flex flex-col">
           <div className="flex-1 relative">
-            <textarea
-              className="absolute inset-0 w-full h-full resize-none bg-background text-foreground text-xs font-mono p-3 focus:outline-none"
+            <Textarea
+              className="absolute inset-0 w-full h-full resize-none rounded-none border-0 shadow-none text-xs font-mono p-3 focus-visible:ring-0"
               value={geoValue}
               onChange={(e) => { setGeoValue(e.target.value); setError(null); setImportCount(null); }}
               placeholder='Paste a GeoJSON FeatureCollection or Feature here...'
