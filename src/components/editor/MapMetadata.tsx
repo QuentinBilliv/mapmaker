@@ -1,8 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
+import { useParams } from "next/navigation";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { useMutation, useQuery } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { mapMetadataSchema, type MapMetadataFormValues } from "@/lib/schemas";
 import { LICENSES } from "@/lib/defaults";
@@ -73,6 +77,7 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
         <PanelHeader title="Metadata" onClose={() => { save(); onClose(); }} />
         <form onSubmit={save} className="p-3 space-y-3">
           <MetadataFields save={save} />
+          <CoverImageUpload />
         </form>
       </div>
     </FormProvider>
@@ -121,5 +126,73 @@ function MetadataFields({ save }: { save: () => void }) {
         />
       </Field>
     </>
+  );
+}
+
+function CoverImageUpload() {
+  const params = useParams();
+  const mapId = params?.id as string | undefined;
+  const mapData = useQuery(api.maps.getMap, mapId ? { mapId: mapId as Id<"maps"> } : "skip");
+  const thumbnailUrl = useQuery(
+    api.maps.getThumbnailUrl,
+    mapData?.thumbnailId ? { storageId: mapData.thumbnailId } : "skip"
+  );
+  const generateUploadUrl = useMutation(api.maps.generateUploadUrl);
+  const saveThumbnail = useMutation(api.maps.saveThumbnail);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [uploading, setUploading] = useState(false);
+
+  async function handleFile(file: File) {
+    if (!mapId || uploading) return;
+    setUploading(true);
+    try {
+      const uploadUrl = await generateUploadUrl();
+      const res = await fetch(uploadUrl, {
+        method: "POST",
+        headers: { "Content-Type": file.type },
+        body: file,
+      });
+      if (!res.ok) return;
+      const { storageId } = await res.json();
+      await saveThumbnail({ mapId: mapId as Id<"maps">, storageId });
+    } catch {
+    } finally {
+      setUploading(false);
+      if (inputRef.current) inputRef.current.value = "";
+    }
+  }
+
+  if (!mapId) return null;
+
+  return (
+    <Field label="Cover image">
+      {thumbnailUrl && (
+        <img
+          src={thumbnailUrl}
+          alt=""
+          className="w-full aspect-[16/9] object-cover rounded border mb-2"
+        />
+      )}
+      <input
+        ref={inputRef}
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (file) handleFile(file);
+        }}
+      />
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="w-full text-xs"
+        disabled={uploading}
+        onClick={() => inputRef.current?.click()}
+      >
+        {uploading ? "Uploading..." : thumbnailUrl ? "Change image" : "Upload image"}
+      </Button>
+    </Field>
   );
 }

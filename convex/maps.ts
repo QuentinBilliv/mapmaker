@@ -133,6 +133,35 @@ export const deleteMap = mutation({
   },
 });
 
+export const generateUploadUrl = mutation({
+  args: {},
+  handler: async (ctx) => {
+    await getAuthenticatedUser(ctx);
+    return await ctx.storage.generateUploadUrl();
+  },
+});
+
+export const saveThumbnail = mutation({
+  args: {
+    mapId: v.id("maps"),
+    storageId: v.id("_storage"),
+  },
+  handler: async (ctx, { mapId, storageId }) => {
+    const { map } = await checkMapOwnership(ctx, mapId);
+    if (map.thumbnailId) {
+      await ctx.storage.delete(map.thumbnailId);
+    }
+    await ctx.db.patch(map._id, { thumbnailId: storageId });
+  },
+});
+
+export const getThumbnailUrl = query({
+  args: { storageId: v.id("_storage") },
+  handler: async (ctx, { storageId }) => {
+    return await ctx.storage.getUrl(storageId);
+  },
+});
+
 export const toggleVisibility = mutation({
   args: { mapId: v.id("maps") },
   handler: async (ctx, { mapId }) => {

@@ -35,6 +35,7 @@ export default function MapLibrary() {
               description={m.description}
               tags={m.tags}
               updatedAt={m.updatedAt}
+              thumbnailId={m.thumbnailId}
             />
           ))}
         </div>

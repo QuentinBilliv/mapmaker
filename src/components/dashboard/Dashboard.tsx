@@ -4,6 +4,7 @@ import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import MapThumbnail from "@/components/maps/MapThumbnail";
 import type { Id } from "@convex/_generated/dataModel";
 
 export default function Dashboard() {
@@ -46,22 +47,23 @@ export default function Dashboard() {
           </p>
         </div>
         {lastMap ? (
-          <div className="border rounded-lg p-4 space-y-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Last edited
-            </p>
-            <button
-              onClick={() => router.push(`/maps/${lastMap._id}/edit`)}
-              className="w-full text-left group"
-            >
+          <button
+            onClick={() => router.push(`/maps/${lastMap._id}/edit`)}
+            className="w-full text-left border rounded-lg overflow-hidden hover:border-foreground/30 transition-colors group"
+          >
+            <MapThumbnail storageId={lastMap.thumbnailId} />
+            <div className="p-4 space-y-1">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                Last edited
+              </p>
               <p className="text-sm font-medium group-hover:underline truncate">
                 {lastMap.title}
               </p>
               <p className="text-xs text-muted-foreground">
                 {new Date(lastMap.updatedAt).toLocaleDateString()}
               </p>
-            </button>
-          </div>
+            </div>
+          </button>
         ) : (
           <p className="text-sm text-muted-foreground">No maps yet. Create your first one.</p>
         )}
