@@ -1,52 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { useEditorData } from "@/lib/editor-context";
-import { Button } from "@/components/ui/button";
-import { FeatureSwatch } from "@/components/ui/feature-swatch";
+import { LegendDisplay } from "@/components/ui/legend-display";
 
 export default function Legend() {
   const { features } = useEditorData();
-  const [open, setOpen] = useState(false);
-
-  const legendFeatures = features
-    .filter((f) => f.showInLegend)
-    .sort((a, b) => a.order - b.order);
-
-  if (legendFeatures.length === 0) return null;
-
-  return (
-    <div className="absolute bottom-8 left-3 z-10">
-      {open ? (
-        <div className="bg-popover/90 backdrop-blur-sm rounded-lg shadow-lg p-3 max-h-72 overflow-y-auto">
-          <div className="flex items-center justify-between mb-2">
-            <span className="text-xs font-semibold text-foreground">Legend</span>
-            <button
-              onClick={() => setOpen(false)}
-              className="text-muted-foreground hover:text-foreground text-xs leading-none p-0.5"
-            >
-              ✕
-            </button>
-          </div>
-          <div className="grid grid-cols-3 gap-x-3 gap-y-1">
-            {legendFeatures.map((f) => (
-              <div key={f.id} className="flex flex-col items-center gap-0.5">
-                <FeatureSwatch feature={f} />
-                {f.label && <span className="text-[10px] text-foreground text-center leading-tight truncate max-w-16">{f.label}</span>}
-              </div>
-            ))}
-          </div>
-        </div>
-      ) : (
-        <Button
-          variant="outline"
-          size="sm"
-          className="text-xs bg-background/80 backdrop-blur-sm"
-          onClick={() => setOpen(true)}
-        >
-          Legend
-        </Button>
-      )}
-    </div>
-  );
+  return <LegendDisplay features={features} />;
 }

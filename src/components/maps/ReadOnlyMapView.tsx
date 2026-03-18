@@ -5,6 +5,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { BASE_MAPS } from "@/lib/map-style";
+import { LegendDisplay } from "@/components/ui/legend-display";
 import type { MapData, LayerData, FeatureData, GroupData } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
@@ -77,7 +78,9 @@ export default function ReadOnlyMapView({
           License: {mapData.license}
         </p>
       </div>
-      <div ref={containerRef} className="flex-1" />
+      <div ref={containerRef} className="flex-1 relative">
+        <LegendDisplay features={features} />
+      </div>
     </div>
   );
 }
