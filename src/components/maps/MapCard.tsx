@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2Icon } from "lucide-react";
+import { XIcon } from "lucide-react";
 import MapThumbnail from "./MapThumbnail";
 import { Button } from "@/components/ui/button";
 import {
@@ -50,11 +50,11 @@ export default function MapCard({
   const cardHref = href ?? `/maps/${id}`;
 
   return (
-    <div className="relative border rounded-lg overflow-hidden hover:border-foreground/30 transition-colors">
+    <div className="group relative border rounded-lg overflow-hidden hover:border-foreground/30 transition-colors">
       <Link href={cardHref}>
         <MapThumbnail storageId={thumbnailId} />
       </Link>
-      <div className="p-4">
+      <div className="px-4 pt-3">
         <Link href={cardHref}>
           <h3 className="font-medium text-sm truncate">{title}</h3>
         </Link>
@@ -96,23 +96,28 @@ export default function MapCard({
       {onDelete && (
         <Dialog>
           <DialogTrigger>
-            <span className="absolute bottom-3 right-3 text-muted-foreground hover:text-destructive transition-colors cursor-pointer">
-              <Trash2Icon className="size-3.5" />
+            <span className="absolute top-2 right-2 size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+              <XIcon className="size-3.5" />
             </span>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
               <DialogTitle>Delete map</DialogTitle>
               <DialogDescription>
-                Are you sure you want to delete &quot;{title}&quot;? This action cannot be undone.
+                Are you sure you want to delete &quot;{title}&quot;? This action
+                cannot be undone.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter className="mt-4">
               <DialogClose asChild>
-                <Button variant="outline" size="sm">Cancel</Button>
+                <Button variant="outline" size="sm">
+                  Cancel
+                </Button>
               </DialogClose>
               <DialogClose asChild>
-                <Button variant="destructive" size="sm" onClick={onDelete}>Delete</Button>
+                <Button variant="destructive" size="sm" onClick={onDelete}>
+                  Delete
+                </Button>
               </DialogClose>
             </DialogFooter>
           </DialogContent>
