@@ -19,9 +19,9 @@ export const getMyMaps = query({
       .withIndex("by_owner_updated", (q) => q.eq("ownerId", user._id))
       .order("desc")
       .collect();
-    return maps.map(
-      ({ layers: _l, features: _f, groups: _g, ...meta }) => meta
-    );
+    return maps
+      .filter((m) => !m.deletedAt)
+      .map(({ layers: _l, features: _f, groups: _g, ...meta }) => meta);
   },
 });
 
@@ -29,7 +29,7 @@ export const getMap = query({
   args: { mapId: v.id("maps") },
   handler: async (ctx, { mapId }) => {
     const map = await ctx.db.get(mapId);
-    if (!map) return null;
+    if (!map || map.deletedAt) return null;
     if (map.isPublic) return map;
     const user = await getAuthenticatedUserOrNull(ctx);
     if (!user || map.ownerId !== user._id) return null;
@@ -54,6 +54,7 @@ export const getPublicMaps = query({
         .order("desc")
         .paginate({ numItems: PAGE_SIZE, cursor: cursor as any });
       for (const m of page.page) {
+        if (m.deletedAt) continue;
         if (tag && !m.tags.includes(tag)) continue;
         if (ownerId && m.ownerId !== ownerId) continue;
         results.push(m);
@@ -81,10 +82,11 @@ export const createMap = mutation({
   args: {},
   handler: async (ctx) => {
     const user = await getAuthenticatedUser(ctx);
-    const existing = await ctx.db
+    const allMaps = await ctx.db
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
+    const existing = allMaps.filter((m) => !m.deletedAt);
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
     if (existing.length >= limit) {
       throw new Error(
@@ -139,7 +141,7 @@ export const deleteMap = mutation({
   args: { mapId: v.id("maps") },
   handler: async (ctx, { mapId }) => {
     const { map } = await checkMapOwnership(ctx, mapId);
-    await ctx.db.delete(map._id);
+    await ctx.db.patch(map._id, { deletedAt: Date.now() });
   },
 });
 
@@ -188,10 +190,11 @@ export const migrateFromLocalStorage = mutation({
   handler: async (ctx, args) => {
     validateMapPayload(args);
     const user = await getAuthenticatedUser(ctx);
-    const existing = await ctx.db
+    const allMaps = await ctx.db
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
+    const existing = allMaps.filter((m) => !m.deletedAt);
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
     if (existing.length >= limit) {
       throw new Error(`Map limit reached (${limit}). Cannot migrate.`);

@@ -3,14 +3,14 @@
 import { useQuery, useMutation } from "convex/react";
 import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
-import { Button } from "@/components/ui/button";
-import MapThumbnail from "@/components/maps/MapThumbnail";
-import type { Id } from "@convex/_generated/dataModel";
+import { PlusIcon } from "lucide-react";
+import MapCard from "@/components/maps/MapCard";
 
 export default function Dashboard() {
   const me = useQuery(api.users.getMe);
   const maps = useQuery(api.maps.getMyMaps);
   const createMap = useMutation(api.maps.createMap);
+  const deleteMap = useMutation(api.maps.deleteMap);
   const router = useRouter();
 
   if (!me || maps === undefined) {
@@ -21,8 +21,6 @@ export default function Dashboard() {
     );
   }
 
-  const lastMap = maps[0];
-  const recentMaps = maps.slice(1, 5);
   const limit = me.mapLimit;
   const atLimit = maps.length >= limit;
 
@@ -36,8 +34,8 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex-1 flex items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-6">
+    <div className="flex-1 p-6">
+      <div className="w-full max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-lg font-semibold">
             Welcome back{me.name ? `, ${me.name}` : ""}
@@ -46,53 +44,34 @@ export default function Dashboard() {
             {maps.length}/{limit === Infinity ? "∞" : limit} maps
           </p>
         </div>
-        {lastMap ? (
-          <button
-            onClick={() => router.push(`/maps/${lastMap._id}/edit`)}
-            className="w-full text-left border rounded-lg overflow-hidden hover:border-foreground/30 transition-colors group"
-          >
-            <MapThumbnail storageId={lastMap.thumbnailId} />
-            <div className="p-4 space-y-1">
-              <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                Last edited
-              </p>
-              <p className="text-sm font-medium group-hover:underline truncate">
-                {lastMap.title}
-              </p>
-              <p className="text-xs text-muted-foreground">
-                {new Date(lastMap.updatedAt).toLocaleDateString()}
-              </p>
-            </div>
-          </button>
-        ) : (
-          <p className="text-sm text-muted-foreground">No maps yet. Create your first one.</p>
-        )}
-        {recentMaps.length > 0 && (
-          <div className="space-y-1">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide">
-              Recent maps
-            </p>
-            {recentMaps.map((m: any) => (
-              <button
+        <div className="space-y-2">
+          <p className="text-xs text-muted-foreground uppercase tracking-wide">
+            Your maps
+          </p>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {maps.slice(0, 5).map((m: any) => (
+              <MapCard
                 key={m._id}
-                onClick={() => router.push(`/maps/${m._id as Id<"maps">}/edit`)}
-                className="w-full flex items-center justify-between py-1.5 text-left hover:bg-muted/50 rounded px-2 -mx-2"
-              >
-                <span className="text-sm truncate">{m.title}</span>
-                <span className="text-[10px] text-muted-foreground shrink-0 ml-2">
-                  {new Date(m.updatedAt).toLocaleDateString()}
-                </span>
-              </button>
+                id={m._id}
+                title={m.title}
+                description={m.description}
+                tags={m.tags}
+                updatedAt={m.updatedAt}
+                thumbnailId={m.thumbnailId}
+                href={`/maps/${m._id}/edit`}
+                onDelete={() => deleteMap({ mapId: m._id }).catch(console.error)}
+              />
             ))}
+            {!atLimit && (
+              <button
+                onClick={handleNewMap}
+                className="border border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors min-h-[200px]"
+              >
+                <PlusIcon className="size-8" />
+                <span className="text-sm font-medium">New map</span>
+              </button>
+            )}
           </div>
-        )}
-        <div className="flex gap-2">
-          <Button size="sm" disabled={atLimit} onClick={handleNewMap}>
-            {atLimit ? `Limit reached (${limit})` : "New map"}
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => router.push("/maps")}>
-            All maps
-          </Button>
         </div>
       </div>
     </div>

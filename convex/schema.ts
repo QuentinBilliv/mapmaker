@@ -33,6 +33,7 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     thumbnailId: v.optional(v.id("_storage")),
+    deletedAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_public", ["isPublic", "updatedAt"])
