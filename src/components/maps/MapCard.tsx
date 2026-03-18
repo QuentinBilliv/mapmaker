@@ -11,8 +11,11 @@ interface MapCardProps {
   tags: string[];
   updatedAt: number;
   ownerName?: string;
+  ownerId?: string;
   universityLabel?: string;
   thumbnailId?: Id<"_storage">;
+  onTagClick?: (tag: string) => void;
+  onAuthorClick?: (ownerId: string) => void;
 }
 
 export default function MapCard({
@@ -22,17 +25,21 @@ export default function MapCard({
   tags,
   updatedAt,
   ownerName,
+  ownerId,
   universityLabel,
   thumbnailId,
+  onTagClick,
+  onAuthorClick,
 }: MapCardProps) {
   return (
-    <Link
-      href={`/maps/${id}`}
-      className="block border rounded-lg overflow-hidden hover:border-foreground/30 transition-colors"
-    >
-      <MapThumbnail storageId={thumbnailId} />
+    <div className="border rounded-lg overflow-hidden hover:border-foreground/30 transition-colors">
+      <Link href={`/maps/${id}`}>
+        <MapThumbnail storageId={thumbnailId} />
+      </Link>
       <div className="p-4">
-        <h3 className="font-medium text-sm truncate">{title}</h3>
+        <Link href={`/maps/${id}`}>
+          <h3 className="font-medium text-sm truncate">{title}</h3>
+        </Link>
         {description && (
           <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
             {description}
@@ -40,28 +47,32 @@ export default function MapCard({
         )}
         <div className="flex items-center gap-2 mt-2 flex-wrap">
           {tags.slice(0, 3).map((tag) => (
-            <span
+            <button
               key={tag}
-              className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground"
+              onClick={() => onTagClick?.(tag)}
+              className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground hover:bg-muted/70 transition-colors"
             >
               {tag}
-            </span>
+            </button>
           ))}
         </div>
         <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
-          {ownerName && (
-            <span>
+          {ownerName && ownerId && (
+            <button
+              onClick={() => onAuthorClick?.(ownerId)}
+              className="hover:text-foreground transition-colors"
+            >
               {ownerName}
               {universityLabel && (
                 <span className="ml-1 px-1 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px]">
                   {universityLabel}
                 </span>
               )}
-            </span>
+            </button>
           )}
           <span>{new Date(updatedAt).toLocaleDateString()}</span>
         </div>
       </div>
-    </Link>
+    </div>
   );
 }

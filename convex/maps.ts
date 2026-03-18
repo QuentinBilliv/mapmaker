@@ -40,8 +40,9 @@ export const getMap = query({
 export const getPublicMaps = query({
   args: {
     tag: v.optional(v.string()),
+    ownerId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { tag }) => {
+  handler: async (ctx, { tag, ownerId }) => {
     const PAGE_SIZE = 100;
     const results = [];
     let cursor: string | null = null;
@@ -53,16 +54,25 @@ export const getPublicMaps = query({
         .order("desc")
         .paginate({ numItems: PAGE_SIZE, cursor: cursor as any });
       for (const m of page.page) {
-        if (!tag || m.tags.includes(tag)) {
-          results.push(m);
-          if (results.length >= PAGE_SIZE) break;
-        }
+        if (tag && !m.tags.includes(tag)) continue;
+        if (ownerId && m.ownerId !== ownerId) continue;
+        results.push(m);
+        if (results.length >= PAGE_SIZE) break;
       }
       done = page.isDone;
       cursor = page.continueCursor;
     }
-    return results.map(
-      ({ layers: _l, features: _f, groups: _g, ...meta }) => meta
+    const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
+    return await Promise.all(
+      results.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
+        let owner = ownerCache.get(meta.ownerId);
+        if (!owner) {
+          const user = await ctx.db.get(meta.ownerId);
+          owner = { name: user?.name, universityLabel: user?.universityLabel };
+          ownerCache.set(meta.ownerId, owner);
+        }
+        return { ...meta, ownerName: owner.name, universityLabel: owner.universityLabel };
+      })
     );
   },
 });

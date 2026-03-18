@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { Button } from "@/components/ui/button";
@@ -12,6 +13,13 @@ export default function AccountPage() {
   const createMap = useMutation(api.maps.createMap);
   const deleteMap = useMutation(api.maps.deleteMap);
   const toggleVisibility = useMutation(api.maps.toggleVisibility);
+  const updateName = useMutation(api.users.updateName);
+  const [editingName, setEditingName] = useState(false);
+  const [nameValue, setNameValue] = useState("");
+
+  useEffect(() => {
+    if (me?.name) setNameValue(me.name);
+  }, [me?.name]);
 
   if (!me || maps === undefined) {
     return (
@@ -28,9 +36,32 @@ export default function AccountPage() {
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-lg font-semibold">
-            {me.name ?? "Account"}
-          </h1>
+          {editingName ? (
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                updateName({ name: nameValue })
+                  .then(() => setEditingName(false))
+                  .catch(console.error);
+              }}
+            >
+              <input
+                autoFocus
+                value={nameValue}
+                onChange={(e) => setNameValue(e.target.value)}
+                className="text-lg font-semibold border-b bg-transparent outline-none w-48"
+                maxLength={50}
+              />
+              <Button type="submit" size="sm" className="text-xs">Save</Button>
+              <Button type="button" variant="ghost" size="sm" className="text-xs" onClick={() => { setNameValue(me.name ?? ""); setEditingName(false); }}>Cancel</Button>
+            </form>
+          ) : (
+            <h1 className="text-lg font-semibold flex items-center gap-2">
+              {me.name ?? "Account"}
+              <button onClick={() => setEditingName(true)} className="text-xs text-muted-foreground hover:text-foreground">Edit</button>
+            </h1>
+          )}
           <p className="text-xs text-muted-foreground">
             {me.email} — {me.tier} tier
             {me.universityLabel && ` — ${me.universityLabel}`}
