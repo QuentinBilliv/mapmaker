@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 import { mutation, query } from "./_generated/server";
+import { paginationOptsValidator } from "convex/server";
 import {
   getAuthenticatedUser,
   getAuthenticatedUserOrNull,
@@ -14,6 +15,10 @@ type Visibility = "private" | "unlisted" | "public";
 function resolveVisibility(map: { visibility?: Visibility; isPublic?: boolean }): Visibility {
   if (map.visibility) return map.visibility;
   return map.isPublic ? "public" : "private";
+}
+
+function buildSearchText(title: string, tags: string[], ownerName?: string): string {
+  return [title, ...tags, ownerName].filter(Boolean).join(" ");
 }
 
 export const getMyMaps = query({
@@ -48,24 +53,65 @@ export const getMap = query({
   },
 });
 
-export const getPublicMaps = query({
+const PUBLIC_PAGE_SIZE = 9;
+
+export const browsePublicMaps = query({
   args: {
-    tag: v.optional(v.string()),
+    paginationOpts: paginationOptsValidator,
     ownerId: v.optional(v.id("users")),
   },
-  handler: async (ctx, { tag, ownerId }) => {
-    const PAGE_SIZE = 100;
-    const allMaps = await ctx.db.query("maps").collect();
-    const results = allMaps.filter((m) => {
+  handler: async (ctx, { paginationOpts, ownerId }) => {
+    const page = await ctx.db
+      .query("maps")
+      .withIndex("by_visibility", (idx) => idx.eq("visibility", "public"))
+      .order("desc")
+      .paginate(paginationOpts);
+
+    const filtered = page.page.filter((m) => {
       if (m.deletedAt) return false;
-      if (resolveVisibility(m) !== "public") return false;
-      if (tag && !m.tags.includes(tag)) return false;
       if (ownerId && m.ownerId !== ownerId) return false;
       return true;
-    }).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, PAGE_SIZE);
+    });
+
+    const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
+    const results = await Promise.all(
+      filtered.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
+        let owner = ownerCache.get(meta.ownerId);
+        if (!owner) {
+          const user = await ctx.db.get(meta.ownerId);
+          owner = { name: user?.name, universityLabel: user?.universityLabel };
+          ownerCache.set(meta.ownerId, owner);
+        }
+        return { ...meta, ownerName: owner.name, universityLabel: owner.universityLabel };
+      })
+    );
+
+    return {
+      ...page,
+      page: results,
+    };
+  },
+});
+
+export const searchPublicMaps = query({
+  args: {
+    query: v.string(),
+    ownerId: v.optional(v.id("users")),
+  },
+  handler: async (ctx, { query: searchQuery, ownerId }) => {
+    const results = await ctx.db
+      .query("maps")
+      .withSearchIndex("search_public", (s) => {
+        const base = s.search("searchText", searchQuery).eq("visibility", "public");
+        return ownerId ? base.eq("ownerId", ownerId) : base;
+      })
+      .take(PUBLIC_PAGE_SIZE);
+
+    const filtered = results.filter((m) => !m.deletedAt);
+
     const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
     return await Promise.all(
-      results.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
+      filtered.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
         let owner = ownerCache.get(meta.ownerId);
         if (!owner) {
           const user = await ctx.db.get(meta.ownerId);
@@ -94,9 +140,10 @@ export const createMap = mutation({
       );
     }
     const now = Date.now();
+    const title = "My map";
     return await ctx.db.insert("maps", {
       ownerId: user._id,
-      title: "My map",
+      title,
       description: "",
       tags: [],
       license: "CC BY",
@@ -107,6 +154,8 @@ export const createMap = mutation({
       features: [],
       groups: [],
       visibility: "private",
+      ownerName: user.name,
+      searchText: buildSearchText(title, [], user.name),
       createdAt: now,
       updatedAt: now,
     });
@@ -121,6 +170,8 @@ export const saveMap = mutation({
   handler: async (ctx, args) => {
     validateMapPayload(args);
     const { map } = await checkMapOwnership(ctx, args.mapId);
+    const owner = await ctx.db.get(map.ownerId);
+    const ownerName = owner?.name;
     await ctx.db.patch(map._id, {
       title: args.title,
       description: args.description,
@@ -132,6 +183,8 @@ export const saveMap = mutation({
       layers: args.layers,
       features: args.features,
       groups: args.groups,
+      ownerName,
+      searchText: buildSearchText(args.title, args.tags, ownerName),
       updatedAt: Date.now(),
     });
   },
@@ -216,6 +269,8 @@ export const migrateFromLocalStorage = mutation({
       features: args.features,
       groups: args.groups,
       visibility: "private",
+      ownerName: user.name,
+      searchText: buildSearchText(args.title, args.tags, user.name),
       createdAt: now,
       updatedAt: now,
     });

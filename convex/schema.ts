@@ -31,6 +31,8 @@ export default defineSchema({
     groups: v.any(),
     isPublic: v.optional(v.boolean()),
     visibility: v.optional(v.union(v.literal("private"), v.literal("unlisted"), v.literal("public"))),
+    ownerName: v.optional(v.string()),
+    searchText: v.optional(v.string()),
     createdAt: v.number(),
     updatedAt: v.number(),
     thumbnailId: v.optional(v.id("_storage")),
@@ -39,5 +41,9 @@ export default defineSchema({
     .index("by_owner", ["ownerId"])
     .index("by_public", ["isPublic", "updatedAt"])
     .index("by_visibility", ["visibility", "updatedAt"])
-    .index("by_owner_updated", ["ownerId", "updatedAt"]),
+    .index("by_owner_updated", ["ownerId", "updatedAt"])
+    .searchIndex("search_public", {
+      searchField: "searchText",
+      filterFields: ["visibility", "ownerId"],
+    }),
 });

@@ -24,5 +24,16 @@ export const updateName = mutation({
     const trimmed = name.trim().slice(0, 50);
     if (!trimmed) throw new Error("Name cannot be empty");
     await ctx.db.patch(userId, { name: trimmed });
+    const maps = await ctx.db
+      .query("maps")
+      .withIndex("by_owner", (q) => q.eq("ownerId", userId))
+      .collect();
+    for (const map of maps) {
+      if (map.deletedAt) continue;
+      await ctx.db.patch(map._id, {
+        ownerName: trimmed,
+        searchText: [map.title, ...map.tags, trimmed].filter(Boolean).join(" "),
+      });
+    }
   },
 });
