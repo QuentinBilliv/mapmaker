@@ -95,7 +95,7 @@ export default function MapLibrary() {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {paginatedMaps!.map((m: any) => (
+            {paginatedMaps!.map((m) => (
               <MapCard
                 key={m._id}
                 id={m._id}

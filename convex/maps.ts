@@ -9,6 +9,13 @@ import {
 } from "./helpers";
 import { vMapPayloadArgs } from "./validators";
 
+type Visibility = "private" | "unlisted" | "public";
+
+function resolveVisibility(map: { visibility?: Visibility; isPublic?: boolean }): Visibility {
+  if (map.visibility) return map.visibility;
+  return map.isPublic ? "public" : "private";
+}
+
 export const getMyMaps = query({
   args: {},
   handler: async (ctx) => {
@@ -21,7 +28,10 @@ export const getMyMaps = query({
       .collect();
     return maps
       .filter((m) => !m.deletedAt)
-      .map(({ layers: _l, features: _f, groups: _g, ...meta }) => meta);
+      .map(({ layers: _l, features: _f, groups: _g, ...meta }) => ({
+        ...meta,
+        visibility: resolveVisibility(meta),
+      }));
   },
 });
 
@@ -30,10 +40,11 @@ export const getMap = query({
   handler: async (ctx, { mapId }) => {
     const map = await ctx.db.get(mapId);
     if (!map || map.deletedAt) return null;
-    if (map.isPublic) return map;
+    const vis = resolveVisibility(map);
+    if (vis === "public" || vis === "unlisted") return { ...map, visibility: vis };
     const user = await getAuthenticatedUserOrNull(ctx);
     if (!user || map.ownerId !== user._id) return null;
-    return map;
+    return { ...map, visibility: vis };
   },
 });
 
@@ -44,25 +55,14 @@ export const getPublicMaps = query({
   },
   handler: async (ctx, { tag, ownerId }) => {
     const PAGE_SIZE = 100;
-    const results = [];
-    let cursor: string | null = null;
-    let done = false;
-    while (!done && results.length < PAGE_SIZE) {
-      const page = await ctx.db
-        .query("maps")
-        .withIndex("by_public", (q) => q.eq("isPublic", true))
-        .order("desc")
-        .paginate({ numItems: PAGE_SIZE, cursor: cursor as any });
-      for (const m of page.page) {
-        if (m.deletedAt) continue;
-        if (tag && !m.tags.includes(tag)) continue;
-        if (ownerId && m.ownerId !== ownerId) continue;
-        results.push(m);
-        if (results.length >= PAGE_SIZE) break;
-      }
-      done = page.isDone;
-      cursor = page.continueCursor;
-    }
+    const allMaps = await ctx.db.query("maps").collect();
+    const results = allMaps.filter((m) => {
+      if (m.deletedAt) return false;
+      if (resolveVisibility(m) !== "public") return false;
+      if (tag && !m.tags.includes(tag)) return false;
+      if (ownerId && m.ownerId !== ownerId) return false;
+      return true;
+    }).sort((a, b) => b.updatedAt - a.updatedAt).slice(0, PAGE_SIZE);
     const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
     return await Promise.all(
       results.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
@@ -106,7 +106,7 @@ export const createMap = mutation({
       layers: [{ id: "default", name: "Main layer", visible: true, order: 0 }],
       features: [],
       groups: [],
-      isPublic: false,
+      visibility: "private",
       createdAt: now,
       updatedAt: now,
     });
@@ -174,12 +174,15 @@ export const getThumbnailUrl = query({
   },
 });
 
-export const toggleVisibility = mutation({
-  args: { mapId: v.id("maps") },
-  handler: async (ctx, { mapId }) => {
+export const setVisibility = mutation({
+  args: {
+    mapId: v.id("maps"),
+    visibility: v.union(v.literal("private"), v.literal("unlisted"), v.literal("public")),
+  },
+  handler: async (ctx, { mapId, visibility }) => {
     const { map } = await checkMapOwnership(ctx, mapId);
     await ctx.db.patch(map._id, {
-      isPublic: !map.isPublic,
+      visibility,
       updatedAt: Date.now(),
     });
   },
@@ -212,7 +215,7 @@ export const migrateFromLocalStorage = mutation({
       layers: args.layers,
       features: args.features,
       groups: args.groups,
-      isPublic: false,
+      visibility: "private",
       createdAt: now,
       updatedAt: now,
     });

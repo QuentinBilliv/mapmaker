@@ -11,6 +11,7 @@ export default function Dashboard() {
   const maps = useQuery(api.maps.getMyMaps);
   const createMap = useMutation(api.maps.createMap);
   const deleteMap = useMutation(api.maps.deleteMap);
+  const setVisibility = useMutation(api.maps.setVisibility);
   const router = useRouter();
 
   if (!me || maps === undefined) {
@@ -49,7 +50,7 @@ export default function Dashboard() {
             Your maps
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {maps.slice(0, 5).map((m: any) => (
+            {maps.map((m) => (
               <MapCard
                 key={m._id}
                 id={m._id}
@@ -59,6 +60,8 @@ export default function Dashboard() {
                 updatedAt={m.updatedAt}
                 thumbnailId={m.thumbnailId}
                 href={`/maps/${m._id}/edit`}
+                visibility={m.visibility}
+                onSetVisibility={(v) => setVisibility({ mapId: m._id, visibility: v }).catch(console.error)}
                 onDelete={() => deleteMap({ mapId: m._id }).catch(console.error)}
               />
             ))}

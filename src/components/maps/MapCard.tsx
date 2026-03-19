@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { XIcon } from "lucide-react";
+import { XIcon, LockIcon, LinkIcon, GlobeIcon, ChevronDownIcon } from "lucide-react";
 import MapThumbnail from "./MapThumbnail";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +15,14 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import type { Id } from "@convex/_generated/dataModel";
+
+type Visibility = "private" | "unlisted" | "public";
+
+const VISIBILITY_OPTIONS: { value: Visibility; label: string; description: string; icon: typeof LockIcon; badge: string }[] = [
+  { value: "private", label: "Private", description: "Only you can access this map.", icon: LockIcon, badge: "bg-zinc-100 text-zinc-600" },
+  { value: "unlisted", label: "Unlisted", description: "Anyone with the link can view this map.", icon: LinkIcon, badge: "bg-blue-50 text-blue-600" },
+  { value: "public", label: "Public", description: "Listed in the public library for everyone to discover.", icon: GlobeIcon, badge: "bg-emerald-50 text-emerald-600" },
+];
 
 interface MapCardProps {
   id: string;
@@ -30,6 +38,8 @@ interface MapCardProps {
   onTagClick?: (tag: string) => void;
   onAuthorClick?: (ownerId: string) => void;
   onDelete?: () => void;
+  visibility?: Visibility;
+  onSetVisibility?: (visibility: Visibility) => void;
 }
 
 export default function MapCard({
@@ -46,6 +56,8 @@ export default function MapCard({
   onTagClick,
   onAuthorClick,
   onDelete,
+  visibility,
+  onSetVisibility,
 }: MapCardProps) {
   const cardHref = href ?? `/maps/${id}`;
 
@@ -91,6 +103,44 @@ export default function MapCard({
             </button>
           )}
           <span>{new Date(updatedAt).toLocaleDateString()}</span>
+          {onSetVisibility && visibility && (() => {
+            const opt = VISIBILITY_OPTIONS.find((o) => o.value === visibility)!;
+            return (
+              <Dialog>
+                <DialogTrigger asChild>
+                  <button className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium transition-opacity hover:opacity-80 ${opt.badge}`}>
+                    <opt.icon className="size-3" />
+                    {opt.label}
+                    <ChevronDownIcon className="size-2.5" />
+                  </button>
+                </DialogTrigger>
+                <DialogContent>
+                  <DialogHeader>
+                    <DialogTitle>Visibility</DialogTitle>
+                    <DialogDescription>
+                      Choose who can access &quot;{title}&quot;.
+                    </DialogDescription>
+                  </DialogHeader>
+                  <div className="space-y-1 mt-2">
+                    {VISIBILITY_OPTIONS.map((opt) => (
+                      <DialogClose key={opt.value} asChild>
+                        <button
+                          onClick={() => onSetVisibility(opt.value)}
+                          className={`w-full flex items-start gap-3 rounded-md px-3 py-2.5 text-left transition-colors ${visibility === opt.value ? "bg-muted" : "hover:bg-muted/50"}`}
+                        >
+                          <opt.icon className="size-4 mt-0.5 shrink-0" />
+                          <div>
+                            <p className={`text-sm font-medium ${visibility === opt.value ? "text-foreground" : ""}`}>{opt.label}</p>
+                            <p className="text-xs text-muted-foreground">{opt.description}</p>
+                          </div>
+                        </button>
+                      </DialogClose>
+                    ))}
+                  </div>
+                </DialogContent>
+              </Dialog>
+            );
+          })()}
         </div>
       </div>
       {onDelete && (

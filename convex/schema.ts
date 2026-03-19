@@ -29,7 +29,8 @@ export default defineSchema({
     layers: v.any(),
     features: v.any(),
     groups: v.any(),
-    isPublic: v.boolean(),
+    isPublic: v.optional(v.boolean()),
+    visibility: v.optional(v.union(v.literal("private"), v.literal("unlisted"), v.literal("public"))),
     createdAt: v.number(),
     updatedAt: v.number(),
     thumbnailId: v.optional(v.id("_storage")),
@@ -37,5 +38,6 @@ export default defineSchema({
   })
     .index("by_owner", ["ownerId"])
     .index("by_public", ["isPublic", "updatedAt"])
+    .index("by_visibility", ["visibility", "updatedAt"])
     .index("by_owner_updated", ["ownerId", "updatedAt"]),
 });

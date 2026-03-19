@@ -13,7 +13,7 @@ export default function AccountPage() {
   const maps = useQuery(api.maps.getMyMaps);
   const createMap = useMutation(api.maps.createMap);
   const deleteMap = useMutation(api.maps.deleteMap);
-  const toggleVisibility = useMutation(api.maps.toggleVisibility);
+  const setVisibility = useMutation(api.maps.setVisibility);
   const updateName = useMutation(api.users.updateName);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
@@ -85,7 +85,7 @@ export default function AccountPage() {
         <p className="text-sm text-muted-foreground">No maps yet.</p>
       ) : (
         <div className="space-y-2">
-          {maps.map((m: any) => (
+          {maps.map((m) => (
             <div
               key={m._id}
               className="flex items-center gap-3 border rounded px-3 py-2"
@@ -99,18 +99,20 @@ export default function AccountPage() {
               <span className="text-[10px] text-muted-foreground shrink-0">
                 {new Date(m.updatedAt).toLocaleDateString()}
               </span>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs shrink-0"
-                onClick={() =>
-                  toggleVisibility({
+              <select
+                value={m.visibility}
+                onChange={(e) =>
+                  setVisibility({
                     mapId: m._id as Id<"maps">,
+                    visibility: e.target.value as "private" | "unlisted" | "public",
                   }).catch(console.error)
                 }
+                className="text-xs shrink-0 bg-transparent border rounded px-1.5 py-1 text-muted-foreground"
               >
-                {m.isPublic ? "Public" : "Private"}
-              </Button>
+                <option value="private">Private</option>
+                <option value="unlisted">Unlisted</option>
+                <option value="public">Public</option>
+              </select>
               <Button
                 variant="ghost"
                 size="sm"
