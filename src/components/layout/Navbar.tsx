@@ -20,7 +20,7 @@ export default function Navbar() {
         href="/maps"
         className="text-sm text-muted-foreground hover:text-foreground mr-4"
       >
-        Maps
+        Public maps
       </Link>
       <div className="flex-1" />
       {isAuthenticated ? (

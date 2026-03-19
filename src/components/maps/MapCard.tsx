@@ -76,7 +76,7 @@ export default function MapCard({
             ))}
           </div>
         )}
-        <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-2 mt-2 mb-4 text-[10px] text-muted-foreground">
           {ownerName && ownerId && (
             <button
               onClick={() => onAuthorClick?.(ownerId)}
@@ -95,10 +95,10 @@ export default function MapCard({
       </div>
       {onDelete && (
         <Dialog>
-          <DialogTrigger>
-            <span className="absolute top-2 right-2 size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+          <DialogTrigger asChild>
+            <button className="absolute top-2 right-2 size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
               <XIcon className="size-3.5" />
-            </span>
+            </button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
