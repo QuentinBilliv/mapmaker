@@ -11,6 +11,33 @@ import type { BaseMap } from "./map-style";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
 import { BASE_MAPS } from "./map-style";
 
+export interface PointStyle {
+  size: number;
+  shape: PointShape;
+  icon: string | null;
+  borderColor: string;
+  borderWidth: number;
+}
+
+export interface StrokeStyle {
+  smoothing: number;
+  strokeWidth: number;
+  lineStyle: LineStyle;
+  arrowStyle: ArrowStyle;
+  lineDecoration: LineDecoration;
+  decorationSpacing: number;
+  fillPattern: FillPattern;
+}
+
+export interface TextStyle {
+  textContent: string;
+  fontSize: number;
+  fontFamily: TextFont;
+  textBorderEnabled: boolean;
+  textBorderColor: string;
+  textBorderWidth: number;
+}
+
 export interface DrawingState {
   drawMode: DrawMode;
   activeLabel: string;
@@ -18,30 +45,48 @@ export interface DrawingState {
   activeSourceUrl: string;
   activeColor: string;
   activeOpacity: number;
-  activeSize: number;
-  activeShape: PointShape;
-  activeIcon: string | null;
-  activeBorderColor: string;
-  activeBorderWidth: number;
-  activeSmoothing: number;
-  activeStrokeWidth: number;
-  activeLineStyle: LineStyle;
-  activeArrowStyle: ArrowStyle;
-  activeLineDecoration: LineDecoration;
-  activeDecorationSpacing: number;
-  activeFillPattern: FillPattern;
-  activeTextContent: string;
-  activeFontSize: number;
-  activeFontFamily: TextFont;
-  activeTextBorderEnabled: boolean;
-  activeTextBorderColor: string;
-  activeTextBorderWidth: number;
+  activePoint: PointStyle;
+  activeStroke: StrokeStyle;
+  activeText: TextStyle;
   activeBaseMap: BaseMap;
 }
 
+export type DrawingPayload = Partial<Omit<DrawingState, "activePoint" | "activeStroke" | "activeText">> & {
+  activePoint?: Partial<PointStyle>;
+  activeStroke?: Partial<StrokeStyle>;
+  activeText?: Partial<TextStyle>;
+};
+
 export type DrawingAction =
-  | { type: "SET"; payload: Partial<DrawingState> }
+  | { type: "SET"; payload: DrawingPayload }
   | { type: "RESET_AFTER_ADD"; isText: boolean };
+
+export const INITIAL_POINT_STYLE: PointStyle = {
+  size: 1,
+  shape: "circle",
+  icon: null,
+  borderColor: COLORS.white,
+  borderWidth: DEFAULT_BORDER_WIDTH,
+};
+
+export const INITIAL_STROKE_STYLE: StrokeStyle = {
+  smoothing: 0,
+  strokeWidth: 3,
+  lineStyle: "solid",
+  arrowStyle: "none",
+  lineDecoration: "none",
+  decorationSpacing: 50,
+  fillPattern: "none",
+};
+
+export const INITIAL_TEXT_STYLE: TextStyle = {
+  textContent: "",
+  fontSize: 24,
+  fontFamily: "sans",
+  textBorderEnabled: true,
+  textBorderColor: COLORS.white,
+  textBorderWidth: 2,
+};
 
 export const INITIAL_DRAWING_STATE: DrawingState = {
   drawMode: "select",
@@ -50,31 +95,24 @@ export const INITIAL_DRAWING_STATE: DrawingState = {
   activeSourceUrl: "",
   activeColor: COLORS.primary,
   activeOpacity: 1,
-  activeSize: 1,
-  activeShape: "circle",
-  activeIcon: null,
-  activeBorderColor: COLORS.white,
-  activeBorderWidth: DEFAULT_BORDER_WIDTH,
-  activeSmoothing: 0,
-  activeStrokeWidth: 3,
-  activeLineStyle: "solid",
-  activeArrowStyle: "none",
-  activeLineDecoration: "none",
-  activeDecorationSpacing: 50,
-  activeFillPattern: "none",
-  activeTextContent: "",
-  activeFontSize: 24,
-  activeFontFamily: "sans",
-  activeTextBorderEnabled: true,
-  activeTextBorderColor: COLORS.white,
-  activeTextBorderWidth: 2,
+  activePoint: { ...INITIAL_POINT_STYLE },
+  activeStroke: { ...INITIAL_STROKE_STYLE },
+  activeText: { ...INITIAL_TEXT_STYLE },
   activeBaseMap: BASE_MAPS[0],
 };
 
 export function drawingReducer(state: DrawingState, action: DrawingAction): DrawingState {
   switch (action.type) {
-    case "SET":
-      return { ...state, ...action.payload };
+    case "SET": {
+      const { activePoint, activeStroke, activeText, ...rest } = action.payload;
+      return {
+        ...state,
+        ...rest,
+        ...(activePoint ? { activePoint: { ...state.activePoint, ...activePoint } } : {}),
+        ...(activeStroke ? { activeStroke: { ...state.activeStroke, ...activeStroke } } : {}),
+        ...(activeText ? { activeText: { ...state.activeText, ...activeText } } : {}),
+      };
+    }
     case "RESET_AFTER_ADD":
       return {
         ...state,
@@ -82,7 +120,7 @@ export function drawingReducer(state: DrawingState, action: DrawingAction): Draw
         activeLabel: "",
         activeSourceText: "",
         activeSourceUrl: "",
-        ...(action.isText ? { activeTextContent: "" } : {}),
+        ...(action.isText ? { activeText: { ...state.activeText, textContent: "" } } : {}),
       };
   }
 }

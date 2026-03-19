@@ -6,6 +6,16 @@ import { DEFAULT_MAP, DEFAULT_LAYER } from "./defaults";
 const STORAGE_KEY = "mapmaker:current";
 const VERSION = 1;
 
+export type StorageError = "quota_exceeded" | "save_failed" | "load_corrupted";
+
+type StorageErrorCallback = (error: StorageError) => void;
+
+let onStorageError: StorageErrorCallback | null = null;
+
+export function setStorageErrorHandler(handler: StorageErrorCallback) {
+  onStorageError = handler;
+}
+
 interface StoredState {
   version: number;
   map: MapData;
@@ -25,8 +35,11 @@ export function saveToLocalStorage(
   try {
     const state: StoredState = { version: VERSION, map, layers, features, groups, baseMapId };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // localStorage full or unavailable — silently ignore
+  } catch (e) {
+    const type = e instanceof DOMException && e.name === "QuotaExceededError"
+      ? "quota_exceeded"
+      : "save_failed";
+    onStorageError?.(type);
   }
 }
 
@@ -56,6 +69,7 @@ export function loadFromLocalStorage(): {
       baseMap,
     };
   } catch {
+    onStorageError?.("load_corrupted");
     return null;
   }
 }

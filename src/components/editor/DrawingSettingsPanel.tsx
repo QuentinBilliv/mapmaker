@@ -29,6 +29,7 @@ const MODE_LABELS: Record<string, string> = {
 const DRAWING_MODES = ["polygon", "rectangle", "circle", "polyline", "arrow", "double-arrow"];
 
 export default function DrawingSettingsPanel() {
+  const ds = useDrawingState();
   const {
     drawMode,
     activeLabel,
@@ -36,13 +37,15 @@ export default function DrawingSettingsPanel() {
     activeSourceUrl,
     activeColor,
     activeOpacity,
-    activeSmoothing,
-    activeStrokeWidth,
-    activeLineStyle,
-    activeLineDecoration,
-    activeDecorationSpacing,
-    activeFillPattern,
-  } = useDrawingState();
+  } = ds;
+  const {
+    smoothing: activeSmoothing,
+    strokeWidth: activeStrokeWidth,
+    lineStyle: activeLineStyle,
+    lineDecoration: activeLineDecoration,
+    decorationSpacing: activeDecorationSpacing,
+    fillPattern: activeFillPattern,
+  } = ds.activeStroke;
   const {
     setDrawMode,
     setActiveLabel,

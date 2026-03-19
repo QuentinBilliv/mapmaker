@@ -97,7 +97,7 @@ function GeoBankButton() {
 }
 
 function MarkerPicker() {
-  const { activeShape, activeIcon } = useDrawingState();
+  const { activePoint: { shape: activeShape, icon: activeIcon } } = useDrawingState();
   const { setActiveShape, setActiveIcon } = useEditorActions();
   const [pickerOpen, setPickerOpen] = useState(false);
 

@@ -14,7 +14,7 @@ import { v4 as uuid } from "uuid";
 import type { DrawMode } from "./draw-engine";
 import { geometryTypeToFeatureType } from "./geojson";
 import { DEFAULT_LAYER, DEFAULT_MAP, COLORS, DEFAULT_BORDER_WIDTH, FEATURE_LIMIT } from "./defaults";
-import { saveToLocalStorage, loadFromLocalStorage } from "./local-storage";
+import { saveToLocalStorage, loadFromLocalStorage, setStorageErrorHandler, type StorageError } from "./local-storage";
 import { BASE_MAPS, type BaseMap } from "./map-style";
 import type {
   MapData,
@@ -32,7 +32,7 @@ import type {
 import type { DeserializedMap } from "./mapmaker-format";
 import { type Coord } from "./geo-math";
 import { nextOrder, shiftGeometry, rotateGeometry } from "./geometry-transforms";
-import { type DrawingState, type DrawingAction, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
+import { type DrawingState, type DrawingPayload, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
 import { useUndoRedo } from "./hooks/use-undo-redo";
 
 interface EditorDataState {
@@ -148,7 +148,22 @@ interface EditorProviderProps {
   onSave?: (state: StoredMapState) => void;
 }
 
+const STORAGE_MESSAGES: Record<StorageError, string> = {
+  quota_exceeded: "Storage full — your changes may not be saved. Export your map to avoid data loss.",
+  save_failed: "Failed to save locally. Export your map to avoid data loss.",
+  load_corrupted: "Local save data was corrupted and could not be loaded.",
+};
+
 export function EditorProvider({ children, initialData, onSave }: EditorProviderProps) {
+  const [storageWarning, setStorageWarning] = useState<string | null>(null);
+
+  useEffect(() => {
+    setStorageErrorHandler((error) => {
+      setStorageWarning(STORAGE_MESSAGES[error]);
+    });
+    return () => setStorageErrorHandler(() => {});
+  }, []);
+
   const [map, setMap] = useState<MapData>(initialData?.map ?? DEFAULT_MAP);
   const [layers, setLayers] = useState<LayerData[]>(initialData?.layers ?? [DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>(initialData?.features ?? []);
@@ -236,7 +251,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   );
 
   const set = useCallback(
-    (payload: Partial<DrawingState>) => dispatchDrawing({ type: "SET", payload }),
+    (payload: DrawingPayload) => dispatchDrawing({ type: "SET", payload }),
     []
   );
 
@@ -246,24 +261,24 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   const setActiveSourceUrl = useCallback((url: string) => set({ activeSourceUrl: url }), [set]);
   const setActiveColor = useCallback((color: string) => set({ activeColor: color }), [set]);
   const setActiveOpacity = useCallback((opacity: number) => set({ activeOpacity: opacity }), [set]);
-  const setActiveSize = useCallback((size: number) => set({ activeSize: size }), [set]);
-  const setActiveShape = useCallback((shape: PointShape) => set({ activeShape: shape }), [set]);
-  const setActiveIcon = useCallback((icon: string | null) => set({ activeIcon: icon }), [set]);
-  const setActiveBorderColor = useCallback((color: string) => set({ activeBorderColor: color }), [set]);
-  const setActiveBorderWidth = useCallback((width: number) => set({ activeBorderWidth: width }), [set]);
-  const setActiveSmoothing = useCallback((smoothing: number) => set({ activeSmoothing: smoothing }), [set]);
-  const setActiveStrokeWidth = useCallback((width: number) => set({ activeStrokeWidth: width }), [set]);
-  const setActiveLineStyle = useCallback((style: LineStyle) => set({ activeLineStyle: style }), [set]);
-  const setActiveArrowStyle = useCallback((style: ArrowStyle) => set({ activeArrowStyle: style }), [set]);
-  const setActiveLineDecoration = useCallback((decoration: LineDecoration) => set({ activeLineDecoration: decoration }), [set]);
-  const setActiveDecorationSpacing = useCallback((spacing: number) => set({ activeDecorationSpacing: spacing }), [set]);
-  const setActiveFillPattern = useCallback((pattern: FillPattern) => set({ activeFillPattern: pattern }), [set]);
-  const setActiveTextContent = useCallback((text: string) => set({ activeTextContent: text }), [set]);
-  const setActiveFontSize = useCallback((size: number) => set({ activeFontSize: size }), [set]);
-  const setActiveFontFamily = useCallback((font: TextFont) => set({ activeFontFamily: font }), [set]);
-  const setActiveTextBorderEnabled = useCallback((enabled: boolean) => set({ activeTextBorderEnabled: enabled }), [set]);
-  const setActiveTextBorderColor = useCallback((color: string) => set({ activeTextBorderColor: color }), [set]);
-  const setActiveTextBorderWidth = useCallback((width: number) => set({ activeTextBorderWidth: width }), [set]);
+  const setActiveSize = useCallback((size: number) => set({ activePoint: { size } }), [set]);
+  const setActiveShape = useCallback((shape: PointShape) => set({ activePoint: { shape } }), [set]);
+  const setActiveIcon = useCallback((icon: string | null) => set({ activePoint: { icon } }), [set]);
+  const setActiveBorderColor = useCallback((color: string) => set({ activePoint: { borderColor: color } }), [set]);
+  const setActiveBorderWidth = useCallback((width: number) => set({ activePoint: { borderWidth: width } }), [set]);
+  const setActiveSmoothing = useCallback((smoothing: number) => set({ activeStroke: { smoothing } }), [set]);
+  const setActiveStrokeWidth = useCallback((width: number) => set({ activeStroke: { strokeWidth: width } }), [set]);
+  const setActiveLineStyle = useCallback((style: LineStyle) => set({ activeStroke: { lineStyle: style } }), [set]);
+  const setActiveArrowStyle = useCallback((style: ArrowStyle) => set({ activeStroke: { arrowStyle: style } }), [set]);
+  const setActiveLineDecoration = useCallback((decoration: LineDecoration) => set({ activeStroke: { lineDecoration: decoration } }), [set]);
+  const setActiveDecorationSpacing = useCallback((spacing: number) => set({ activeStroke: { decorationSpacing: spacing } }), [set]);
+  const setActiveFillPattern = useCallback((pattern: FillPattern) => set({ activeStroke: { fillPattern: pattern } }), [set]);
+  const setActiveTextContent = useCallback((text: string) => set({ activeText: { textContent: text } }), [set]);
+  const setActiveFontSize = useCallback((size: number) => set({ activeText: { fontSize: size } }), [set]);
+  const setActiveFontFamily = useCallback((font: TextFont) => set({ activeText: { fontFamily: font } }), [set]);
+  const setActiveTextBorderEnabled = useCallback((enabled: boolean) => set({ activeText: { textBorderEnabled: enabled } }), [set]);
+  const setActiveTextBorderColor = useCallback((color: string) => set({ activeText: { textBorderColor: color } }), [set]);
+  const setActiveTextBorderWidth = useCallback((width: number) => set({ activeText: { textBorderWidth: width } }), [set]);
   const setActiveBaseMap = useCallback((baseMap: BaseMap) => set({ activeBaseMap: baseMap }), [set]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
@@ -292,45 +307,45 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       case "text":
         newFeature = {
           ...base, type: "text",
-          textContent: s.activeTextContent || "Text",
-          fontSize: s.activeFontSize,
-          fontFamily: s.activeFontFamily,
-          textBorderEnabled: s.activeTextBorderEnabled,
-          textBorderColor: s.activeTextBorderColor,
-          textBorderWidth: s.activeTextBorderWidth,
+          textContent: s.activeText.textContent || "Text",
+          fontSize: s.activeText.fontSize,
+          fontFamily: s.activeText.fontFamily,
+          textBorderEnabled: s.activeText.textBorderEnabled,
+          textBorderColor: s.activeText.textBorderColor,
+          textBorderWidth: s.activeText.textBorderWidth,
         };
         break;
       case "point":
         newFeature = {
           ...base, type: "point",
-          size: s.activeSize,
-          shape: s.activeIcon ? undefined : s.activeShape,
-          icon: s.activeIcon ?? undefined,
-          borderColor: s.activeBorderColor,
-          borderWidth: s.activeBorderWidth,
+          size: s.activePoint.size,
+          shape: s.activePoint.icon ? undefined : s.activePoint.shape,
+          icon: s.activePoint.icon ?? undefined,
+          borderColor: s.activePoint.borderColor,
+          borderWidth: s.activePoint.borderWidth,
         };
         break;
       case "polyline":
         newFeature = {
           ...base, type: "polyline",
-          smoothing: s.activeSmoothing,
-          strokeWidth: s.activeStrokeWidth,
-          lineStyle: s.activeLineStyle,
-          arrowStyle: currentMode === "arrow" ? "forward" : currentMode === "double-arrow" ? "both" : s.activeArrowStyle,
-          lineDecoration: s.activeLineDecoration,
-          decorationSpacing: s.activeDecorationSpacing,
+          smoothing: s.activeStroke.smoothing,
+          strokeWidth: s.activeStroke.strokeWidth,
+          lineStyle: s.activeStroke.lineStyle,
+          arrowStyle: currentMode === "arrow" ? "forward" : currentMode === "double-arrow" ? "both" : s.activeStroke.arrowStyle,
+          lineDecoration: s.activeStroke.lineDecoration,
+          decorationSpacing: s.activeStroke.decorationSpacing,
         };
         break;
       case "polygon":
         newFeature = {
           ...base, type: "polygon",
           shapeOrigin: currentMode === "rectangle" ? "rectangle" : currentMode === "circle" ? "circle" : undefined,
-          smoothing: s.activeSmoothing,
-          strokeWidth: s.activeStrokeWidth,
-          lineStyle: s.activeLineStyle,
-          lineDecoration: s.activeLineDecoration,
-          decorationSpacing: s.activeDecorationSpacing,
-          fillPattern: s.activeFillPattern,
+          smoothing: s.activeStroke.smoothing,
+          strokeWidth: s.activeStroke.strokeWidth,
+          lineStyle: s.activeStroke.lineStyle,
+          lineDecoration: s.activeStroke.lineDecoration,
+          decorationSpacing: s.activeStroke.decorationSpacing,
+          fillPattern: s.activeStroke.fillPattern,
         };
         break;
     }
@@ -794,6 +809,12 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     <ActionsCtx.Provider value={actionsValue}>
       <DataContext.Provider value={dataValue}>
         <DrawingCtx.Provider value={drawing}>
+          {storageWarning && (
+            <div className="fixed top-0 inset-x-0 z-50 bg-amber-500 text-amber-950 text-sm text-center px-4 py-2 flex items-center justify-center gap-2">
+              <span>{storageWarning}</span>
+              <button onClick={() => setStorageWarning(null)} className="font-bold hover:underline">Dismiss</button>
+            </div>
+          )}
           {children}
         </DrawingCtx.Provider>
       </DataContext.Provider>
