@@ -6,14 +6,10 @@ import { api } from "@convex/_generated/api";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
-import type { Id } from "@convex/_generated/dataModel";
 
 export default function AccountPage() {
   const me = useQuery(api.users.getMe);
   const maps = useQuery(api.maps.getMyMaps);
-  const createMap = useMutation(api.maps.createMap);
-  const deleteMap = useMutation(api.maps.deleteMap);
-  const setVisibility = useMutation(api.maps.setVisibility);
   const updateName = useMutation(api.users.updateName);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
@@ -29,9 +25,6 @@ export default function AccountPage() {
       </div>
     );
   }
-
-  const limit = me.mapLimit;
-  const atLimit = maps.length >= limit;
 
   return (
     <div className="max-w-3xl mx-auto p-6">
@@ -68,68 +61,10 @@ export default function AccountPage() {
             {me.universityLabel && ` — ${me.universityLabel}`}
           </p>
         </div>
-        <p className="text-sm text-muted-foreground">
-          {maps.length}/{limit === Infinity ? "∞" : limit} maps
-        </p>
       </div>
-      <div className="mb-4">
-        <Button
-          size="sm"
-          disabled={atLimit}
-          onClick={() => createMap().catch(console.error)}
-        >
-          {atLimit ? `Limit reached (${limit})` : "New map"}
-        </Button>
-      </div>
-      {maps.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No maps yet.</p>
-      ) : (
-        <div className="space-y-2">
-          {maps.map((m) => (
-            <div
-              key={m._id}
-              className="flex items-center gap-3 border rounded px-3 py-2"
-            >
-              <Link
-                href={`/maps/${m._id}/edit`}
-                className="flex-1 text-sm font-medium hover:underline truncate"
-              >
-                {m.title}
-              </Link>
-              <span className="text-[10px] text-muted-foreground shrink-0">
-                {new Date(m.updatedAt).toLocaleDateString()}
-              </span>
-              <select
-                value={m.visibility}
-                onChange={(e) =>
-                  setVisibility({
-                    mapId: m._id as Id<"maps">,
-                    visibility: e.target.value as "private" | "unlisted" | "public",
-                  }).catch(console.error)
-                }
-                className="text-xs shrink-0 bg-transparent border rounded px-1.5 py-1 text-muted-foreground"
-              >
-                <option value="private">Private</option>
-                <option value="unlisted">Unlisted</option>
-                <option value="public">Public</option>
-              </select>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="text-xs text-destructive shrink-0"
-                onClick={() => {
-                  if (!confirm("Delete this map?")) return;
-                  deleteMap({ mapId: m._id as Id<"maps"> }).catch(
-                    console.error
-                  );
-                }}
-              >
-                Delete
-              </Button>
-            </div>
-          ))}
-        </div>
-      )}
+      <Button variant="outline" size="sm" asChild>
+        <Link href="/">See my maps ({maps?.length ?? 0})</Link>
+      </Button>
     </div>
   );
 }
