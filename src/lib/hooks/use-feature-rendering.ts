@@ -266,7 +266,12 @@ function syncPerFeatureLayersSorted(
           source: FEATURES_SOURCE,
           layout: {
             "icon-image": ["get", "iconId"],
-            "icon-size": ["*", ["get", "size"], ICON_SCALE],
+            "icon-size": [
+              "interpolate", ["exponential", 1.5], ["zoom"],
+              2, ["*", ["get", "size"], ICON_SCALE * 0.15],
+              6, ["*", ["get", "size"], ICON_SCALE],
+              14, ["*", ["get", "size"], ICON_SCALE * 6],
+            ],
             "icon-allow-overlap": true,
             "icon-anchor": "center",
             "icon-rotate": ["get", "rotation"],
