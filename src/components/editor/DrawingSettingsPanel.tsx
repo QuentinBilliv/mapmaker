@@ -1,6 +1,7 @@
 "use client";
 
-import { useDrawingState, useEditorActions } from "@/lib/editor-context";
+import { useDrawingState, useEditorData, useEditorActions } from "@/lib/editor-context";
+import { useColorSwatches } from "@/lib/hooks/use-color-swatches";
 import { LINE_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type LineDecoration, type FillPattern } from "@/lib/types";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
@@ -29,6 +30,8 @@ const MODE_LABELS: Record<string, string> = {
 const DRAWING_MODES = ["polygon", "rectangle", "circle", "polyline", "arrow", "double-arrow"];
 
 export default function DrawingSettingsPanel() {
+  const { features } = useEditorData();
+  const swatches = useColorSwatches(features);
   const ds = useDrawingState();
   const {
     drawMode,
@@ -88,6 +91,8 @@ export default function DrawingSettingsPanel() {
             <ColorInput
               value={activeColor}
               onChange={(e) => setActiveColor(e.target.value)}
+              swatches={swatches}
+              onColorSelect={setActiveColor}
             />
           </Field>
           <Field label={`Opacity (${Math.round(activeOpacity * 100)}%)`} className="flex-1">

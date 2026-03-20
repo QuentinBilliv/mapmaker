@@ -255,7 +255,72 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     []
   );
 
-  const setDrawMode = useCallback((mode: DrawMode) => set({ drawMode: mode }), [set]);
+  const setDrawMode = useCallback((mode: DrawMode) => {
+    const typeMap: Record<string, FeatureData["type"]> = {
+      polygon: "polygon", rectangle: "polygon", circle: "polygon",
+      polyline: "polyline", arrow: "polyline", "double-arrow": "polyline",
+      point: "point", text: "text",
+    };
+    const featureType = typeMap[mode];
+    if (!featureType) {
+      dispatchDrawing({ type: "SET", payload: { drawMode: mode } });
+      return;
+    }
+    const last = [...featuresRef.current].reverse().find((f) => f.type === featureType);
+    if (!last) {
+      dispatchDrawing({ type: "SET", payload: { drawMode: mode } });
+      return;
+    }
+    const payload: DrawingPayload = {
+      drawMode: mode,
+      activeColor: last.color,
+      activeOpacity: last.opacity,
+      activeLabel: "",
+      activeSourceText: last.sourceText,
+      activeSourceUrl: last.sourceUrl ?? "",
+    };
+    switch (last.type) {
+      case "polygon":
+        payload.activeStroke = {
+          smoothing: last.smoothing,
+          strokeWidth: last.strokeWidth,
+          lineStyle: last.lineStyle,
+          lineDecoration: last.lineDecoration,
+          decorationSpacing: last.decorationSpacing,
+          fillPattern: last.fillPattern,
+        };
+        break;
+      case "polyline":
+        payload.activeStroke = {
+          smoothing: last.smoothing,
+          strokeWidth: last.strokeWidth,
+          lineStyle: last.lineStyle,
+          arrowStyle: last.arrowStyle,
+          lineDecoration: last.lineDecoration,
+          decorationSpacing: last.decorationSpacing,
+        };
+        break;
+      case "point":
+        payload.activePoint = {
+          size: last.size,
+          shape: last.shape ?? "circle",
+          icon: last.icon ?? null,
+          borderColor: last.borderColor,
+          borderWidth: last.borderWidth,
+        };
+        break;
+      case "text":
+        payload.activeText = {
+          fontSize: last.fontSize,
+          fontFamily: last.fontFamily,
+          textBorderEnabled: last.textBorderEnabled,
+          textBorderColor: last.textBorderColor,
+          textBorderWidth: last.textBorderWidth,
+        };
+        break;
+    }
+    dispatchDrawing({ type: "SET", payload });
+  }, []);
   const setActiveLabel = useCallback((label: string) => set({ activeLabel: label }), [set]);
   const setActiveSourceText = useCallback((text: string) => set({ activeSourceText: text }), [set]);
   const setActiveSourceUrl = useCallback((url: string) => set({ activeSourceUrl: url }), [set]);
@@ -680,12 +745,12 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       const mode = modeMap[e.key.toLowerCase()];
       if (mode) {
         e.preventDefault();
-        dispatchDrawing({ type: "SET", payload: { drawMode: mode } });
+        setDrawMode(mode);
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [duplicateFeature, duplicateGroup, deleteFeature, deleteGroup]);
+  }, [duplicateFeature, duplicateGroup, deleteFeature, deleteGroup, setDrawMode]);
 
   const dataValue = useMemo<EditorDataState>(
     () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, canUndo, canRedo }),

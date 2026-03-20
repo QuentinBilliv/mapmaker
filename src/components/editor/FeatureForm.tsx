@@ -10,6 +10,7 @@ import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERN
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
+import { useColorSwatches } from "@/lib/hooks/use-color-swatches";
 import { polylineLength, polygonArea, multiPolygonArea, formatDistance, formatArea } from "@/lib/geo-math";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
@@ -232,6 +233,8 @@ export default function FeatureForm() {
 
 function StyleFields() {
   const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
+  const { features } = useEditorData();
+  const swatches = useColorSwatches(features);
   const opacity = watch("opacity");
   const showLabel = watch("showLabel");
   const showInLegend = watch("showInLegend");
@@ -255,7 +258,11 @@ function StyleFields() {
       </Field>
       <div className="flex gap-3">
         <Field label="Color" className="flex-1" error={errors.color?.message}>
-          <ColorInput {...register("color")} />
+          <ColorInput
+            {...register("color")}
+            swatches={swatches}
+            onColorSelect={(c) => setValue("color", c)}
+          />
         </Field>
         <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
           <FormSlider name="opacity" min={0} max={100} step={5} scale={100} className="mt-2" />
