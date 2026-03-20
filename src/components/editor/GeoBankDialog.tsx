@@ -18,7 +18,6 @@ import {
   type GeoBankCountry,
   type GeoBankSubdivision,
 } from "@/lib/geobank";
-import { FEATURE_LIMIT } from "@/lib/defaults";
 
 const CONTINENTS = ["All", "Africa", "Americas", "Asia", "Europe", "Oceania"] as const;
 
@@ -41,8 +40,8 @@ export default function GeoBankDialog({
   const [adding, setAdding] = useState<string | null>(null);
   const [subQuery, setSubQuery] = useState("");
   const { addBankFeature } = useEditorActions();
-  const { features } = useEditorData();
-  const remaining = FEATURE_LIMIT - features.length;
+  const { features, featureLimit } = useEditorData();
+  const remaining = featureLimit === Infinity ? Infinity : featureLimit - features.length;
   const addedLabels = useMemo(() => new Set(features.map((f) => f.label)), [features]);
 
   useEffect(() => {
@@ -121,7 +120,7 @@ export default function GeoBankDialog({
   const handleAddAllSubdivisions = useCallback(
     () => {
       if (subdivisions.length === 0 || !selectedCountry) return;
-      const toAdd = subdivisions.slice(0, remaining);
+      const toAdd = remaining === Infinity ? subdivisions : subdivisions.slice(0, remaining);
       for (const sub of toAdd) {
         addBankFeature(sub.geometry, sub.name, "geoBoundaries");
       }
@@ -153,7 +152,7 @@ export default function GeoBankDialog({
           </DialogClose>
         </DialogHeader>
         {remaining <= 0 && (
-          <p className="text-sm text-destructive">Feature limit reached ({FEATURE_LIMIT})</p>
+          <p className="text-sm text-destructive">Feature limit reached ({featureLimit})</p>
         )}
         {selectedCountry ? (
           <SubdivisionView
@@ -366,7 +365,7 @@ function SubdivisionView({
                 disabled={remaining <= 0}
                 onClick={onAddAll}
               >
-                +Add all ({Math.min(subdivisions.length, remaining)})
+                +Add all ({remaining === Infinity ? subdivisions.length : Math.min(subdivisions.length, remaining)})
               </Button>
             </div>
           )}

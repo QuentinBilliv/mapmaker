@@ -35,7 +35,7 @@ export function LegendDisplay({ features }: LegendDisplayProps) {
             {legendFeatures.map((f) => (
               <div key={f.id} className="flex flex-col items-center gap-0.5">
                 <FeatureSwatch feature={f} />
-                {f.label && <span className="text-[10px] text-foreground text-center leading-tight truncate max-w-16">{f.label}</span>}
+                {f.label && <span className="text-[10px] text-foreground text-center leading-tight break-words max-w-20">{f.label}</span>}
               </div>
             ))}
           </div>

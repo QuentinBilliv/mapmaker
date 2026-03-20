@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
 import { serialize, deserialize, geometrySchema } from "@/lib/mapmaker-format";
 import { geometryTypeToFeatureType } from "@/lib/geojson";
-import { FEATURE_LIMIT } from "@/lib/defaults";
 
 const MAX_IMPORT_SIZE = 5_000_000;
 const MAX_IMPORT_FEATURES = 500;
@@ -21,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 type Mode = "mapmaker" | "geojson";
 
 export default function CodePanel({ onClose }: { onClose: () => void }) {
-  const { map, layers, features, groups } = useEditorData();
+  const { map, layers, features, groups, featureLimit } = useEditorData();
   const { activeBaseMap } = useDrawingState();
   const { importMapData, addBankFeature } = useEditorActions();
 
@@ -97,12 +96,12 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
         setError("No features found in GeoJSON");
         return;
       }
-      const remaining = FEATURE_LIMIT - features.length;
+      const remaining = featureLimit === Infinity ? Infinity : featureLimit - features.length;
       if (remaining <= 0) {
-        setError(`Feature limit reached (${FEATURE_LIMIT})`);
+        setError(`Feature limit reached (${featureLimit})`);
         return;
       }
-      const toImport = rawFeatures.slice(0, remaining);
+      const toImport = remaining === Infinity ? rawFeatures : rawFeatures.slice(0, remaining);
       let added = 0;
       let skipped = 0;
       for (const raw of toImport) {

@@ -1,7 +1,10 @@
 "use client";
 
+import { useQuery } from "convex/react";
+import { api } from "../../../convex/_generated/api";
 import { EditorProvider } from "@/lib/editor-context";
 import { useConvexPersistence } from "@/lib/hooks/use-convex-persistence";
+import { FEATURE_LIMIT } from "@/lib/defaults";
 
 export default function ConvexEditorWrapper({
   mapId,
@@ -10,6 +13,8 @@ export default function ConvexEditorWrapper({
   mapId: string;
   children: React.ReactNode;
 }) {
+  const user = useQuery(api.users.getMe);
+  const featureLimit = user?.tier === "admin" ? Infinity : FEATURE_LIMIT;
   const { initialData, onSave, saveError, isLoading, notFound } =
     useConvexPersistence(mapId);
 
@@ -32,7 +37,7 @@ export default function ConvexEditorWrapper({
   }
 
   return (
-    <EditorProvider initialData={initialData} onSave={onSave}>
+    <EditorProvider initialData={initialData} onSave={onSave} featureLimit={featureLimit}>
       {saveError && (
         <div className="fixed top-0 inset-x-0 z-50 bg-red-500 text-white text-sm text-center px-4 py-2">
           {saveError}

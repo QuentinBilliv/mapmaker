@@ -51,7 +51,7 @@ function loadImage(src: string): Promise<HTMLImageElement> {
   });
 }
 
-async function drawIconFromSvg(ctx: CanvasRenderingContext2D, svgMarkup: string, color: string, opacity: number, w: number, h: number) {
+async function drawIconFromSvg(ctx: CanvasRenderingContext2D, svgMarkup: string, color: string, opacity: number, w: number, h: number, rotation = 0) {
   const blob = new Blob([svgMarkup], { type: "image/svg+xml" });
   const url = URL.createObjectURL(blob);
   try {
@@ -63,6 +63,12 @@ async function drawIconFromSvg(ctx: CanvasRenderingContext2D, svgMarkup: string,
     const cx = (w - iw) / 2;
     const cy = (h - ih) / 2;
 
+    ctx.save();
+    if (rotation !== 0) {
+      ctx.translate(w / 2, h / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.translate(-w / 2, -h / 2);
+    }
     ctx.globalAlpha = opacity;
     ctx.drawImage(img, cx, cy, iw, ih);
     ctx.globalCompositeOperation = "source-in";
@@ -70,6 +76,7 @@ async function drawIconFromSvg(ctx: CanvasRenderingContext2D, svgMarkup: string,
     ctx.fillRect(0, 0, w, h);
     ctx.globalCompositeOperation = "source-over";
     ctx.globalAlpha = 1;
+    ctx.restore();
   } finally {
     URL.revokeObjectURL(url);
   }
@@ -80,14 +87,14 @@ async function drawPoint(ctx: CanvasRenderingContext2D, f: FeatureData & { type:
     const entry = await loadCatalogEntry(f.icon);
     if (entry) {
       const svgMarkup = renderToStaticMarkup(createElement(entry.Icon, { size: Math.min(w, h) * 0.7 }));
-      await drawIconFromSvg(ctx, svgMarkup, f.color, f.opacity, w, h);
+      await drawIconFromSvg(ctx, svgMarkup, f.color, f.opacity, w, h, f.rotation ?? 0);
       return;
     }
   }
 
   if (f.customSvg) {
     const sanitized = sanitizeSvg(f.customSvg);
-    await drawIconFromSvg(ctx, sanitized, f.color, f.opacity, w, h);
+    await drawIconFromSvg(ctx, sanitized, f.color, f.opacity, w, h, f.rotation ?? 0);
     return;
   }
 
@@ -95,6 +102,14 @@ async function drawPoint(ctx: CanvasRenderingContext2D, f: FeatureData & { type:
   const cy = h / 2;
   const r = Math.min(w, h) * 0.35;
   const shape = f.shape ?? "circle";
+  const rotation = f.rotation ?? 0;
+
+  ctx.save();
+  if (rotation !== 0) {
+    ctx.translate(cx, cy);
+    ctx.rotate((rotation * Math.PI) / 180);
+    ctx.translate(-cx, -cy);
+  }
 
   ctx.globalAlpha = f.opacity;
   ctx.fillStyle = f.color;
@@ -108,6 +123,7 @@ async function drawPoint(ctx: CanvasRenderingContext2D, f: FeatureData & { type:
     ctx.stroke();
   }
   ctx.globalAlpha = 1;
+  ctx.restore();
 }
 
 function drawLine(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "polyline" }, w: number, h: number) {

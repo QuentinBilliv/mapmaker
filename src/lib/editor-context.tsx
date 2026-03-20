@@ -43,6 +43,7 @@ interface EditorDataState {
   selectedFeatureIds: string[];
   selectedFeature: FeatureData | null;
   featureLimitReached: boolean;
+  featureLimit: number;
   canUndo: boolean;
   canRedo: boolean;
 }
@@ -146,6 +147,7 @@ interface EditorProviderProps {
   children: React.ReactNode;
   initialData?: StoredMapState;
   onSave?: (state: StoredMapState) => void;
+  featureLimit?: number;
 }
 
 const STORAGE_MESSAGES: Record<StorageError, string> = {
@@ -154,7 +156,7 @@ const STORAGE_MESSAGES: Record<StorageError, string> = {
   load_corrupted: "Local save data was corrupted and could not be loaded.",
 };
 
-export function EditorProvider({ children, initialData, onSave }: EditorProviderProps) {
+export function EditorProvider({ children, initialData, onSave, featureLimit = FEATURE_LIMIT }: EditorProviderProps) {
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
 
   useEffect(() => {
@@ -183,7 +185,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     [features, selectedFeatureIds]
   );
 
-  const featureLimitReached = features.length >= FEATURE_LIMIT;
+  const featureLimitReached = featureLimit !== Infinity && features.length >= featureLimit;
 
   const hasLoadedRef = useRef(!!initialData);
   const onSaveRef = useRef(onSave);
@@ -347,7 +349,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   const setActiveBaseMap = useCallback((baseMap: BaseMap) => set({ activeBaseMap: baseMap }), [set]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
-    if (featuresRef.current.length >= FEATURE_LIMIT) return;
+    if (featureLimit !== Infinity && featuresRef.current.length >= featureLimit) return;
     recordSnapshot();
     const s = drawingRef.current;
     const currentMode = drawModeRef.current;
@@ -417,10 +419,10 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureIds([newFeature.id]);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
-  }, [recordSnapshot]);
+  }, [recordSnapshot, featureLimit]);
 
   const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string, sourceText: string) => {
-    if (featuresRef.current.length >= FEATURE_LIMIT) return;
+    if (featureLimit !== Infinity && featuresRef.current.length >= featureLimit) return;
     recordSnapshot();
     const s = drawingRef.current;
     const featureType = geometryTypeToFeatureType(geometry.type);
@@ -475,7 +477,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     }
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureIds([newFeature.id]);
-  }, [recordSnapshot]);
+  }, [recordSnapshot, featureLimit]);
 
   const updateFeature = useCallback(
     (id: string, updates: FeatureUpdate) => {
@@ -490,7 +492,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   const DUPLICATE_OFFSET_MERC_Y = 0.005;
 
   const duplicateFeature = useCallback((id: string) => {
-    if (featuresRef.current.length >= FEATURE_LIMIT) return;
+    if (featureLimit !== Infinity && featuresRef.current.length >= featureLimit) return;
     recordSnapshot();
     const source = featuresRef.current.find((f) => f.id === id);
     if (!source) return;
@@ -502,11 +504,11 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     } as FeatureData;
     setFeatures((prev) => [...prev, clone]);
     setSelectedFeatureIds([clone.id]);
-  }, [recordSnapshot]);
+  }, [recordSnapshot, featureLimit]);
 
   const duplicateGroup = useCallback((groupId: string) => {
     const groupChildren = featuresRef.current.filter((f) => f.groupId === groupId);
-    if (featuresRef.current.length + groupChildren.length > FEATURE_LIMIT) return;
+    if (featureLimit !== Infinity && featuresRef.current.length + groupChildren.length > featureLimit) return;
     recordSnapshot();
     const group = groupsRef.current.find((g) => g.id === groupId);
     if (!group) return;
@@ -522,7 +524,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     } as FeatureData));
     setFeatures((prev) => [...prev, ...clones]);
     setSelectedFeatureIds(clones.map((c) => c.id));
-  }, [recordSnapshot]);
+  }, [recordSnapshot, featureLimit]);
 
   const deleteFeature = useCallback((id: string) => {
     recordSnapshot();
@@ -566,7 +568,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
     setMap((prev) => ({ ...prev, ...data.map }));
     setLayers(data.layers);
     setFeatures(
-      data.features.slice(0, FEATURE_LIMIT).map((f) => ({ ...f, id: uuid() }) as FeatureData)
+      (featureLimit === Infinity ? data.features : data.features.slice(0, featureLimit)).map((f) => ({ ...f, id: uuid() }) as FeatureData)
     );
     setGroups(data.groups ?? []);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
@@ -574,7 +576,7 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
       dispatchDrawing({ type: "SET", payload: { activeBaseMap: bm } });
     }
     setSelectedFeatureIds([]);
-  }, [recordSnapshot]);
+  }, [recordSnapshot, featureLimit]);
 
   const selectFeature = useCallback((id: string | null) => {
     setSelectedFeatureIds(id ? [id] : []);
@@ -753,8 +755,8 @@ export function EditorProvider({ children, initialData, onSave }: EditorProvider
   }, [duplicateFeature, duplicateGroup, deleteFeature, deleteGroup, setDrawMode]);
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, canUndo, canRedo }),
-    [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, canUndo, canRedo]
+    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, canUndo, canRedo }),
+    [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(
