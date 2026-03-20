@@ -42,6 +42,23 @@ export async function checkMapOwnership(
   return { user, map };
 }
 
+export function validateMapMetadata(args: {
+  title: string;
+  description: string;
+  tags: string[];
+  license: string;
+  baseMapId: string;
+}) {
+  if (args.title.length > MAX_TITLE) throw new Error("Title too long");
+  if (args.description.length > MAX_DESCRIPTION) throw new Error("Description too long");
+  if (args.tags.length > MAX_TAGS) throw new Error("Too many tags");
+  for (const tag of args.tags) {
+    if (tag.length > MAX_TAG) throw new Error("Tag too long");
+  }
+  if (args.license.length > MAX_LICENSE) throw new Error("License too long");
+  if (args.baseMapId.length > MAX_BASE_MAP_ID) throw new Error("Invalid base map ID");
+}
+
 export function validateMapPayload(args: {
   title: string;
   description: string;
@@ -52,14 +69,7 @@ export function validateMapPayload(args: {
   features: unknown;
   groups: unknown;
 }) {
-  if (args.title.length > MAX_TITLE) throw new Error("Title too long");
-  if (args.description.length > MAX_DESCRIPTION) throw new Error("Description too long");
-  if (args.tags.length > MAX_TAGS) throw new Error("Too many tags");
-  for (const tag of args.tags) {
-    if (tag.length > MAX_TAG) throw new Error("Tag too long");
-  }
-  if (args.license.length > MAX_LICENSE) throw new Error("License too long");
-  if (args.baseMapId.length > MAX_BASE_MAP_ID) throw new Error("Invalid base map ID");
+  validateMapMetadata(args);
   if (!Array.isArray(args.features)) throw new Error("Features must be an array");
   if (args.features.length > MAX_FEATURES) throw new Error("Too many features");
   if (!Array.isArray(args.layers)) throw new Error("Layers must be an array");
@@ -67,5 +77,5 @@ export function validateMapPayload(args: {
   if (!Array.isArray(args.groups)) throw new Error("Groups must be an array");
   if (args.groups.length > MAX_GROUPS) throw new Error("Too many groups");
   const payloadSize = JSON.stringify(args).length;
-  if (payloadSize > MAX_MAP_PAYLOAD) throw new Error("Map data too large (5 MB max)");
+  if (payloadSize > MAX_MAP_PAYLOAD) throw new Error("Map data too large");
 }

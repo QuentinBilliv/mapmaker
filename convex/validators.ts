@@ -13,7 +13,7 @@ export const vGroup = v.object({
   order: v.number(),
 });
 
-export const vMapPayloadArgs = {
+export const vMapMetadataArgs = {
   title: v.string(),
   description: v.string(),
   tags: v.array(v.string()),
@@ -21,6 +21,10 @@ export const vMapPayloadArgs = {
   center: v.array(v.number()),
   zoom: v.number(),
   baseMapId: v.string(),
+};
+
+export const vMapPayloadArgs = {
+  ...vMapMetadataArgs,
   layers: v.array(vLayer),
   features: v.any(),
   groups: v.array(vGroup),

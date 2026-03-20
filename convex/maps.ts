@@ -6,9 +6,10 @@ import {
   getAuthenticatedUserOrNull,
   checkMapOwnership,
   TIER_LIMITS,
+  validateMapMetadata,
   validateMapPayload,
 } from "./helpers";
-import { vMapPayloadArgs } from "./validators";
+import { vMapMetadataArgs, vMapPayloadArgs } from "./validators";
 
 type Visibility = "private" | "unlisted" | "public";
 
@@ -33,7 +34,7 @@ export const getMyMaps = query({
       .collect();
     return maps
       .filter((m) => !m.deletedAt)
-      .map(({ layers: _l, features: _f, groups: _g, ...meta }) => ({
+      .map(({ layers: _l, features: _f, groups: _g, dataFileId: _d, ...meta }) => ({
         ...meta,
         visibility: resolveVisibility(meta),
       }));
@@ -46,9 +47,15 @@ export const getMap = query({
     const map = await ctx.db.get(mapId);
     if (!map || map.deletedAt) return null;
     const vis = resolveVisibility(map);
-    if (vis === "public" || vis === "unlisted") return { ...map, visibility: vis };
-    const user = await getAuthenticatedUserOrNull(ctx);
-    if (!user || map.ownerId !== user._id) return null;
+    if (vis !== "public" && vis !== "unlisted") {
+      const user = await getAuthenticatedUserOrNull(ctx);
+      if (!user || map.ownerId !== user._id) return null;
+    }
+    if (map.dataFileId) {
+      const dataFileUrl = await ctx.storage.getUrl(map.dataFileId);
+      const { layers: _l, features: _f, groups: _g, ...meta } = map;
+      return { ...meta, visibility: vis, dataFileUrl };
+    }
     return { ...map, visibility: vis };
   },
 });
@@ -75,7 +82,7 @@ export const browsePublicMaps = query({
 
     const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
     const results = await Promise.all(
-      filtered.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
+      filtered.map(async ({ layers: _l, features: _f, groups: _g, dataFileId: _d, ...meta }) => {
         let owner = ownerCache.get(meta.ownerId);
         if (!owner) {
           const user = await ctx.db.get(meta.ownerId);
@@ -111,7 +118,7 @@ export const searchPublicMaps = query({
 
     const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
     return await Promise.all(
-      filtered.map(async ({ layers: _l, features: _f, groups: _g, ...meta }) => {
+      filtered.map(async ({ layers: _l, features: _f, groups: _g, dataFileId: _d, ...meta }) => {
         let owner = ownerCache.get(meta.ownerId);
         if (!owner) {
           const user = await ctx.db.get(meta.ownerId);
@@ -165,11 +172,15 @@ export const createMap = mutation({
 export const saveMap = mutation({
   args: {
     mapId: v.id("maps"),
-    ...vMapPayloadArgs,
+    ...vMapMetadataArgs,
+    dataFileId: v.id("_storage"),
   },
   handler: async (ctx, args) => {
-    validateMapPayload(args);
+    validateMapMetadata(args);
     const { map } = await checkMapOwnership(ctx, args.mapId);
+    if (map.dataFileId && map.dataFileId !== args.dataFileId) {
+      await ctx.storage.delete(map.dataFileId);
+    }
     const owner = await ctx.db.get(map.ownerId);
     const ownerName = owner?.name;
     await ctx.db.patch(map._id, {
@@ -180,9 +191,10 @@ export const saveMap = mutation({
       center: args.center,
       zoom: args.zoom,
       baseMapId: args.baseMapId,
-      layers: args.layers,
-      features: args.features,
-      groups: args.groups,
+      dataFileId: args.dataFileId,
+      layers: undefined,
+      features: undefined,
+      groups: undefined,
       ownerName,
       searchText: buildSearchText(args.title, args.tags, ownerName),
       updatedAt: Date.now(),
@@ -194,6 +206,9 @@ export const deleteMap = mutation({
   args: { mapId: v.id("maps") },
   handler: async (ctx, { mapId }) => {
     const { map } = await checkMapOwnership(ctx, mapId);
+    if (map.dataFileId) {
+      await ctx.storage.delete(map.dataFileId);
+    }
     await ctx.db.patch(map._id, { deletedAt: Date.now() });
   },
 });

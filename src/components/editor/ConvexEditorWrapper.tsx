@@ -10,7 +10,7 @@ export default function ConvexEditorWrapper({
   mapId: string;
   children: React.ReactNode;
 }) {
-  const { initialData, onSave, isLoading, notFound } =
+  const { initialData, onSave, saveError, isLoading, notFound } =
     useConvexPersistence(mapId);
 
   if (isLoading) {
@@ -33,6 +33,11 @@ export default function ConvexEditorWrapper({
 
   return (
     <EditorProvider initialData={initialData} onSave={onSave}>
+      {saveError && (
+        <div className="fixed top-0 inset-x-0 z-50 bg-red-500 text-white text-sm text-center px-4 py-2">
+          {saveError}
+        </div>
+      )}
       {children}
     </EditorProvider>
   );
