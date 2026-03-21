@@ -12,7 +12,9 @@ import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
 import { useColorSwatches } from "@/lib/hooks/use-color-swatches";
 import { useCatalogIcon } from "@/lib/hooks/use-catalog-icon";
-import { polylineLength, polygonArea, multiPolygonArea, formatDistance, formatArea } from "@/lib/geo-math";
+
+import { FeatureSwatch } from "@/components/ui/feature-swatch";
+import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
@@ -196,7 +198,7 @@ export default function FeatureForm() {
           onClose={() => selectFeature(null)}
         />
         <div className="p-3 space-y-3">
-          {selectedFeature.type !== "text" && <LegendEntrySelector feature={selectedFeature} />}
+          {selectedFeature.type !== "text" && <LegendEntryPicker feature={selectedFeature} />}
           <StyleFields />
           {selectedFeature.type === "text" ? (
             <>
@@ -212,9 +214,10 @@ export default function FeatureForm() {
             <>
               {!selectedFeature.legendEntryId && <StrokeFields showArrows={isLine} />}
               {!selectedFeature.legendEntryId && selectedFeature.type === "polygon" && <FillPatternSelect />}
-              <MeasurementInfo feature={selectedFeature} />
+
             </>
           )}
+          {selectedFeature.type !== "text" && <LegendEntryToggle feature={selectedFeature} />}
           <FormActions
             onClose={() => selectFeature(null)}
             onCancel={handleCancel}
@@ -620,35 +623,6 @@ function FillPatternSelect() {
   );
 }
 
-function MeasurementInfo({ feature }: { feature: FeatureData }) {
-  const g = feature.geometry;
-  if (feature.type === "polyline" && g.type === "LineString") {
-    return (
-      <p className="text-[10px] text-muted-foreground">
-        Length: {formatDistance(polylineLength(g.coordinates))}
-      </p>
-    );
-  }
-  if (feature.type === "polygon" && g.type === "Polygon" && g.coordinates[0]) {
-    const ring = g.coordinates[0];
-    const perimeter = polylineLength(ring);
-    const area = polygonArea(ring);
-    return (
-      <p className="text-[10px] text-muted-foreground">
-        Perimeter: {formatDistance(perimeter)} — Area: {formatArea(area)}
-      </p>
-    );
-  }
-  if (feature.type === "polygon" && g.type === "MultiPolygon") {
-    const area = multiPolygonArea(g.coordinates);
-    return (
-      <p className="text-[10px] text-muted-foreground">
-        Area: {formatArea(area)}
-      </p>
-    );
-  }
-  return null;
-}
 
 function FormSlider({
   name,
@@ -681,43 +655,62 @@ function FormSlider({
   );
 }
 
-function LegendEntrySelector({ feature }: { feature: FeatureData }) {
+function LegendEntryPicker({ feature }: { feature: FeatureData }) {
   const { legendEntries } = useEditorData();
-  const { assignLegendEntry, deduceLegendEntryFromFeature } = useEditorActions();
-
+  const { assignLegendEntry } = useEditorActions();
   const matchingEntries = legendEntries.filter((e) => e.featureType === feature.type);
-  const currentId = feature.legendEntryId ?? "__custom__";
-  const currentEntry = feature.legendEntryId ? legendEntries.find((e) => e.id === feature.legendEntryId) : null;
+  if (matchingEntries.length === 0) return null;
+  return (
+    <Field label="Legend style">
+      <div className="flex flex-wrap gap-1.5">
+        <button
+          type="button"
+          onClick={() => assignLegendEntry(feature.id, null)}
+          className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
+            !feature.legendEntryId
+              ? "border-primary bg-primary/10 text-primary"
+              : "border-border text-muted-foreground hover:border-foreground/30"
+          }`}
+        >
+          Custom
+        </button>
+        {matchingEntries.map((e) => (
+          <button
+            key={e.id}
+            type="button"
+            onClick={() => assignLegendEntry(feature.id, e.id)}
+            className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
+              feature.legendEntryId === e.id
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-foreground/30"
+            }`}
+          >
+            <FeatureSwatch feature={legendEntryToSyntheticFeature(e)} width={20} height={16} />
+            {e.label || "Untitled"}
+          </button>
+        ))}
+      </div>
+    </Field>
+  );
+}
+
+function LegendEntryToggle({ feature }: { feature: FeatureData }) {
+  const { assignLegendEntry, deduceLegendEntryFromFeature } = useEditorActions();
+  const inLegend = !!feature.legendEntryId;
+
+  const handleToggle = (checked: boolean) => {
+    if (checked) {
+      deduceLegendEntryFromFeature(feature.id, feature.label || "Untitled");
+    } else {
+      assignLegendEntry(feature.id, null);
+    }
+  };
 
   return (
-    <Field label="Legend entry">
-      <Select value={currentId} onValueChange={(v) => assignLegendEntry(feature.id, v === "__custom__" ? null : v)}>
-        <SelectTrigger className="w-full">
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          <SelectItem value="__custom__">Custom style</SelectItem>
-          {matchingEntries.map((e) => (
-            <SelectItem key={e.id} value={e.id}>{e.label || "Untitled"}</SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-      {currentEntry && (
-        <p className="text-[10px] text-muted-foreground mt-1">
-          Style inherited from &quot;{currentEntry.label}&quot;
-        </p>
-      )}
-      {!feature.legendEntryId && (
-        <Button
-          variant="outline"
-          size="xs"
-          className="mt-1 w-full text-xs"
-          onClick={() => deduceLegendEntryFromFeature(feature.id, feature.label || "Deduced entry")}
-        >
-          Deduce legend entry from style
-        </Button>
-      )}
-    </Field>
+    <label className="flex items-center gap-2 cursor-pointer">
+      <Checkbox checked={inLegend} onCheckedChange={handleToggle} />
+      <span className="text-xs">Add to legend</span>
+    </label>
   );
 }
 
