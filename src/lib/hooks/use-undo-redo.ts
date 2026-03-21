@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { FeatureData, LayerData, GroupData } from "@/lib/types";
+import type { FeatureData, LayerData, GroupData, LegendEntry } from "@/lib/types";
 
-type Snapshot = { features: FeatureData[]; layers: LayerData[]; groups: GroupData[] };
+type Snapshot = { features: FeatureData[]; layers: LayerData[]; groups: GroupData[]; legendEntries: LegendEntry[] };
 type Ref<T> = { current: T };
 
 const HISTORY_LIMIT = 50;
@@ -10,9 +10,11 @@ export function useUndoRedo(
   featuresRef: Ref<FeatureData[]>,
   layersRef: Ref<LayerData[]>,
   groupsRef: Ref<GroupData[]>,
+  legendEntriesRef: Ref<LegendEntry[]>,
   setFeatures: React.Dispatch<React.SetStateAction<FeatureData[]>>,
   setLayers: React.Dispatch<React.SetStateAction<LayerData[]>>,
   setGroups: React.Dispatch<React.SetStateAction<GroupData[]>>,
+  setLegendEntries: React.Dispatch<React.SetStateAction<LegendEntry[]>>,
   setSelectedFeatureIds: React.Dispatch<React.SetStateAction<string[]>>,
 ) {
   const historyRef = useRef<{ past: Snapshot[]; future: Snapshot[] }>({ past: [], future: [] });
@@ -26,35 +28,37 @@ export function useUndoRedo(
 
   const recordSnapshot = useCallback(() => {
     const h = historyRef.current;
-    h.past.push({ features: featuresRef.current, layers: layersRef.current, groups: groupsRef.current });
+    h.past.push({ features: featuresRef.current, layers: layersRef.current, groups: groupsRef.current, legendEntries: legendEntriesRef.current });
     if (h.past.length > HISTORY_LIMIT) h.past.shift();
     h.future = [];
     syncFlags();
-  }, [featuresRef, layersRef, groupsRef, syncFlags]);
+  }, [featuresRef, layersRef, groupsRef, legendEntriesRef, syncFlags]);
 
   const undo = useCallback(() => {
     const h = historyRef.current;
     const snap = h.past.pop();
     if (!snap) return;
-    h.future.push({ features: featuresRef.current, layers: layersRef.current, groups: groupsRef.current });
+    h.future.push({ features: featuresRef.current, layers: layersRef.current, groups: groupsRef.current, legendEntries: legendEntriesRef.current });
     setFeatures(snap.features);
     setLayers(snap.layers);
     setGroups(snap.groups);
+    setLegendEntries(snap.legendEntries);
     setSelectedFeatureIds([]);
     syncFlags();
-  }, [featuresRef, layersRef, groupsRef, setFeatures, setLayers, setGroups, setSelectedFeatureIds, syncFlags]);
+  }, [featuresRef, layersRef, groupsRef, legendEntriesRef, setFeatures, setLayers, setGroups, setLegendEntries, setSelectedFeatureIds, syncFlags]);
 
   const redo = useCallback(() => {
     const h = historyRef.current;
     const snap = h.future.pop();
     if (!snap) return;
-    h.past.push({ features: featuresRef.current, layers: layersRef.current, groups: groupsRef.current });
+    h.past.push({ features: featuresRef.current, layers: layersRef.current, groups: groupsRef.current, legendEntries: legendEntriesRef.current });
     setFeatures(snap.features);
     setLayers(snap.layers);
     setGroups(snap.groups);
+    setLegendEntries(snap.legendEntries);
     setSelectedFeatureIds([]);
     syncFlags();
-  }, [featuresRef, layersRef, groupsRef, setFeatures, setLayers, setGroups, setSelectedFeatureIds, syncFlags]);
+  }, [featuresRef, layersRef, groupsRef, legendEntriesRef, setFeatures, setLayers, setGroups, setLegendEntries, setSelectedFeatureIds, syncFlags]);
 
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {

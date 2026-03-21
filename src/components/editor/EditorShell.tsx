@@ -10,6 +10,7 @@ import MapMetadata from "./MapMetadata";
 import BaseMapSelector from "./BaseMapSelector";
 import Legend from "./Legend";
 import FeaturePanel from "./FeaturePanel";
+import LegendPanel from "./LegendPanel";
 import CodePanel from "./CodePanel";
 
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ export default function EditorShell() {
       </div>
       <aside className="w-72 h-full border-l bg-popover flex flex-col overflow-hidden shrink-0">
         <FeaturePanel />
+        <LegendPanel />
       </aside>
       {showCode && (
         <aside className="w-96 h-full border-l bg-background flex flex-col overflow-hidden shrink-0">

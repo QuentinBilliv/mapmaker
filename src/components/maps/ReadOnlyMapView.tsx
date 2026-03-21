@@ -6,13 +6,14 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
-import type { MapData, LayerData, FeatureData, GroupData } from "@/lib/types";
+import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
   map: MapData;
   layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
+  legendEntries?: LegendEntry[];
   baseMapId: string;
 }
 
@@ -21,6 +22,7 @@ export default function ReadOnlyMapView({
   layers,
   features,
   groups,
+  legendEntries = [],
   baseMapId,
 }: ReadOnlyMapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -51,7 +53,7 @@ export default function ReadOnlyMapView({
     map.setZoom(mapData.zoom);
   }, [mapData.center, mapData.zoom]);
 
-  useFeatureRendering(mapRef, features, layers, groups, 0);
+  useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
 
   return (
     <div className="flex-1 flex flex-col">
@@ -79,7 +81,7 @@ export default function ReadOnlyMapView({
         </p>
       </div>
       <div ref={containerRef} className="flex-1 relative">
-        <LegendDisplay features={features} />
+        <LegendDisplay features={features} legendEntries={legendEntries} />
       </div>
     </div>
   );

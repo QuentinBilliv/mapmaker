@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, GroupData, PointShape } from "@/lib/types";
+import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, GroupData, LegendEntry, PointShape } from "@/lib/types";
+import { resolveAllFeatures } from "@/lib/resolve-style";
 import {
   ensureShapeIcon,
   catalogIconId,
@@ -591,8 +592,10 @@ export function useFeatureRendering(
   features: FeatureData[],
   layers: LayerData[],
   groups: GroupData[],
-  styleVersion: number
+  styleVersion: number,
+  legendEntries: LegendEntry[] = [],
 ) {
+  const resolved = useMemo(() => resolveAllFeatures(features, legendEntries), [features, legendEntries]);
   const lastKeyRef = useRef("");
 
   useEffect(() => {
@@ -602,25 +605,25 @@ export function useFeatureRendering(
     const isCancelled = () => dead;
 
     if (map.getSource(FEATURES_SOURCE)) {
-      const sorted = visibleSorted(features, layers, groups);
-      const pending = setSourceDataSorted(map, sorted, features, layers, groups);
+      const sorted = visibleSorted(resolved, layers, groups);
+      const pending = setSourceDataSorted(map, sorted, resolved, layers, groups);
       const key = structuralKey(sorted);
       if (key !== lastKeyRef.current) {
         lastKeyRef.current = key;
         syncPerFeatureLayersSorted(map, sorted);
       }
-      syncDecoSpacing(map, features);
+      syncDecoSpacing(map, resolved);
       if (pending.length > 0) {
         Promise.all(pending).then(() => {
           if (dead) return;
-          setSourceDataSorted(map, sorted, features, layers, groups);
+          setSourceDataSorted(map, sorted, resolved, layers, groups);
         });
       }
     } else {
       const applyFeatures = () => {
         if (dead) return;
-        lastKeyRef.current = structuralKey(visibleSorted(features, layers, groups));
-        fullUpdate(map, features, layers, groups, isCancelled);
+        lastKeyRef.current = structuralKey(visibleSorted(resolved, layers, groups));
+        fullUpdate(map, resolved, layers, groups, isCancelled);
       };
       if (map.isStyleLoaded()) {
         applyFeatures();
@@ -630,7 +633,7 @@ export function useFeatureRendering(
     }
 
     return () => { dead = true; };
-  }, [mapRef, features, layers, groups, styleVersion]);
+  }, [mapRef, resolved, layers, groups, styleVersion]);
 }
 
 export { FEATURES_SOURCE, ZF };

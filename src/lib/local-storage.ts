@@ -1,4 +1,4 @@
-import type { MapData, LayerData, FeatureData, GroupData } from "./types";
+import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "./types";
 import type { BaseMap } from "./map-style";
 import { BASE_MAPS } from "./map-style";
 import { DEFAULT_MAP, DEFAULT_LAYER } from "./defaults";
@@ -22,6 +22,7 @@ interface StoredState {
   layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
+  legendEntries: LegendEntry[];
   baseMapId: string;
 }
 
@@ -30,10 +31,11 @@ export function saveToLocalStorage(
   layers: LayerData[],
   features: FeatureData[],
   groups: GroupData[],
+  legendEntries: LegendEntry[],
   baseMapId: string,
 ): void {
   try {
-    const state: StoredState = { version: VERSION, map, layers, features, groups, baseMapId };
+    const state: StoredState = { version: VERSION, map, layers, features, groups, legendEntries, baseMapId };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     const type = e instanceof DOMException && e.name === "QuotaExceededError"
@@ -48,6 +50,7 @@ export function loadFromLocalStorage(): {
   layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
+  legendEntries: LegendEntry[];
   baseMap: BaseMap;
 } | null {
   try {
@@ -66,6 +69,7 @@ export function loadFromLocalStorage(): {
       layers: state.layers.length > 0 ? state.layers : [DEFAULT_LAYER],
       features: validFeatures,
       groups: state.groups ?? [],
+      legendEntries: (state as StoredState).legendEntries ?? [],
       baseMap,
     };
   } catch {

@@ -86,6 +86,49 @@ export interface GroupData {
   order: number;
 }
 
+export type LegendFeatureType = "point" | "polyline" | "polygon";
+
+interface LegendEntryBase {
+  id: string;
+  label: string;
+  order: number;
+  color: string;
+  opacity: number;
+}
+
+export interface PointLegendEntry extends LegendEntryBase {
+  featureType: "point";
+  size: number;
+  shape?: PointShape;
+  icon?: string;
+  customSvg?: string;
+  borderColor: string;
+  borderWidth: number;
+}
+
+export interface PolylineLegendEntry extends LegendEntryBase {
+  featureType: "polyline";
+  smoothing: number;
+  strokeWidth: number;
+  lineStyle: LineStyle;
+  arrowStyle: ArrowStyle;
+  lineDecoration: LineDecoration;
+  decorationSpacing: number;
+}
+
+export interface PolygonLegendEntry extends LegendEntryBase {
+  featureType: "polygon";
+  smoothing: number;
+  strokeWidth: number;
+  lineStyle: LineStyle;
+  lineDecoration: LineDecoration;
+  decorationSpacing: number;
+  fillPattern: FillPattern;
+}
+
+export type LegendEntry = PointLegendEntry | PolylineLegendEntry | PolygonLegendEntry;
+export type NewLegendEntry = Omit<PointLegendEntry, "id" | "order"> | Omit<PolylineLegendEntry, "id" | "order"> | Omit<PolygonLegendEntry, "id" | "order">;
+
 interface FeatureBase {
   id: string;
   layerId: string;
@@ -97,6 +140,7 @@ interface FeatureBase {
   rotation?: number;
   groupId?: string;
   showInLegend: boolean;
+  legendEntryId?: string;
   sourceText: string;
   sourceUrl?: string;
   geometry: GeoJSON.Geometry;

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, GroupData, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
+import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
 import { BASE_MAPS } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
@@ -59,6 +59,7 @@ const mapmakerProps = z
     "mapmaker:textBorderWidth": z.number().min(0).max(5).optional(),
     "mapmaker:order": z.number().int().min(0).max(100_000).optional(),
     "mapmaker:groupId": z.string().max(100).optional(),
+    "mapmaker:legendEntryId": z.string().max(100).optional(),
     "mapmaker:sourceText": z.string().max(MAX_STRING).default(""),
     "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).refine(
       (v) => /^https?:\/\//i.test(v),
@@ -90,6 +91,28 @@ const groupSchema = z.object({
   order: z.number().int().min(0).max(100_000),
 });
 
+const legendEntrySchema = z.object({
+  id: z.string().max(100),
+  label: z.string().max(MAX_LABEL),
+  order: z.number().int().min(0).max(100_000),
+  featureType: z.enum(["point", "polyline", "polygon"]),
+  color: colorSchema,
+  opacity: z.number().min(0).max(1),
+  size: z.number().optional(),
+  shape: z.enum(["circle", "triangle", "square", "diamond", "star", "cross", "pentagon", "hexagon"]).optional(),
+  icon: z.string().max(200).optional(),
+  customSvg: z.string().max(MAX_SVG).optional(),
+  borderColor: colorSchema.optional(),
+  borderWidth: z.number().min(0).max(50).optional(),
+  smoothing: z.number().min(0).max(1).optional(),
+  strokeWidth: z.number().min(0).max(50).optional(),
+  lineStyle: z.enum(["solid", "dotted", "dash-short", "dash-medium", "dash-long"]).optional(),
+  arrowStyle: z.enum(["none", "forward", "both"]).optional(),
+  lineDecoration: z.enum(["none", "crosses", "crosses-free", "ticks", "triangles-up", "triangles-down", "arrows-down", "arrows-up", "railway"]).optional(),
+  decorationSpacing: z.number().min(5).max(200).optional(),
+  fillPattern: z.enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"]).optional(),
+});
+
 const mapmakerMeta = z.object({
   version: z.literal(1),
   map: z.object({
@@ -103,6 +126,7 @@ const mapmakerMeta = z.object({
   baseMap: z.string().max(100).default("osm"),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
+  legendEntries: z.array(legendEntrySchema).max(1000).default([]),
 });
 
 const documentSchema = z.object({
@@ -116,7 +140,8 @@ export function serialize(
   layers: LayerData[],
   features: FeatureData[],
   baseMapId: string,
-  groups: GroupData[] = []
+  groups: GroupData[] = [],
+  legendEntries: LegendEntry[] = []
 ): string {
   const doc = {
     type: "FeatureCollection" as const,
@@ -133,8 +158,10 @@ export function serialize(
       baseMap: baseMapId,
       layers: layers.map(({ id, name, visible, order }) => ({ id, name, visible, order })),
       groups: groups.map(({ id, label, order }) => ({ id, label, order })),
+      legendEntries: legendEntries.map((e) => ({ ...e })),
     },
     features: features.map((f) => {
+      const hasEntry = !!f.legendEntryId;
       const props: Record<string, unknown> = {
         "mapmaker:type": f.type,
         "mapmaker:layerId": f.layerId,
@@ -148,8 +175,9 @@ export function serialize(
       };
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
       if (f.groupId) props["mapmaker:groupId"] = f.groupId;
+      if (f.legendEntryId) props["mapmaker:legendEntryId"] = f.legendEntryId;
       if (f.sourceUrl) props["mapmaker:sourceUrl"] = f.sourceUrl;
-      switch (f.type) {
+      if (!hasEntry) switch (f.type) {
         case "polygon":
           props["mapmaker:smoothing"] = f.smoothing;
           props["mapmaker:strokeWidth"] = f.strokeWidth;
@@ -203,6 +231,7 @@ export interface DeserializedMap {
   layers: LayerData[];
   features: FeatureWithoutId[];
   groups: GroupData[];
+  legendEntries: LegendEntry[];
 }
 
 export function deserialize(raw: string): DeserializedMap {
@@ -245,6 +274,7 @@ export function deserialize(raw: string): DeserializedMap {
       order: p["mapmaker:order"] ?? idx,
       rotation: p["mapmaker:rotation"],
       groupId: p["mapmaker:groupId"],
+      legendEntryId: p["mapmaker:legendEntryId"],
       sourceText: p["mapmaker:sourceText"],
       sourceUrl: p["mapmaker:sourceUrl"],
       geometry: f.geometry,
@@ -274,5 +304,6 @@ export function deserialize(raw: string): DeserializedMap {
     layers: result.mapmaker.layers,
     features,
     groups: result.mapmaker.groups,
+    legendEntries: (result.mapmaker.legendEntries ?? []) as LegendEntry[],
   };
 }

@@ -20,7 +20,7 @@ import { Textarea } from "@/components/ui/textarea";
 type Mode = "mapmaker" | "geojson";
 
 export default function CodePanel({ onClose }: { onClose: () => void }) {
-  const { map, layers, features, groups, featureLimit } = useEditorData();
+  const { map, layers, features, groups, legendEntries, featureLimit } = useEditorData();
   const { activeBaseMap } = useDrawingState();
   const { importMapData, addBankFeature } = useEditorActions();
 
@@ -37,9 +37,9 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       internalUpdate.current = false;
       return;
     }
-    setValue(serialize(map, layers, features, activeBaseMap.id, groups));
+    setValue(serialize(map, layers, features, activeBaseMap.id, groups, legendEntries));
     if (mode === "mapmaker") setError(null);
-  }, [map, layers, features, groups, activeBaseMap, mode]);
+  }, [map, layers, features, groups, legendEntries, activeBaseMap, mode]);
 
   const handleMapmakerChange = useCallback(
     (e: React.ChangeEvent<HTMLTextAreaElement>) => {

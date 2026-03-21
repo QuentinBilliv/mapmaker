@@ -22,6 +22,8 @@ import type {
   FeatureData,
   FeatureUpdate,
   GroupData,
+  LegendEntry,
+  NewLegendEntry,
   PointShape,
   LineStyle,
   ArrowStyle,
@@ -34,12 +36,14 @@ import { type Coord } from "./geo-math";
 import { nextOrder, shiftGeometry, rotateGeometry } from "./geometry-transforms";
 import { type DrawingState, type DrawingPayload, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
 import { useUndoRedo } from "./hooks/use-undo-redo";
+import { deduceLegendEntry as extractLegendEntry } from "./resolve-style";
 
 interface EditorDataState {
   map: MapData;
   layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
+  legendEntries: LegendEntry[];
   selectedFeatureIds: string[];
   selectedFeature: FeatureData | null;
   featureLimitReached: boolean;
@@ -93,6 +97,11 @@ interface EditorActions {
   removeFeatureFromGroup: (featureId: string) => void;
   moveGroup: (groupId: string, dlng: number, dlat: number) => void;
   rotateGroup: (groupId: string, deltaAngle: number, center: [number, number]) => void;
+  addLegendEntry: (entry: NewLegendEntry) => string;
+  updateLegendEntry: (id: string, updates: Partial<LegendEntry>) => void;
+  deleteLegendEntry: (id: string) => void;
+  assignLegendEntry: (featureId: string, legendEntryId: string | null) => void;
+  deduceLegendEntryFromFeature: (featureId: string, label: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
   updateMap: (updates: Partial<MapData>) => void;
   importMapData: (data: DeserializedMap) => void;
@@ -140,6 +149,7 @@ export interface StoredMapState {
   layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
+  legendEntries: LegendEntry[];
   baseMapId: string;
 }
 
@@ -170,6 +180,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const [layers, setLayers] = useState<LayerData[]>(initialData?.layers ?? [DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>(initialData?.features ?? []);
   const [groups, setGroups] = useState<GroupData[]>(initialData?.groups ?? []);
+  const [legendEntries, setLegendEntries] = useState<LegendEntry[]>(initialData?.legendEntries ?? []);
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
 
   const initialBaseMap = initialData?.baseMapId
@@ -200,6 +211,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setLayers(saved.layers);
     setFeatures(saved.features);
     setGroups(saved.groups);
+    setLegendEntries(saved.legendEntries);
     dispatchDrawing({ type: "SET", payload: { activeBaseMap: saved.baseMap } });
   }, []);
 
@@ -213,16 +225,17 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
         layers,
         features,
         groups,
+        legendEntries,
         baseMapId: drawing.activeBaseMap.id,
       };
       if (onSaveRef.current) {
         onSaveRef.current(state);
       } else {
-        saveToLocalStorage(map, layers, features, groups, drawing.activeBaseMap.id);
+        saveToLocalStorage(map, layers, features, groups, legendEntries, drawing.activeBaseMap.id);
       }
     }, 500);
     return () => clearTimeout(saveTimerRef.current);
-  }, [map, layers, features, groups, drawing.activeBaseMap]);
+  }, [map, layers, features, groups, legendEntries, drawing.activeBaseMap]);
 
   const drawModeRef = useRef(drawing.drawMode);
   drawModeRef.current = drawing.drawMode;
@@ -244,12 +257,14 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   layersRef.current = layers;
   const groupsRef = useRef(groups);
   groupsRef.current = groups;
+  const legendEntriesRef = useRef(legendEntries);
+  legendEntriesRef.current = legendEntries;
   const selectedIdsRef = useRef(selectedFeatureIds);
   selectedIdsRef.current = selectedFeatureIds;
 
   const { canUndo, canRedo, recordSnapshot, undo, redo } = useUndoRedo(
-    featuresRef, layersRef, groupsRef,
-    setFeatures, setLayers, setGroups, setSelectedFeatureIds,
+    featuresRef, layersRef, groupsRef, legendEntriesRef,
+    setFeatures, setLayers, setGroups, setLegendEntries, setSelectedFeatureIds,
   );
 
   const set = useCallback(
@@ -543,7 +558,50 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     recordSnapshot();
     setFeatures([]);
     setGroups([]);
+    setLegendEntries([]);
     setSelectedFeatureIds([]);
+  }, [recordSnapshot]);
+
+  const addLegendEntry = useCallback((entry: NewLegendEntry) => {
+    recordSnapshot();
+    const id = uuid();
+    const order = Math.max(0, ...legendEntriesRef.current.map((e) => e.order)) + 1;
+    setLegendEntries((prev) => [...prev, { ...entry, id, order } as LegendEntry]);
+    return id;
+  }, [recordSnapshot]);
+
+  const updateLegendEntry = useCallback((id: string, updates: Partial<LegendEntry>) => {
+    setLegendEntries((prev) =>
+      prev.map((e) => (e.id === id ? { ...e, ...updates } as LegendEntry : e))
+    );
+  }, []);
+
+  const deleteLegendEntry = useCallback((id: string) => {
+    recordSnapshot();
+    setLegendEntries((prev) => prev.filter((e) => e.id !== id));
+    setFeatures((prev) =>
+      prev.map((f) => (f.legendEntryId === id ? { ...f, legendEntryId: undefined } as FeatureData : f))
+    );
+  }, [recordSnapshot]);
+
+  const assignLegendEntry = useCallback((featureId: string, legendEntryId: string | null) => {
+    recordSnapshot();
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, legendEntryId: legendEntryId ?? undefined } as FeatureData : f))
+    );
+  }, [recordSnapshot]);
+
+  const deduceLegendEntryFromFeature = useCallback((featureId: string, label: string) => {
+    const feature = featuresRef.current.find((f) => f.id === featureId);
+    if (!feature || feature.type === "text") return;
+    recordSnapshot();
+    const entryData = extractLegendEntry(feature, label);
+    const id = uuid();
+    const order = Math.max(0, ...legendEntriesRef.current.map((e) => e.order)) + 1;
+    setLegendEntries((prev) => [...prev, { ...entryData, id, order } as LegendEntry]);
+    setFeatures((prev) =>
+      prev.map((f) => (f.id === featureId ? { ...f, legendEntryId: id } as FeatureData : f))
+    );
   }, [recordSnapshot]);
 
   const reorderFeatures = useCallback((orderedIds: string[]) => {
@@ -571,6 +629,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       (featureLimit === Infinity ? data.features : data.features.slice(0, featureLimit)).map((f) => ({ ...f, id: uuid() }) as FeatureData)
     );
     setGroups(data.groups ?? []);
+    setLegendEntries(data.legendEntries ?? []);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
     if (bm) {
       dispatchDrawing({ type: "SET", payload: { activeBaseMap: bm } });
@@ -755,8 +814,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   }, [duplicateFeature, duplicateGroup, deleteFeature, deleteGroup, setDrawMode]);
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, canUndo, canRedo }),
-    [map, layers, features, groups, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, canUndo, canRedo]
+    () => ({ map, layers, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, canUndo, canRedo }),
+    [map, layers, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(
@@ -805,6 +864,11 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       removeFeatureFromGroup,
       moveGroup,
       rotateGroup,
+      addLegendEntry,
+      updateLegendEntry,
+      deleteLegendEntry,
+      assignLegendEntry,
+      deduceLegendEntryFromFeature,
       setActiveBaseMap,
       updateMap,
       importMapData,
@@ -860,6 +924,11 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       removeFeatureFromGroup,
       moveGroup,
       rotateGroup,
+      addLegendEntry,
+      updateLegendEntry,
+      deleteLegendEntry,
+      assignLegendEntry,
+      deduceLegendEntryFromFeature,
       setActiveBaseMap,
       updateMap,
       importMapData,

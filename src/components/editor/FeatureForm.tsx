@@ -201,6 +201,7 @@ export default function FeatureForm() {
           onClose={() => selectFeature(null)}
         />
         <div className="p-3 space-y-3">
+          {selectedFeature.type !== "text" && <LegendEntrySelector feature={selectedFeature} />}
           <StyleFields />
           {selectedFeature.type === "text" ? (
             <>
@@ -209,13 +210,13 @@ export default function FeatureForm() {
             </>
           ) : selectedFeature.type === "point" ? (
             <>
-              <PointFields />
+              {!selectedFeature.legendEntryId && <PointFields />}
               <CoordinateFields feature={selectedFeature} />
             </>
           ) : (
             <>
-              <StrokeFields showArrows={isLine} />
-              {selectedFeature.type === "polygon" && <FillPatternSelect />}
+              {!selectedFeature.legendEntryId && <StrokeFields showArrows={isLine} />}
+              {!selectedFeature.legendEntryId && selectedFeature.type === "polygon" && <FillPatternSelect />}
               <MeasurementInfo feature={selectedFeature} />
             </>
           )}
@@ -233,11 +234,12 @@ export default function FeatureForm() {
 
 function StyleFields() {
   const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
-  const { features } = useEditorData();
+  const { features, selectedFeature } = useEditorData();
   const swatches = useColorSwatches(features);
   const opacity = watch("opacity");
   const showLabel = watch("showLabel");
   const showInLegend = watch("showInLegend");
+  const hasLegendEntry = !!selectedFeature?.legendEntryId;
 
   return (
     <>
@@ -251,23 +253,27 @@ function StyleFields() {
           <Checkbox checked={!!showLabel} onCheckedChange={(v) => setValue("showLabel", !!v, { shouldDirty: true })} />
           Show label on map
         </label>
-        <label className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground cursor-pointer">
-          <Checkbox checked={!!showInLegend} onCheckedChange={(v) => setValue("showInLegend", !!v, { shouldDirty: true })} />
-          Show in legend
-        </label>
+        {!hasLegendEntry && (
+          <label className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground cursor-pointer">
+            <Checkbox checked={!!showInLegend} onCheckedChange={(v) => setValue("showInLegend", !!v, { shouldDirty: true })} />
+            Show in legend
+          </label>
+        )}
       </Field>
-      <div className="flex gap-3">
-        <Field label="Color" className="flex-1" error={errors.color?.message}>
-          <ColorInput
-            {...register("color")}
-            swatches={swatches}
-            onColorSelect={(c) => setValue("color", c)}
-          />
-        </Field>
-        <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
-          <FormSlider name="opacity" min={0} max={100} step={5} scale={100} className="mt-2" />
-        </Field>
-      </div>
+      {!hasLegendEntry && (
+        <div className="flex gap-3">
+          <Field label="Color" className="flex-1" error={errors.color?.message}>
+            <ColorInput
+              {...register("color")}
+              swatches={swatches}
+              onColorSelect={(c) => setValue("color", c)}
+            />
+          </Field>
+          <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
+            <FormSlider name="opacity" min={0} max={100} step={5} scale={100} className="mt-2" />
+          </Field>
+        </div>
+      )}
     </>
   );
 }
@@ -698,6 +704,46 @@ function FormSlider({
       scale={scale}
       className={className}
     />
+  );
+}
+
+function LegendEntrySelector({ feature }: { feature: FeatureData }) {
+  const { legendEntries } = useEditorData();
+  const { assignLegendEntry, deduceLegendEntryFromFeature } = useEditorActions();
+
+  const matchingEntries = legendEntries.filter((e) => e.featureType === feature.type);
+  const currentId = feature.legendEntryId ?? "__custom__";
+  const currentEntry = feature.legendEntryId ? legendEntries.find((e) => e.id === feature.legendEntryId) : null;
+
+  return (
+    <Field label="Legend entry">
+      <Select value={currentId} onValueChange={(v) => assignLegendEntry(feature.id, v === "__custom__" ? null : v)}>
+        <SelectTrigger className="w-full">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="__custom__">Custom style</SelectItem>
+          {matchingEntries.map((e) => (
+            <SelectItem key={e.id} value={e.id}>{e.label || "Untitled"}</SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+      {currentEntry && (
+        <p className="text-[10px] text-muted-foreground mt-1">
+          Style inherited from &quot;{currentEntry.label}&quot;
+        </p>
+      )}
+      {!feature.legendEntryId && (
+        <Button
+          variant="outline"
+          size="xs"
+          className="mt-1 w-full text-xs"
+          onClick={() => deduceLegendEntryFromFeature(feature.id, feature.label || "Deduced entry")}
+        >
+          Deduce legend entry from style
+        </Button>
+      )}
+    </Field>
   );
 }
 

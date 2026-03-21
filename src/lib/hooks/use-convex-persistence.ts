@@ -11,6 +11,7 @@ interface MapFileData {
   layers: StoredMapState["layers"];
   features: StoredMapState["features"];
   groups: StoredMapState["groups"];
+  legendEntries: StoredMapState["legendEntries"];
 }
 
 export function useConvexPersistence(mapId: string) {
@@ -43,10 +44,10 @@ export function useConvexPersistence(mapId: string) {
     const map = toMapData(convexMap);
     const baseMapId = convexMap.baseMapId;
     if (hasInlineData) {
-      return { map, layers: convexMap.layers, features: convexMap.features, groups: convexMap.groups, baseMapId };
+      return { map, layers: convexMap.layers, features: convexMap.features, groups: convexMap.groups, legendEntries: [], baseMapId };
     }
     if (fileData) {
-      return { map, layers: fileData.layers, features: fileData.features, groups: fileData.groups, baseMapId };
+      return { map, layers: fileData.layers, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId };
     }
     return null;
   })();
@@ -67,7 +68,7 @@ export function useConvexPersistence(mapId: string) {
           if (abort.signal.aborted) return;
 
           const blob = new Blob(
-            [JSON.stringify({ layers: state.layers, features: state.features, groups: state.groups })],
+            [JSON.stringify({ layers: state.layers, features: state.features, groups: state.groups, legendEntries: state.legendEntries })],
             { type: "application/json" }
           );
 

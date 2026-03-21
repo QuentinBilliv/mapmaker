@@ -11,7 +11,7 @@ import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 
 export default function MapCanvas() {
-  const { map, features, layers, groups, selectedFeatureIds, selectedFeature } = useEditorData();
+  const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
   const { drawMode, activeBaseMap } = useDrawingState();
   const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
 
@@ -45,7 +45,7 @@ export default function MapCanvas() {
     [selectFeature, selectFeatures]
   );
 
-  useFeatureRendering(mapRef, features, layers, groups, styleVersion);
+  useFeatureRendering(mapRef, features, layers, groups, styleVersion, legendEntries);
 
   const selectedGroupId = useMemo(() => {
     if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;
