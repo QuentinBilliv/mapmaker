@@ -165,25 +165,6 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     },
   });
 
-  map.addLayer({
-    id: "features-labels",
-    type: "symbol",
-    source: FEATURES_SOURCE,
-    layout: {
-      "text-field": ["get", "label"],
-      "text-size": 12,
-      "text-offset": [0, 1.5],
-      "text-anchor": "top",
-      "text-allow-overlap": false,
-      "symbol-sort-key": ["get", "order"],
-    },
-    paint: {
-      "text-color": COLORS.primary,
-      "text-halo-color": COLORS.white,
-      "text-halo-width": 1,
-    },
-    filter: ["all", ["!=", "featureType", "text"], ["==", "showLabel", true]],
-  });
 }
 
 function syncPerFeatureLayers(
@@ -482,7 +463,6 @@ function buildGeoJSONSorted(
       const props = {
         id: f.id,
         label: f.label,
-        showLabel: f.showLabel,
         color: f.color,
         opacity: f.opacity,
         order: f.order,

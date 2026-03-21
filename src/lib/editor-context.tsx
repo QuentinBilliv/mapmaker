@@ -369,7 +369,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       id: uuid(),
       layerId: DEFAULT_LAYER.id,
       label: s.activeLabel,
-      showLabel: false,
+
 
       color: s.activeColor,
       opacity: s.activeOpacity,
@@ -438,7 +438,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       id: uuid(),
       layerId: DEFAULT_LAYER.id,
       label,
-      showLabel: false,
+
 
       color: s.activeColor,
       opacity: s.activeOpacity,

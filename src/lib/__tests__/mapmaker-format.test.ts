@@ -19,7 +19,6 @@ const POLYGON: FeatureData = {
   type: "polygon",
   layerId: "layer-1",
   label: "France",
-  showLabel: true,
 
   color: "#3b82f6",
   opacity: 0.8,
@@ -39,7 +38,6 @@ const POLYLINE: FeatureData = {
   type: "polyline",
   layerId: "layer-1",
   label: "Route",
-  showLabel: false,
 
   color: "#ef4444",
   opacity: 1,
@@ -58,7 +56,6 @@ const POINT: FeatureData = {
   type: "point",
   layerId: "layer-1",
   label: "Paris",
-  showLabel: true,
 
   color: "#000000",
   opacity: 1,
@@ -77,7 +74,6 @@ const TEXT: FeatureData = {
   type: "text",
   layerId: "layer-1",
   label: "Label",
-  showLabel: false,
 
   color: "#1a1a1a",
   opacity: 1,
@@ -160,11 +156,10 @@ describe("mapmaker-format round-trip", () => {
     expect(f.textBorderWidth).toBe(2);
   });
 
-  it("preserves common fields (label, showLabel, color, opacity)", () => {
+  it("preserves common fields (label, color, opacity)", () => {
     const json = serialize(MAP, [LAYER], [POLYGON], "osm");
     const [f] = deserialize(json).features;
     expect(f.label).toBe("France");
-    expect(f.showLabel).toBe(true);
     expect(f.color).toBe("#3b82f6");
     expect(f.opacity).toBe(0.8);
   });

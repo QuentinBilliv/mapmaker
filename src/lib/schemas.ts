@@ -20,7 +20,6 @@ const TEXT_FONT_VALUES = ["sans", "serif", "mono"] as const;
 
 export const featureSchema = z.object({
   label: z.string().max(100, "Label is too long"),
-  showLabel: z.boolean(),
   color: hexColor,
   opacity: z.number().min(0).max(1),
   size: z.number().min(0.5).max(3),
