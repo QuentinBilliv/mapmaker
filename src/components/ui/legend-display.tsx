@@ -16,6 +16,7 @@ import ColorInput from "@/components/ui/ColorInput";
 import SliderField from "@/components/ui/SliderField";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
+import { useCatalogIcon } from "@/lib/hooks/use-catalog-icon";
 import type {
   FeatureData,
   LegendEntry,
@@ -156,6 +157,7 @@ export function CreateEntryDialog({
   const [size, setSize] = useState(1);
   const [shape, setShape] = useState<PointShape>("circle");
   const [icon, setIcon] = useState<string | undefined>();
+  const SelectedIcon = useCatalogIcon(icon);
   const [borderColor, setBorderColor] = useState(COLORS.white);
   const [borderWidth, setBorderWidth] = useState(DEFAULT_BORDER_WIDTH);
   const [strokeWidth, setStrokeWidth] = useState(3);
@@ -317,7 +319,7 @@ export function CreateEntryDialog({
                         variant={
                           !icon && shape === s.value ? "default" : "outline"
                         }
-                        size="icon-xs"
+                        size="icon-sm"
                         onClick={() => {
                           setShape(s.value);
                           setIcon(undefined);
@@ -327,13 +329,17 @@ export function CreateEntryDialog({
                         <ShapePreview shape={s.value} />
                       </Button>
                     ))}
+                    {SelectedIcon && (
+                      <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)} title={icon}>
+                        <SelectedIcon size={14} />
+                      </Button>
+                    )}
                     <Button
-                      variant={icon ? "default" : "outline"}
-                      size="icon-xs"
+                      variant="outline"
+                      size="xs"
                       onClick={() => setPickerOpen(true)}
-                      title="Choose icon"
                     >
-                      +
+                      More icons
                     </Button>
                   </div>
                   <IconPickerDialog
@@ -356,7 +362,7 @@ export function CreateEntryDialog({
                     scale={100}
                   />
                 </Field>
-                <div className="flex gap-3">
+                {!icon && <div className="flex gap-3">
                   <Field label="Border color" className="flex-1">
                     <ColorInput
                       value={borderColor}
@@ -375,7 +381,7 @@ export function CreateEntryDialog({
                       className="mt-2"
                     />
                   </Field>
-                </div>
+                </div>}
               </>
             )}
             {(featureType === "polyline" || featureType === "polygon") && (
@@ -503,6 +509,129 @@ export function CreateEntryDialog({
             </DialogFooter>
           </div>
         )}
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+export function EditEntryDialog({
+  open,
+  onOpenChange,
+  entry,
+  onUpdate,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  entry: LegendEntry;
+  onUpdate: (updates: Partial<LegendEntry>) => void;
+}) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const SelectedIcon = useCatalogIcon(entry.featureType === "point" ? entry.icon : undefined);
+  const isStroke = entry.featureType === "polyline" || entry.featureType === "polygon";
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-md">
+        <DialogHeader className="mb-3">
+          <DialogTitle className="text-sm">Edit legend entry</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
+          <Field label="Label">
+            <Input value={entry.label} onChange={(e) => onUpdate({ label: e.target.value })} className="h-8 text-sm" />
+          </Field>
+          <div className="flex gap-3">
+            <Field label="Color" className="flex-1">
+              <ColorInput value={entry.color} onChange={(e) => onUpdate({ color: (e.target as HTMLInputElement).value })} />
+            </Field>
+            <Field label={`Opacity (${Math.round(entry.opacity * 100)}%)`} className="flex-1">
+              <SliderField value={entry.opacity} onChange={(v) => onUpdate({ opacity: v })} min={0} max={100} step={5} scale={100} className="mt-2" />
+            </Field>
+          </div>
+          {entry.featureType === "point" && (
+            <>
+              <Field label="Marker">
+                <div className="flex gap-1 flex-wrap">
+                  {POINT_SHAPES.map((s) => (
+                    <Button key={s.value} variant={!entry.icon && entry.shape === s.value ? "default" : "outline"} size="icon-sm" onClick={() => onUpdate({ shape: s.value, icon: undefined })} title={s.label}>
+                      <ShapePreview shape={s.value} />
+                    </Button>
+                  ))}
+                  {SelectedIcon && (
+                    <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)} title={entry.icon}>
+                      <SelectedIcon size={14} />
+                    </Button>
+                  )}
+                  <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>More icons</Button>
+                </div>
+                <IconPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} selected={entry.icon} onSelect={(i) => onUpdate({ icon: i, shape: "circle" })} />
+              </Field>
+              <Field label={`Size (${Math.round(entry.size * 100)}%)`}>
+                <SliderField value={entry.size} onChange={(v) => onUpdate({ size: v })} min={50} max={300} step={25} scale={100} />
+              </Field>
+              {!entry.icon && (
+                <div className="flex gap-3">
+                  <Field label="Border color" className="flex-1">
+                    <ColorInput value={entry.borderColor} onChange={(e) => onUpdate({ borderColor: (e.target as HTMLInputElement).value })} />
+                  </Field>
+                  <Field label={`Width (${entry.borderWidth}px)`} className="flex-1">
+                    <SliderField value={entry.borderWidth} onChange={(v) => onUpdate({ borderWidth: v })} min={0} max={12} step={1} className="mt-2" />
+                  </Field>
+                </div>
+              )}
+            </>
+          )}
+          {isStroke && (
+            <>
+              <div className="flex gap-3">
+                <Field label={`Stroke (${entry.strokeWidth}px)`} className="flex-1">
+                  <SliderField value={entry.strokeWidth} onChange={(v) => onUpdate({ strokeWidth: v })} min={1} max={10} step={1} className="mt-2" />
+                </Field>
+                <Field label="Line style" className="flex-1">
+                  <Select value={entry.lineStyle} onValueChange={(v) => onUpdate({ lineStyle: v as LineStyle })}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>{LINE_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              <Field label="Line decoration">
+                <Select value={entry.lineDecoration} onValueChange={(v) => onUpdate({ lineDecoration: v as LineDecoration })}>
+                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                  <SelectContent>{LINE_DECORATIONS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                </Select>
+              </Field>
+              {entry.lineDecoration !== "none" && (
+                <Field label={`Decoration spacing (${entry.decorationSpacing}px)`}>
+                  <SliderField value={entry.decorationSpacing} onChange={(v) => onUpdate({ decorationSpacing: v })} min={5} max={200} step={5} />
+                </Field>
+              )}
+              <Field label={`Smoothing (${Math.round(entry.smoothing * 100)}%)`}>
+                <SliderField value={entry.smoothing} onChange={(v) => onUpdate({ smoothing: v })} min={0} max={100} step={5} scale={100} />
+              </Field>
+            </>
+          )}
+          {entry.featureType === "polyline" && (
+            <Field label="Arrows">
+              <Select value={entry.arrowStyle} onValueChange={(v) => onUpdate({ arrowStyle: v as ArrowStyle })}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>{ARROW_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+              </Select>
+            </Field>
+          )}
+          {entry.featureType === "polygon" && (
+            <Field label="Fill pattern">
+              <div className="flex gap-1 flex-wrap">
+                {FILL_PATTERNS.map((p) => (
+                  <Button key={p.value} variant={entry.fillPattern === p.value ? "default" : "outline"} size="xs" onClick={() => onUpdate({ fillPattern: p.value })}>
+                    {p.label}
+                  </Button>
+                ))}
+              </div>
+            </Field>
+          )}
+          <DialogFooter>
+            <Button size="sm" onClick={() => onOpenChange(false)}>Done</Button>
+          </DialogFooter>
+        </div>
       </DialogContent>
     </Dialog>
   );

@@ -4,6 +4,7 @@ import { useMemo, useRef, useState } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import type { FeatureData, GroupData } from "@/lib/types";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
+import { resolveFeatureStyle } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaTrash, FaCopy } from "react-icons/fa6";
@@ -13,7 +14,7 @@ type SidebarItem =
   | { kind: "group"; group: GroupData; children: FeatureData[] };
 
 export default function FeaturePanel() {
-  const { features, groups, selectedFeatureIds, featureLimitReached } = useEditorData();
+  const { features, groups, legendEntries, selectedFeatureIds, featureLimitReached } = useEditorData();
   const {
     selectFeature, selectFeatures, reorderItems, reorderGroupChildren,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
@@ -451,6 +452,9 @@ function FeatureRow({
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd: () => void;
 }) {
+  const { legendEntries } = useEditorData();
+  const resolved = resolveFeatureStyle(feature, legendEntries);
+
   return (
     <div
       draggable
@@ -464,7 +468,7 @@ function FeatureRow({
       } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"
       }`}
     >
-      <FeatureSwatch feature={feature} width={44} height={28} />
+      <FeatureSwatch feature={resolved} width={44} height={28} />
       <span className="flex-1 truncate">
         {feature.label || <span className="text-muted-foreground italic">Untitled</span>}
       </span>

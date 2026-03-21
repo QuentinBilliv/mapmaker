@@ -11,6 +11,7 @@ import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
 import { useColorSwatches } from "@/lib/hooks/use-color-swatches";
+import { useCatalogIcon } from "@/lib/hooks/use-catalog-icon";
 import { polylineLength, polygonArea, multiPolygonArea, formatDistance, formatArea } from "@/lib/geo-math";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
@@ -268,6 +269,9 @@ function PointFields() {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
   const size = watch("size");
   const borderWidth = watch("borderWidth");
+  const icon = watch("icon");
+  const customSvg = watch("customSvg");
+  const hasCustomIcon = !!icon || !!customSvg;
 
   return (
     <>
@@ -275,17 +279,19 @@ function PointFields() {
       <Field label={`Size (${Math.round(size * 100)}%)`}>
         <FormSlider name="size" min={50} max={300} step={25} scale={100} />
       </Field>
-      <div className="flex gap-3">
-        <Field label="Border" className="flex-1">
-          <ColorInput
-            value={watch("borderColor")}
-            onChange={(e) => setValue("borderColor", (e.target as HTMLInputElement).value)}
-          />
-        </Field>
-        <Field label={`Width (${borderWidth}px)`} className="flex-1">
-          <FormSlider name="borderWidth" min={0} max={12} step={1} className="mt-2" />
-        </Field>
-      </div>
+      {!hasCustomIcon && (
+        <div className="flex gap-3">
+          <Field label="Border" className="flex-1">
+            <ColorInput
+              value={watch("borderColor")}
+              onChange={(e) => setValue("borderColor", (e.target as HTMLInputElement).value)}
+            />
+          </Field>
+          <Field label={`Width (${borderWidth}px)`} className="flex-1">
+            <FormSlider name="borderWidth" min={0} max={12} step={1} className="mt-2" />
+          </Field>
+        </div>
+      )}
     </>
   );
 }
@@ -352,6 +358,7 @@ function MarkerSelect() {
   const shape = watch("shape");
   const icon = watch("icon");
   const customSvg = watch("customSvg");
+  const SelectedIcon = useCatalogIcon(icon);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -384,7 +391,7 @@ function MarkerSelect() {
             <Button
               key={s.value}
               variant={!icon && !customSvg && shape === s.value ? "default" : "outline"}
-              size="icon-xs"
+              size="icon-sm"
               onClick={() => {
                 setValue("shape", s.value);
                 setValue("icon", undefined);
@@ -395,13 +402,17 @@ function MarkerSelect() {
               <ShapePreview shape={s.value} />
             </Button>
           ))}
+          {SelectedIcon && (
+            <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)} title={icon}>
+              <SelectedIcon size={14} />
+            </Button>
+          )}
           <Button
-            variant={icon ? "default" : "outline"}
-            size="icon-xs"
+            variant="outline"
+            size="xs"
             onClick={() => setPickerOpen(true)}
-            title="Choose icon"
           >
-            +
+            More icons
           </Button>
         </div>
         <div className="flex gap-1 items-center">
