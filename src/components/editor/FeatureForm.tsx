@@ -39,7 +39,6 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
   const defaults: FeatureFormValues = {
     label: f.label,
     showLabel: f.showLabel,
-    showInLegend: f.showInLegend,
     color: f.color,
     opacity: f.opacity,
     layerId: f.layerId,
@@ -150,7 +149,6 @@ export default function FeatureForm() {
       updateFeature(selectedFeature.id, {
         label: v.label,
         showLabel: v.showLabel,
-        showInLegend: v.showInLegend,
         color: v.color,
         opacity: v.opacity,
         size: isPoint ? v.size : undefined,
@@ -233,7 +231,6 @@ function StyleFields() {
   const swatches = useColorSwatches(features);
   const opacity = watch("opacity");
   const showLabel = watch("showLabel");
-  const showInLegend = watch("showInLegend");
   const hasLegendEntry = !!selectedFeature?.legendEntryId;
 
   return (
@@ -248,12 +245,6 @@ function StyleFields() {
           <Checkbox checked={!!showLabel} onCheckedChange={(v) => setValue("showLabel", !!v, { shouldDirty: true })} />
           Show label on map
         </label>
-        {!hasLegendEntry && (
-          <label className="flex items-center gap-1.5 mt-0.5 text-xs text-muted-foreground cursor-pointer">
-            <Checkbox checked={!!showInLegend} onCheckedChange={(v) => setValue("showInLegend", !!v, { shouldDirty: true })} />
-            Show in legend
-          </label>
-        )}
       </Field>
       {!hasLegendEntry && (
         <div className="flex gap-3">

@@ -138,7 +138,6 @@ interface FeatureBase {
   order: number;
   rotation?: number;
   groupId?: string;
-  showInLegend: boolean;
   legendEntryId?: string;
   geometry: GeoJSON.Geometry;
 }

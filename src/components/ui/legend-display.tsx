@@ -52,7 +52,6 @@ interface LegendDisplayProps {
 }
 
 export function LegendDisplay({
-  features,
   legendEntries = [],
   onAdd,
   alwaysShow,
@@ -60,12 +59,8 @@ export function LegendDisplay({
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
 
-  const standaloneFeatures = features
-    .filter((f) => f.showInLegend && !f.legendEntryId)
-    .sort((a, b) => a.order - b.order);
-
   const sortedEntries = [...legendEntries].sort((a, b) => a.order - b.order);
-  const hasItems = standaloneFeatures.length > 0 || sortedEntries.length > 0;
+  const hasItems = sortedEntries.length > 0;
 
   if (!hasItems && !alwaysShow) return null;
 
@@ -113,16 +108,6 @@ export function LegendDisplay({
                   </div>
                 );
               })}
-              {standaloneFeatures.map((f) => (
-                <div key={f.id} className="flex flex-col items-center gap-0.5">
-                  <FeatureSwatch feature={f} />
-                  {f.label && (
-                    <span className="text-[10px] text-foreground text-center leading-tight break-words max-w-20">
-                      {f.label}
-                    </span>
-                  )}
-                </div>
-              ))}
             </div>
           ) : (
             <p className="text-[10px] text-muted-foreground text-center py-2">
@@ -154,7 +139,7 @@ export function LegendDisplay({
   );
 }
 
-function CreateEntryDialog({
+export function CreateEntryDialog({
   open,
   onOpenChange,
   onSubmit,

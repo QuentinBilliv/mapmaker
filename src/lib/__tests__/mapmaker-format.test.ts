@@ -20,7 +20,7 @@ const POLYGON: FeatureData = {
   layerId: "layer-1",
   label: "France",
   showLabel: true,
-  showInLegend: true,
+
   color: "#3b82f6",
   opacity: 0.8,
   order: 0,
@@ -40,7 +40,7 @@ const POLYLINE: FeatureData = {
   layerId: "layer-1",
   label: "Route",
   showLabel: false,
-  showInLegend: false,
+
   color: "#ef4444",
   opacity: 1,
   order: 1,
@@ -59,7 +59,7 @@ const POINT: FeatureData = {
   layerId: "layer-1",
   label: "Paris",
   showLabel: true,
-  showInLegend: true,
+
   color: "#000000",
   opacity: 1,
   order: 2,
@@ -78,7 +78,7 @@ const TEXT: FeatureData = {
   layerId: "layer-1",
   label: "Label",
   showLabel: false,
-  showInLegend: false,
+
   color: "#1a1a1a",
   opacity: 1,
   order: 3,
@@ -165,7 +165,6 @@ describe("mapmaker-format round-trip", () => {
     const [f] = deserialize(json).features;
     expect(f.label).toBe("France");
     expect(f.showLabel).toBe(true);
-    expect(f.showInLegend).toBe(true);
     expect(f.color).toBe("#3b82f6");
     expect(f.opacity).toBe(0.8);
   });

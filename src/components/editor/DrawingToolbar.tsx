@@ -3,9 +3,6 @@
 import { useState } from "react";
 import { useDrawingState, useEditorData, useEditorActions } from "@/lib/editor-context";
 import { DrawMode } from "@/lib/draw-engine";
-import { POINT_SHAPES } from "@/lib/types";
-import { ShapePreview } from "@/components/ui/marker-icons";
-import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { FaRotateLeft, FaRotateRight, FaEarthAmericas } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
@@ -25,8 +22,6 @@ const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
 ];
 
 export default function DrawingToolbar() {
-  const { drawMode } = useDrawingState();
-
   return (
     <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-2">
       <ToolButtons />
@@ -35,12 +30,6 @@ export default function DrawingToolbar() {
       <Separator />
       <GeoBankButton />
       <GeoSearchButton />
-      {drawMode === "point" && (
-        <>
-          <Separator />
-          <MarkerPicker />
-        </>
-      )}
     </div>
   );
 }
@@ -96,40 +85,3 @@ function GeoBankButton() {
   );
 }
 
-function MarkerPicker() {
-  const { activePoint: { shape: activeShape, icon: activeIcon } } = useDrawingState();
-  const { setActiveShape, setActiveIcon } = useEditorActions();
-  const [pickerOpen, setPickerOpen] = useState(false);
-
-  return (
-    <div className="flex flex-col gap-1">
-      <div className="grid grid-cols-3 gap-1 px-0.5">
-        {POINT_SHAPES.map((s) => (
-          <Button
-            key={s.value}
-            variant={!activeIcon && activeShape === s.value ? "default" : "ghost"}
-            size="icon-xs"
-            onClick={() => { setActiveShape(s.value); setActiveIcon(null); }}
-            title={s.label}
-          >
-            <ShapePreview shape={s.value} />
-          </Button>
-        ))}
-        <Button
-          variant={activeIcon ? "default" : "outline"}
-          size="icon-xs"
-          onClick={() => setPickerOpen(true)}
-          title="Choose icon"
-        >
-          +
-        </Button>
-      </div>
-      <IconPickerDialog
-        open={pickerOpen}
-        onOpenChange={setPickerOpen}
-        selected={activeIcon ?? undefined}
-        onSelect={(id) => setActiveIcon(id)}
-      />
-    </div>
-  );
-}
