@@ -59,7 +59,6 @@ export function legendEntryToSyntheticFeature(entry: LegendEntry): FeatureData {
     color: entry.color,
     opacity: entry.opacity,
     order: 0,
-    sourceText: "",
     geometry: { type: "Point" as const, coordinates: [0, 0] },
   };
   switch (entry.featureType) {

@@ -6,7 +6,6 @@ import { LINE_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type Line
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
 import SliderField from "@/components/ui/SliderField";
 import ColorInput from "@/components/ui/ColorInput";
@@ -36,8 +35,6 @@ export default function DrawingSettingsPanel() {
   const {
     drawMode,
     activeLabel,
-    activeSourceText,
-    activeSourceUrl,
     activeColor,
     activeOpacity,
   } = ds;
@@ -52,8 +49,6 @@ export default function DrawingSettingsPanel() {
   const {
     setDrawMode,
     setActiveLabel,
-    setActiveSourceText,
-    setActiveSourceUrl,
     setActiveColor,
     setActiveOpacity,
     setActiveSmoothing,
@@ -195,22 +190,6 @@ export default function DrawingSettingsPanel() {
             />
           </Field>
         )}
-        <Field label="Source / Citation">
-          <Textarea
-            value={activeSourceText}
-            onChange={(e) => setActiveSourceText(e.target.value)}
-            rows={2}
-            placeholder="e.g. Pliny the Elder, Natural History, Book III"
-          />
-        </Field>
-        <Field label="Source URL">
-          <Input
-            type="url"
-            value={activeSourceUrl}
-            onChange={(e) => setActiveSourceUrl(e.target.value)}
-            placeholder="https://..."
-          />
-        </Field>
         <div className="flex gap-2 pt-1">
           <Button onClick={() => { finishDrawing(); selectFeature(null); }} className="flex-1">
             OK

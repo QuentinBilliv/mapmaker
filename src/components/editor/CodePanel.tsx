@@ -115,7 +115,7 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
         if (fType !== "point" && fType !== "polyline" && fType !== "polygon") { skipped++; continue; }
         const props = (typeof f.properties === "object" && f.properties !== null ? f.properties : {}) as Record<string, unknown>;
         const label = sanitizeLabel(props.name || props.shapeName || props.NAME || props.label || "");
-        addBankFeature(geometry, label, "GeoJSON import");
+        addBankFeature(geometry, label);
         added++;
       }
       if (added > 0) {

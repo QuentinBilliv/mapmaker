@@ -42,8 +42,6 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     showInLegend: f.showInLegend,
     color: f.color,
     opacity: f.opacity,
-    sourceText: f.sourceText,
-    sourceUrl: f.sourceUrl ?? "",
     layerId: f.layerId,
     size: 1,
     shape: "circle",
@@ -174,8 +172,6 @@ export default function FeatureForm() {
         textBorderEnabled: isText ? v.textBorderEnabled : undefined,
         textBorderColor: isText ? v.textBorderColor : undefined,
         textBorderWidth: isText ? v.textBorderWidth : undefined,
-        sourceText: v.sourceText,
-        sourceUrl: v.sourceUrl || undefined,
         layerId: v.layerId,
       });
     });
@@ -220,7 +216,6 @@ export default function FeatureForm() {
               <MeasurementInfo feature={selectedFeature} />
             </>
           )}
-          <SourceFields />
           <FormActions
             onClose={() => selectFeature(null)}
             onCancel={handleCancel}
@@ -596,29 +591,6 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
       )}
       <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
         <FormSlider name="smoothing" min={0} max={100} step={5} scale={100} className="mt-2" />
-      </Field>
-    </>
-  );
-}
-
-function SourceFields() {
-  const { register, formState: { errors } } = useFormContext<FeatureFormValues>();
-
-  return (
-    <>
-      <Field label="Source / Citation" error={errors.sourceText?.message}>
-        <Textarea
-          {...register("sourceText")}
-          rows={2}
-          placeholder="e.g. Pliny the Elder, Natural History, Book III"
-        />
-      </Field>
-      <Field label="Source URL" error={errors.sourceUrl?.message}>
-        <Input
-          type="url"
-          {...register("sourceUrl")}
-          placeholder="https://..."
-        />
       </Field>
     </>
   );

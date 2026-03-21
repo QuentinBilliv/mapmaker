@@ -50,7 +50,6 @@ export type LineDecoration = "none" | "crosses" | "crosses-free" | "ticks" | "tr
 export const LINE_DECORATIONS: { value: LineDecoration; label: string }[] = [
   { value: "none", label: "None" },
   { value: "crosses", label: "Crosses ×─×" },
-  { value: "crosses-free", label: "Crosses × ×" },
   { value: "ticks", label: "Ticks ┼┼┼" },
   { value: "triangles-up", label: "Triangles △△" },
   { value: "triangles-down", label: "Triangles ▽▽" },
@@ -141,8 +140,6 @@ interface FeatureBase {
   groupId?: string;
   showInLegend: boolean;
   legendEntryId?: string;
-  sourceText: string;
-  sourceUrl?: string;
   geometry: GeoJSON.Geometry;
 }
 

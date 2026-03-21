@@ -41,8 +41,6 @@ export interface TextStyle {
 export interface DrawingState {
   drawMode: DrawMode;
   activeLabel: string;
-  activeSourceText: string;
-  activeSourceUrl: string;
   activeColor: string;
   activeOpacity: number;
   activePoint: PointStyle;
@@ -91,8 +89,6 @@ export const INITIAL_TEXT_STYLE: TextStyle = {
 export const INITIAL_DRAWING_STATE: DrawingState = {
   drawMode: "select",
   activeLabel: "",
-  activeSourceText: "",
-  activeSourceUrl: "",
   activeColor: COLORS.primary,
   activeOpacity: 1,
   activePoint: { ...INITIAL_POINT_STYLE },
@@ -118,8 +114,6 @@ export function drawingReducer(state: DrawingState, action: DrawingAction): Draw
         ...state,
         drawMode: "select",
         activeLabel: "",
-        activeSourceText: "",
-        activeSourceUrl: "",
         ...(action.isText ? { activeText: { ...state.activeText, textContent: "" } } : {}),
       };
   }

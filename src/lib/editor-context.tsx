@@ -55,8 +55,6 @@ interface EditorDataState {
 interface EditorActions {
   setDrawMode: (mode: DrawMode) => void;
   setActiveLabel: (label: string) => void;
-  setActiveSourceText: (text: string) => void;
-  setActiveSourceUrl: (url: string) => void;
   setActiveColor: (color: string) => void;
   setActiveOpacity: (opacity: number) => void;
   setActiveSize: (size: number) => void;
@@ -80,7 +78,7 @@ interface EditorActions {
   selectFeature: (id: string | null) => void;
   selectFeatures: (ids: string[]) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
-  addBankFeature: (geometry: GeoJSON.Geometry, label: string, sourceText: string) => void;
+  addBankFeature: (geometry: GeoJSON.Geometry, label: string) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   duplicateFeature: (id: string) => void;
@@ -293,8 +291,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       activeColor: last.color,
       activeOpacity: last.opacity,
       activeLabel: "",
-      activeSourceText: last.sourceText,
-      activeSourceUrl: last.sourceUrl ?? "",
     };
     switch (last.type) {
       case "polygon":
@@ -339,8 +335,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     dispatchDrawing({ type: "SET", payload });
   }, []);
   const setActiveLabel = useCallback((label: string) => set({ activeLabel: label }), [set]);
-  const setActiveSourceText = useCallback((text: string) => set({ activeSourceText: text }), [set]);
-  const setActiveSourceUrl = useCallback((url: string) => set({ activeSourceUrl: url }), [set]);
   const setActiveColor = useCallback((color: string) => set({ activeColor: color }), [set]);
   const setActiveOpacity = useCallback((opacity: number) => set({ activeOpacity: opacity }), [set]);
   const setActiveSize = useCallback((size: number) => set({ activePoint: { size } }), [set]);
@@ -380,8 +374,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       color: s.activeColor,
       opacity: s.activeOpacity,
       order,
-      sourceText: s.activeSourceText,
-      sourceUrl: s.activeSourceUrl || undefined,
       geometry,
     };
     let newFeature: FeatureData;
@@ -436,7 +428,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
   }, [recordSnapshot, featureLimit]);
 
-  const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string, sourceText: string) => {
+  const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string) => {
     if (featureLimit !== Infinity && featuresRef.current.length >= featureLimit) return;
     recordSnapshot();
     const s = drawingRef.current;
@@ -451,7 +443,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       color: s.activeColor,
       opacity: s.activeOpacity,
       order,
-      sourceText,
       geometry,
     };
     let newFeature: FeatureData;
@@ -822,8 +813,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     () => ({
       setDrawMode,
       setActiveLabel,
-      setActiveSourceText,
-      setActiveSourceUrl,
       setActiveColor,
       setActiveOpacity,
       setActiveSize,
@@ -882,8 +871,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     [
       setDrawMode,
       setActiveLabel,
-      setActiveSourceText,
-      setActiveSourceUrl,
       setActiveColor,
       setActiveOpacity,
       setActiveSize,

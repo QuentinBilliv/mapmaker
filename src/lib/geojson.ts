@@ -5,8 +5,6 @@ export interface MapFeatureProperties {
   opacity: number;
   layerId: string;
   layerName: string;
-  sourceText: string;
-  sourceUrl?: string;
   featureType: "polygon" | "polyline" | "point" | "text";
 }
 

@@ -102,7 +102,7 @@ export default function GeoBankDialog({
       try {
         const { geojson } = await fetchBoundary(country.iso, 0);
         const geometry = geojson.features[0]?.geometry;
-        if (geometry) addBankFeature(geometry, country.name, "geoBoundaries");
+        if (geometry) addBankFeature(geometry, country.name);
       } catch { /* silently fail */ }
       setAdding(null);
     },
@@ -112,7 +112,7 @@ export default function GeoBankDialog({
   const handleAddSubdivision = useCallback(
     (sub: GeoBankSubdivision) => {
       if (remaining <= 0) return;
-      addBankFeature(sub.geometry, sub.name, "geoBoundaries");
+      addBankFeature(sub.geometry, sub.name);
     },
     [addBankFeature, remaining]
   );
@@ -122,7 +122,7 @@ export default function GeoBankDialog({
       if (subdivisions.length === 0 || !selectedCountry) return;
       const toAdd = remaining === Infinity ? subdivisions : subdivisions.slice(0, remaining);
       for (const sub of toAdd) {
-        addBankFeature(sub.geometry, sub.name, "geoBoundaries");
+        addBankFeature(sub.geometry, sub.name);
       }
     },
     [subdivisions, selectedCountry, addBankFeature, remaining]

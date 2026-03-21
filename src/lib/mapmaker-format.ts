@@ -171,12 +171,10 @@ export function serialize(
         "mapmaker:color": f.color,
         "mapmaker:opacity": f.opacity,
         "mapmaker:order": f.order,
-        "mapmaker:sourceText": f.sourceText,
       };
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
       if (f.groupId) props["mapmaker:groupId"] = f.groupId;
       if (f.legendEntryId) props["mapmaker:legendEntryId"] = f.legendEntryId;
-      if (f.sourceUrl) props["mapmaker:sourceUrl"] = f.sourceUrl;
       if (!hasEntry) switch (f.type) {
         case "polygon":
           props["mapmaker:smoothing"] = f.smoothing;
@@ -275,8 +273,6 @@ export function deserialize(raw: string): DeserializedMap {
       rotation: p["mapmaker:rotation"],
       groupId: p["mapmaker:groupId"],
       legendEntryId: p["mapmaker:legendEntryId"],
-      sourceText: p["mapmaker:sourceText"],
-      sourceUrl: p["mapmaker:sourceUrl"],
       geometry: f.geometry,
     };
     switch (declaredType) {

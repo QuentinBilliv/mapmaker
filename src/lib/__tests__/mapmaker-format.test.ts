@@ -24,8 +24,6 @@ const POLYGON: FeatureData = {
   color: "#3b82f6",
   opacity: 0.8,
   order: 0,
-  sourceText: "Natural Earth",
-  sourceUrl: "https://naturalearthdata.com",
   smoothing: 0.5,
   strokeWidth: 3,
   lineStyle: "solid",
@@ -46,7 +44,6 @@ const POLYLINE: FeatureData = {
   color: "#ef4444",
   opacity: 1,
   order: 1,
-  sourceText: "",
   smoothing: 0,
   strokeWidth: 5,
   lineStyle: "dash-medium",
@@ -66,7 +63,6 @@ const POINT: FeatureData = {
   color: "#000000",
   opacity: 1,
   order: 2,
-  sourceText: "",
   size: 2,
   shape: "star",
   icon: undefined,
@@ -86,7 +82,6 @@ const TEXT: FeatureData = {
   color: "#1a1a1a",
   opacity: 1,
   order: 3,
-  sourceText: "",
   textContent: "Hello World",
   fontSize: 32,
   fontFamily: "serif",
@@ -128,7 +123,6 @@ describe("mapmaker-format round-trip", () => {
     expect(f.decorationSpacing).toBe((POLYGON as any).decorationSpacing);
     expect(f.fillPattern).toBe((POLYGON as any).fillPattern);
     expect(f.shapeOrigin).toBe((POLYGON as any).shapeOrigin);
-    expect(f.sourceUrl).toBe(POLYGON.sourceUrl);
   });
 
   it("preserves polyline properties", () => {
@@ -166,7 +160,7 @@ describe("mapmaker-format round-trip", () => {
     expect(f.textBorderWidth).toBe(2);
   });
 
-  it("preserves common fields (label, showLabel, color, opacity, sourceText)", () => {
+  it("preserves common fields (label, showLabel, color, opacity)", () => {
     const json = serialize(MAP, [LAYER], [POLYGON], "osm");
     const [f] = deserialize(json).features;
     expect(f.label).toBe("France");
@@ -174,7 +168,6 @@ describe("mapmaker-format round-trip", () => {
     expect(f.showInLegend).toBe(true);
     expect(f.color).toBe("#3b82f6");
     expect(f.opacity).toBe(0.8);
-    expect(f.sourceText).toBe("Natural Earth");
   });
 
   it("rejects invalid JSON", () => {
