@@ -36,6 +36,20 @@ import { type Coord } from "./geo-math";
 import { nextOrder, shiftGeometry, rotateGeometry } from "./geometry-transforms";
 import { type DrawingState, type DrawingPayload, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
 import { useUndoRedo } from "./hooks/use-undo-redo";
+
+function geometryCentroid(geom: GeoJSON.Geometry): [number, number] {
+  if (geom.type === "Point") return geom.coordinates as [number, number];
+  const coords: number[][] = [];
+  if (geom.type === "LineString") coords.push(...geom.coordinates);
+  else if (geom.type === "Polygon") geom.coordinates.forEach((r) => coords.push(...r));
+  else if (geom.type === "MultiPoint") coords.push(...geom.coordinates);
+  else if (geom.type === "MultiLineString") geom.coordinates.forEach((l) => coords.push(...l));
+  else if (geom.type === "MultiPolygon") geom.coordinates.forEach((p) => p.forEach((r) => coords.push(...r)));
+  if (coords.length === 0) return [0, 0];
+  let x = 0, y = 0;
+  for (const c of coords) { x += c[0]; y += c[1]; }
+  return [x / coords.length, y / coords.length];
+}
 import { deduceLegendEntry as extractLegendEntry } from "./resolve-style";
 
 interface EditorDataState {
@@ -82,6 +96,7 @@ interface EditorActions {
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   duplicateFeature: (id: string) => void;
+  addLabelToFeature: (id: string) => void;
   duplicateGroup: (groupId: string) => void;
   deleteGroup: (groupId: string) => void;
   clearAllFeatures: () => void;
@@ -512,6 +527,32 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setSelectedFeatureIds([clone.id]);
   }, [recordSnapshot, featureLimit]);
 
+  const addLabelToFeature = useCallback((id: string) => {
+    if (featureLimit !== Infinity && featuresRef.current.length >= featureLimit) return;
+    recordSnapshot();
+    const source = featuresRef.current.find((f) => f.id === id);
+    if (!source || source.type === "text") return;
+    const center = geometryCentroid(source.geometry);
+    const labelFeature: FeatureData = {
+      id: uuid(),
+      layerId: source.layerId,
+      label: `${source.label || "Untitled"} label`,
+      color: source.color,
+      opacity: 1,
+      order: nextOrder(featuresRef.current),
+      geometry: { type: "Point", coordinates: center },
+      type: "text",
+      textContent: source.label || "Untitled",
+      fontSize: 16,
+      fontFamily: "sans",
+      textBorderEnabled: true,
+      textBorderColor: COLORS.white,
+      textBorderWidth: 2,
+    };
+    setFeatures((prev) => [...prev, labelFeature]);
+    setSelectedFeatureIds([labelFeature.id]);
+  }, [recordSnapshot, featureLimit]);
+
   const duplicateGroup = useCallback((groupId: string) => {
     const groupChildren = featuresRef.current.filter((f) => f.groupId === groupId);
     if (featureLimit !== Infinity && featuresRef.current.length + groupChildren.length > featureLimit) return;
@@ -839,6 +880,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       addBankFeature,
       updateFeature,
       duplicateFeature,
+      addLabelToFeature,
       duplicateGroup,
       deleteFeature,
       deleteGroup,
@@ -897,6 +939,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       addBankFeature,
       updateFeature,
       duplicateFeature,
+      addLabelToFeature,
       duplicateGroup,
       deleteFeature,
       deleteGroup,

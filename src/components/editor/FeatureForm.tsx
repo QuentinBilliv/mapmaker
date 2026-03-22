@@ -215,6 +215,7 @@ export default function FeatureForm() {
             </>
           )}
           {!selectedFeature.legendEntryId && <LegendEntryToggle feature={selectedFeature} />}
+          {selectedFeature.type !== "text" && <AddLabelButton featureId={selectedFeature.id} />}
           <FormActions
             onClose={() => selectFeature(null)}
             onCancel={handleCancel}
@@ -688,6 +689,21 @@ function LegendEntryToggle({ feature }: { feature: FeatureData }) {
       <Checkbox checked={inLegend} onCheckedChange={handleToggle} />
       <span className="text-xs">Add to legend</span>
     </label>
+  );
+}
+
+function AddLabelButton({ featureId }: { featureId: string }) {
+  const { addLabelToFeature } = useEditorActions();
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="w-full"
+      onClick={() => addLabelToFeature(featureId)}
+    >
+      Add label
+    </Button>
   );
 }
 

@@ -72,9 +72,9 @@ export default function MapCanvas() {
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useMoveListener(mapRef, updateMap);
   useFlyToListener(mapRef);
-  useProjectionListener(mapRef);
+  useProjectionListener(mapRef, styleVersion);
 
-  return <div ref={containerRef} className="w-full h-full" />;
+  return <div ref={containerRef} className="w-full h-full bg-black" />;
 }
 
 function useFlyToListener(mapRef: React.RefObject<maplibregl.Map | null>) {
@@ -90,17 +90,26 @@ function useFlyToListener(mapRef: React.RefObject<maplibregl.Map | null>) {
   }, [mapRef]);
 }
 
-function useProjectionListener(mapRef: React.RefObject<maplibregl.Map | null>) {
+function useProjectionListener(mapRef: React.RefObject<maplibregl.Map | null>, styleVersion: number) {
+  const projectionRef = useRef<"mercator" | "globe">("mercator");
+
   useEffect(() => {
     const handler = (e: Event) => {
       const map = mapRef.current;
       if (!map) return;
       const { projection } = (e as CustomEvent).detail;
+      projectionRef.current = projection;
       map.setProjection({ type: projection });
     };
     window.addEventListener("mapmaker:set-projection", handler);
     return () => window.removeEventListener("mapmaker:set-projection", handler);
   }, [mapRef]);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map || projectionRef.current === "mercator") return;
+    map.setProjection({ type: projectionRef.current });
+  }, [mapRef, styleVersion]);
 }
 
 function useMoveListener(
