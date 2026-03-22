@@ -3,14 +3,14 @@
 import { useState } from "react";
 import { useDrawingState, useEditorData, useEditorActions } from "@/lib/editor-context";
 import { DrawMode } from "@/lib/draw-engine";
-import { FaRotateLeft, FaRotateRight, FaEarthAmericas } from "react-icons/fa6";
+import { FaRotateLeft, FaRotateRight, FaEarthAmericas, FaArrowPointer } from "react-icons/fa6";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import GeoBankDialog from "@/components/editor/GeoBankDialog";
 import GeoSearchButton from "@/components/editor/GeoSearchBar";
 
-const TOOLS: { mode: DrawMode; label: string; icon: string }[] = [
-  { mode: "select", label: "Select", icon: "↖" },
+const TOOLS: { mode: DrawMode; label: string; icon: React.ReactNode }[] = [
+  { mode: "select", label: "Select", icon: <FaArrowPointer className="w-4 h-4" /> },
   { mode: "polygon", label: "Polygon", icon: "⬠" },
   { mode: "rectangle", label: "Rectangle", icon: "▭" },
   { mode: "circle", label: "Circle", icon: "◯" },
