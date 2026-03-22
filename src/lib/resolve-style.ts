@@ -11,11 +11,8 @@ import type {
   TextFeature,
 } from "./types";
 
-export function resolveFeatureStyle(feature: FeatureData, legendEntries: LegendEntry[]): FeatureData {
-  if (!feature.legendEntryId) return feature;
-  const entry = legendEntries.find((e) => e.id === feature.legendEntryId);
-  if (!entry || entry.featureType !== feature.type) return feature;
-
+function applyLegendEntry(feature: FeatureData, entry: LegendEntry): FeatureData {
+  if (entry.featureType !== feature.type) return feature;
   switch (entry.featureType) {
     case "point": {
       const e = entry as PointLegendEntry;
@@ -36,9 +33,22 @@ export function resolveFeatureStyle(feature: FeatureData, legendEntries: LegendE
   }
 }
 
+export function resolveFeatureStyle(feature: FeatureData, legendEntries: LegendEntry[]): FeatureData {
+  if (!feature.legendEntryId) return feature;
+  const entry = legendEntries.find((e) => e.id === feature.legendEntryId);
+  if (!entry) return feature;
+  return applyLegendEntry(feature, entry);
+}
+
 export function resolveAllFeatures(features: FeatureData[], legendEntries: LegendEntry[]): FeatureData[] {
   if (legendEntries.length === 0) return features;
-  return features.map((f) => resolveFeatureStyle(f, legendEntries));
+  const entryMap = new Map(legendEntries.map((e) => [e.id, e]));
+  return features.map((f) => {
+    if (!f.legendEntryId) return f;
+    const entry = entryMap.get(f.legendEntryId);
+    if (!entry) return f;
+    return applyLegendEntry(f, entry);
+  });
 }
 
 export function deduceLegendEntry(feature: FeatureData, label: string): Omit<PointLegendEntry, "id" | "order"> | Omit<PolylineLegendEntry, "id" | "order"> | Omit<PolygonLegendEntry, "id" | "order"> | Omit<TextLegendEntry, "id" | "order"> {
