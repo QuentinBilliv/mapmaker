@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
 const API_BASE = "https://www.geoboundaries.org/api/current/gbOpen";
-const ALLOWED_HOSTS = ["www.geoboundaries.org", "github.com", "raw.githubusercontent.com"];
+const ALLOWED_HOSTS = new Set(["www.geoboundaries.org", "github.com", "raw.githubusercontent.com"]);
 const ISO_RE = /^[A-Z]{3}$/;
 const ADM_RE = /^ADM[0-5]$/;
 
@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
     } catch {
       return NextResponse.json({ error: "Invalid URL" }, { status: 400 });
     }
-    if (!ALLOWED_HOSTS.some((h) => parsed.hostname === h || parsed.hostname.endsWith("." + h))) {
+    if (!ALLOWED_HOSTS.has(parsed.hostname)) {
       return NextResponse.json({ error: "Forbidden host" }, { status: 403 });
     }
     const res = await fetch(url, { next: { revalidate: 86400 } });

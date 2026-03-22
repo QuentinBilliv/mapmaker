@@ -8,6 +8,7 @@ export function sanitizeSvg(raw: string): string {
   const error = doc.querySelector("parsererror");
   if (error) throw new Error("Invalid SVG file");
 
+  stripAttributes(doc.documentElement);
   walk(doc.documentElement);
   return new XMLSerializer().serializeToString(doc.documentElement);
 }
