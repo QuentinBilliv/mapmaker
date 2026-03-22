@@ -45,20 +45,20 @@ export default function LegendPanel() {
           {sorted.map((entry) => (
             <div
               key={entry.id}
-              className="flex items-center gap-2 px-3 py-1.5 text-sm border-b last:border-b-0 hover:bg-muted"
+              className="group/row flex items-center gap-2 px-3 py-1.5 text-sm border-b last:border-b-0 hover:bg-muted"
             >
               <FeatureSwatch feature={legendEntryToSyntheticFeature(entry)} width={36} height={22} />
               <span className="flex-1 truncate text-xs">{entry.label || "Untitled"}</span>
               <button
                 onClick={() => setEditingId(entry.id)}
-                className="text-muted-foreground hover:text-foreground shrink-0 p-1"
+                className="text-muted-foreground hover:text-foreground shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
                 title="Edit"
               >
                 <FaPen className="w-2.5 h-2.5" />
               </button>
               <button
                 onClick={() => deleteLegendEntry(entry.id)}
-                className="text-muted-foreground hover:text-destructive shrink-0 p-1"
+                className="text-muted-foreground hover:text-destructive shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
                 title="Delete"
               >
                 <FaTrash className="w-2.5 h-2.5" />

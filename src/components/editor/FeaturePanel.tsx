@@ -385,7 +385,7 @@ function GroupRow({
       onDrop={onDrop}
       onDragEnd={onDragEnd}
       onClick={onClick}
-      className={`flex items-center gap-1.5 px-3 py-1.5 cursor-grab text-sm border-b font-medium ${
+      className={`group/row flex items-center gap-1.5 px-3 py-1.5 cursor-grab text-sm border-b font-medium ${
         isDropTarget ? "bg-primary/10 border-b-2 border-b-primary" : ""
       } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"}`}
     >
@@ -413,14 +413,14 @@ function GroupRow({
       <span className="text-[10px] text-muted-foreground">{childCount}</span>
       <button
         onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-        className="text-muted-foreground hover:text-foreground shrink-0 p-1.5"
+        className="text-muted-foreground hover:text-foreground shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Duplicate group"
       >
         <FaCopy className="w-3 h-3" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5"
+        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Delete group"
       >
         <FaTrash className="w-3 h-3" />
@@ -474,14 +474,14 @@ function FeatureRow({
       </span>
       <button
         onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-        className="text-muted-foreground hover:text-foreground shrink-0 p-1.5"
+        className="text-muted-foreground hover:text-foreground shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Duplicate feature"
       >
         <FaCopy className="w-3 h-3" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5"
+        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Delete feature"
       >
         <FaTrash className="w-3 h-3" />
