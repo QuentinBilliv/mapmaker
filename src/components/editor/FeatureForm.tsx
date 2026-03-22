@@ -214,7 +214,7 @@ export default function FeatureForm() {
               {!selectedFeature.legendEntryId && selectedFeature.type === "polygon" && <FillPatternSelect />}
             </>
           )}
-          <LegendEntryToggle feature={selectedFeature} />
+          {!selectedFeature.legendEntryId && <LegendEntryToggle feature={selectedFeature} />}
           <FormActions
             onClose={() => selectFeature(null)}
             onCancel={handleCancel}
