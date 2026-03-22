@@ -72,6 +72,7 @@ export default function MapCanvas() {
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useMoveListener(mapRef, updateMap);
   useFlyToListener(mapRef);
+  useProjectionListener(mapRef);
 
   return <div ref={containerRef} className="w-full h-full" />;
 }
@@ -86,6 +87,19 @@ function useFlyToListener(mapRef: React.RefObject<maplibregl.Map | null>) {
     };
     window.addEventListener("mapmaker:flyto", handler);
     return () => window.removeEventListener("mapmaker:flyto", handler);
+  }, [mapRef]);
+}
+
+function useProjectionListener(mapRef: React.RefObject<maplibregl.Map | null>) {
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const map = mapRef.current;
+      if (!map) return;
+      const { projection } = (e as CustomEvent).detail;
+      map.setProjection({ type: projection });
+    };
+    window.addEventListener("mapmaker:set-projection", handler);
+    return () => window.removeEventListener("mapmaker:set-projection", handler);
   }, [mapRef]);
 }
 

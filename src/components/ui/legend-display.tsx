@@ -27,6 +27,7 @@ import type {
   ArrowStyle,
   LineDecoration,
   FillPattern,
+  TextFont,
 } from "@/lib/types";
 import {
   POINT_SHAPES,
@@ -34,6 +35,7 @@ import {
   ARROW_STYLES,
   LINE_DECORATIONS,
   FILL_PATTERNS,
+  TEXT_FONTS,
 } from "@/lib/types";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
@@ -167,6 +169,11 @@ export function CreateEntryDialog({
   const [lineDecoration, setLineDecoration] = useState<LineDecoration>("none");
   const [decorationSpacing, setDecorationSpacing] = useState(50);
   const [fillPattern, setFillPattern] = useState<FillPattern>("none");
+  const [fontSize, setFontSize] = useState(16);
+  const [fontFamily, setFontFamily] = useState<TextFont>("sans");
+  const [textBorderEnabled, setTextBorderEnabled] = useState(false);
+  const [textBorderColor, setTextBorderColor] = useState(COLORS.white);
+  const [textBorderWidth, setTextBorderWidth] = useState(2);
   const [pickerOpen, setPickerOpen] = useState(false);
 
   function reset() {
@@ -186,6 +193,11 @@ export function CreateEntryDialog({
     setLineDecoration("none");
     setDecorationSpacing(50);
     setFillPattern("none");
+    setFontSize(16);
+    setFontFamily("sans");
+    setTextBorderEnabled(false);
+    setTextBorderColor(COLORS.white);
+    setTextBorderWidth(2);
   }
 
   function handleCreate() {
@@ -211,7 +223,7 @@ export function CreateEntryDialog({
         lineDecoration,
         decorationSpacing,
       });
-    } else {
+    } else if (featureType === "polygon") {
       onSubmit({
         ...base,
         featureType: "polygon",
@@ -221,6 +233,16 @@ export function CreateEntryDialog({
         lineDecoration,
         decorationSpacing,
         fillPattern,
+      });
+    } else {
+      onSubmit({
+        ...base,
+        featureType: "text",
+        fontSize,
+        fontFamily,
+        textBorderEnabled,
+        textBorderColor,
+        textBorderWidth,
       });
     }
     reset();
@@ -249,7 +271,7 @@ export function CreateEntryDialog({
               Choose the feature type for this entry
             </p>
             <div className="flex gap-2">
-              {(["point", "polyline", "polygon"] as const).map((t) => (
+              {(["point", "polyline", "polygon", "text"] as const).map((t) => (
                 <Button
                   key={t}
                   size="sm"
@@ -257,11 +279,7 @@ export function CreateEntryDialog({
                   onClick={() => setFeatureType(t)}
                   className="flex-1"
                 >
-                  {t === "point"
-                    ? "Point"
-                    : t === "polyline"
-                      ? "Line"
-                      : "Polygon"}
+                  {t === "point" ? "Point" : t === "polyline" ? "Line" : t === "polygon" ? "Polygon" : "Text"}
                 </Button>
               ))}
             </div>
@@ -492,6 +510,41 @@ export function CreateEntryDialog({
                 </div>
               </Field>
             )}
+            {featureType === "text" && (
+              <>
+                <div className="flex gap-3">
+                  <Field label={`Font size (${fontSize}px)`} className="flex-1">
+                    <SliderField value={fontSize} onChange={setFontSize} min={8} max={72} step={1} className="mt-2" />
+                  </Field>
+                  <Field label="Font" className="flex-1">
+                    <Select value={fontFamily} onValueChange={(v) => setFontFamily(v as TextFont)}>
+                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        {TEXT_FONTS.map((f) => (
+                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </Field>
+                </div>
+                <Field label="Text border">
+                  <div className="flex items-center gap-2">
+                    <input type="checkbox" checked={textBorderEnabled} onChange={(e) => setTextBorderEnabled(e.target.checked)} />
+                    <span className="text-xs text-muted-foreground">{textBorderEnabled ? "Enabled" : "Disabled"}</span>
+                  </div>
+                </Field>
+                {textBorderEnabled && (
+                  <div className="flex gap-3">
+                    <Field label="Border color" className="flex-1">
+                      <ColorInput value={textBorderColor} onChange={(e) => setTextBorderColor((e.target as HTMLInputElement).value)} />
+                    </Field>
+                    <Field label={`Width (${textBorderWidth}px)`} className="flex-1">
+                      <SliderField value={textBorderWidth} onChange={setTextBorderWidth} min={1} max={8} step={1} className="mt-2" />
+                    </Field>
+                  </div>
+                )}
+              </>
+            )}
             <DialogFooter>
               <Button
                 size="sm"
@@ -627,6 +680,41 @@ export function EditEntryDialog({
                 ))}
               </div>
             </Field>
+          )}
+          {entry.featureType === "text" && (
+            <>
+              <div className="flex gap-3">
+                <Field label={`Font size (${entry.fontSize}px)`} className="flex-1">
+                  <SliderField value={entry.fontSize} onChange={(v) => onUpdate({ fontSize: v })} min={8} max={72} step={1} className="mt-2" />
+                </Field>
+                <Field label="Font" className="flex-1">
+                  <Select value={entry.fontFamily} onValueChange={(v) => onUpdate({ fontFamily: v as TextFont })}>
+                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      {TEXT_FONTS.map((f) => (
+                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </Field>
+              </div>
+              <Field label="Text border">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" checked={entry.textBorderEnabled} onChange={(e) => onUpdate({ textBorderEnabled: e.target.checked })} />
+                  <span className="text-xs text-muted-foreground">{entry.textBorderEnabled ? "Enabled" : "Disabled"}</span>
+                </div>
+              </Field>
+              {entry.textBorderEnabled && (
+                <div className="flex gap-3">
+                  <Field label="Border color" className="flex-1">
+                    <ColorInput value={entry.textBorderColor} onChange={(e) => onUpdate({ textBorderColor: (e.target as HTMLInputElement).value })} />
+                  </Field>
+                  <Field label={`Width (${entry.textBorderWidth}px)`} className="flex-1">
+                    <SliderField value={entry.textBorderWidth} onChange={(v) => onUpdate({ textBorderWidth: v })} min={1} max={8} step={1} className="mt-2" />
+                  </Field>
+                </div>
+              )}
+            </>
           )}
           <DialogFooter>
             <Button size="sm" onClick={() => onOpenChange(false)}>Done</Button>
