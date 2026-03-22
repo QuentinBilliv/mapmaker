@@ -85,7 +85,7 @@ function GroupForm() {
   if (!group) return null;
 
   return (
-    <div className="absolute left-16 top-3 z-10 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
+    <div className="absolute left-16 top-3 z-20 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
       <PanelHeader title="Group" onClose={() => selectFeatures([])} />
       <div className="p-3 space-y-3">
         <Field label="Group label">
@@ -168,7 +168,7 @@ export default function FeatureForm() {
         textContent: isText ? v.textContent : undefined,
         fontSize: isText ? v.fontSize : undefined,
         fontFamily: isText ? v.fontFamily : undefined,
-        textBorderEnabled: isText ? v.textBorderEnabled : undefined,
+        textBorderEnabled: isText ? (v.textBorderWidth ?? 0) > 0 : undefined,
         textBorderColor: isText ? v.textBorderColor : undefined,
         textBorderWidth: isText ? v.textBorderWidth : undefined,
         layerId: v.layerId,
@@ -190,7 +190,7 @@ export default function FeatureForm() {
 
   return (
     <FormProvider {...methods}>
-      <div className="absolute left-16 top-3 z-10 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
+      <div className="absolute left-16 top-3 z-20 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
         <PanelHeader
           title={TYPE_LABELS[selectedFeature.type] ?? "Feature"}
           onClose={() => selectFeature(null)}
@@ -454,7 +454,6 @@ function TextFields() {
   const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
   const fontSize = watch("fontSize") ?? 24;
   const fontFamily = watch("fontFamily") ?? "sans";
-  const textBorderEnabled = watch("textBorderEnabled") ?? true;
   const textBorderWidth = watch("textBorderWidth") ?? 2;
 
   return (
@@ -491,37 +490,23 @@ function TextFields() {
           </Select>
         </Field>
       </div>
-      <div className="flex gap-3 items-end">
-        <Field label="Text outline" className="shrink-0">
-          <Button
-            type="button"
-            variant={textBorderEnabled ? "default" : "outline"}
-            size="xs"
-            onClick={() => setValue("textBorderEnabled", !textBorderEnabled)}
-          >
-            {textBorderEnabled ? "On" : "Off"}
-          </Button>
+      <div className="flex gap-3">
+        <Field label="Outline color" className="flex-1">
+          <ColorInput
+            value={watch("textBorderColor") ?? "#ffffff"}
+            onChange={(e) => setValue("textBorderColor", (e.target as HTMLInputElement).value)}
+          />
         </Field>
-        {textBorderEnabled && (
-          <>
-            <Field label="Color" className="flex-1">
-              <ColorInput
-                value={watch("textBorderColor") ?? "#ffffff"}
-                onChange={(e) => setValue("textBorderColor", (e.target as HTMLInputElement).value)}
-              />
-            </Field>
-            <Field label={`Width (${textBorderWidth}px)`} className="flex-1">
-              <SliderField
-                value={textBorderWidth}
-                onChange={(v) => setValue("textBorderWidth", v)}
-                min={0}
-                max={5}
-                step={0.5}
-                className="mt-2"
-              />
-            </Field>
-          </>
-        )}
+        <Field label={`Outline (${textBorderWidth}px)`} className="flex-1">
+          <SliderField
+            value={textBorderWidth}
+            onChange={(v) => setValue("textBorderWidth", v)}
+            min={0}
+            max={5}
+            step={0.5}
+            className="mt-2"
+          />
+        </Field>
       </div>
     </>
   );

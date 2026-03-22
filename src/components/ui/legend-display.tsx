@@ -171,7 +171,6 @@ export function CreateEntryDialog({
   const [fillPattern, setFillPattern] = useState<FillPattern>("none");
   const [fontSize, setFontSize] = useState(16);
   const [fontFamily, setFontFamily] = useState<TextFont>("sans");
-  const [textBorderEnabled, setTextBorderEnabled] = useState(false);
   const [textBorderColor, setTextBorderColor] = useState(COLORS.white);
   const [textBorderWidth, setTextBorderWidth] = useState(2);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -195,7 +194,6 @@ export function CreateEntryDialog({
     setFillPattern("none");
     setFontSize(16);
     setFontFamily("sans");
-    setTextBorderEnabled(false);
     setTextBorderColor(COLORS.white);
     setTextBorderWidth(2);
   }
@@ -240,7 +238,7 @@ export function CreateEntryDialog({
         featureType: "text",
         fontSize,
         fontFamily,
-        textBorderEnabled,
+        textBorderEnabled: textBorderWidth > 0,
         textBorderColor,
         textBorderWidth,
       });
@@ -527,22 +525,14 @@ export function CreateEntryDialog({
                     </Select>
                   </Field>
                 </div>
-                <Field label="Text border">
-                  <div className="flex items-center gap-2">
-                    <input type="checkbox" checked={textBorderEnabled} onChange={(e) => setTextBorderEnabled(e.target.checked)} />
-                    <span className="text-xs text-muted-foreground">{textBorderEnabled ? "Enabled" : "Disabled"}</span>
-                  </div>
-                </Field>
-                {textBorderEnabled && (
-                  <div className="flex gap-3">
-                    <Field label="Border color" className="flex-1">
-                      <ColorInput value={textBorderColor} onChange={(e) => setTextBorderColor((e.target as HTMLInputElement).value)} />
-                    </Field>
-                    <Field label={`Width (${textBorderWidth}px)`} className="flex-1">
-                      <SliderField value={textBorderWidth} onChange={setTextBorderWidth} min={1} max={8} step={1} className="mt-2" />
-                    </Field>
-                  </div>
-                )}
+                <div className="flex gap-3">
+                  <Field label="Outline color" className="flex-1">
+                    <ColorInput value={textBorderColor} onChange={(e) => setTextBorderColor((e.target as HTMLInputElement).value)} />
+                  </Field>
+                  <Field label={`Outline (${textBorderWidth}px)`} className="flex-1">
+                    <SliderField value={textBorderWidth} onChange={setTextBorderWidth} min={0} max={8} step={1} className="mt-2" />
+                  </Field>
+                </div>
               </>
             )}
             <DialogFooter>
@@ -698,22 +688,14 @@ export function EditEntryDialog({
                   </Select>
                 </Field>
               </div>
-              <Field label="Text border">
-                <div className="flex items-center gap-2">
-                  <input type="checkbox" checked={entry.textBorderEnabled} onChange={(e) => onUpdate({ textBorderEnabled: e.target.checked })} />
-                  <span className="text-xs text-muted-foreground">{entry.textBorderEnabled ? "Enabled" : "Disabled"}</span>
-                </div>
-              </Field>
-              {entry.textBorderEnabled && (
-                <div className="flex gap-3">
-                  <Field label="Border color" className="flex-1">
-                    <ColorInput value={entry.textBorderColor} onChange={(e) => onUpdate({ textBorderColor: (e.target as HTMLInputElement).value })} />
-                  </Field>
-                  <Field label={`Width (${entry.textBorderWidth}px)`} className="flex-1">
-                    <SliderField value={entry.textBorderWidth} onChange={(v) => onUpdate({ textBorderWidth: v })} min={1} max={8} step={1} className="mt-2" />
-                  </Field>
-                </div>
-              )}
+              <div className="flex gap-3">
+                <Field label="Outline color" className="flex-1">
+                  <ColorInput value={entry.textBorderColor} onChange={(e) => onUpdate({ textBorderColor: (e.target as HTMLInputElement).value })} />
+                </Field>
+                <Field label={`Outline (${entry.textBorderWidth}px)`} className="flex-1">
+                  <SliderField value={entry.textBorderWidth} onChange={(v) => onUpdate({ textBorderWidth: v })} min={0} max={8} step={1} className="mt-2" />
+                </Field>
+              </div>
             </>
           )}
           <DialogFooter>
