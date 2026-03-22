@@ -35,7 +35,6 @@ import {
   ARROW_STYLES,
   LINE_DECORATIONS,
   FILL_PATTERNS,
-  TEXT_FONTS,
 } from "@/lib/types";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
@@ -510,21 +509,9 @@ export function CreateEntryDialog({
             )}
             {featureType === "text" && (
               <>
-                <div className="flex gap-3">
-                  <Field label={`Font size (${fontSize}px)`} className="flex-1">
-                    <SliderField value={fontSize} onChange={setFontSize} min={8} max={72} step={1} className="mt-2" />
-                  </Field>
-                  <Field label="Font" className="flex-1">
-                    <Select value={fontFamily} onValueChange={(v) => setFontFamily(v as TextFont)}>
-                      <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                      <SelectContent>
-                        {TEXT_FONTS.map((f) => (
-                          <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </div>
+                <Field label={`Font size (${fontSize}px)`}>
+                  <SliderField value={fontSize} onChange={setFontSize} min={8} max={72} step={1} className="mt-2" />
+                </Field>
                 <div className="flex gap-3">
                   <Field label="Outline color" className="flex-1">
                     <ColorInput value={textBorderColor} onChange={(e) => setTextBorderColor((e.target as HTMLInputElement).value)} />
@@ -676,16 +663,6 @@ export function EditEntryDialog({
               <div className="flex gap-3">
                 <Field label={`Font size (${entry.fontSize}px)`} className="flex-1">
                   <SliderField value={entry.fontSize} onChange={(v) => onUpdate({ fontSize: v })} min={8} max={72} step={1} className="mt-2" />
-                </Field>
-                <Field label="Font" className="flex-1">
-                  <Select value={entry.fontFamily} onValueChange={(v) => onUpdate({ fontFamily: v as TextFont })}>
-                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      {TEXT_FONTS.map((f) => (
-                        <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
                 </Field>
               </div>
               <div className="flex gap-3">

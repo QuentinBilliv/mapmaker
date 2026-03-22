@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
-import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, TEXT_FONTS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type TextFont, type FeatureData, type FeatureUpdate } from "@/lib/types";
+import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type FeatureData, type FeatureUpdate } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
@@ -454,7 +454,6 @@ function MarkerSelect() {
 function TextFields() {
   const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
   const fontSize = watch("fontSize") ?? 24;
-  const fontFamily = watch("fontFamily") ?? "sans";
   const textBorderWidth = watch("textBorderWidth") ?? 2;
 
   return (
@@ -467,30 +466,16 @@ function TextFields() {
           className="resize-y"
         />
       </Field>
-      <div className="flex gap-3">
-        <Field label={`Size (${fontSize}px)`} className="flex-1">
-          <SliderField
-            value={fontSize}
-            onChange={(v) => setValue("fontSize", v)}
-            min={8}
-            max={72}
-            step={1}
-            className="mt-2"
-          />
-        </Field>
-        <Field label="Font" className="flex-1">
-          <Select value={fontFamily} onValueChange={(v) => setValue("fontFamily", v as TextFont)}>
-            <SelectTrigger className="w-full">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              {TEXT_FONTS.map((f) => (
-                <SelectItem key={f.value} value={f.value}>{f.label}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </Field>
-      </div>
+      <Field label={`Size (${fontSize}px)`}>
+        <SliderField
+          value={fontSize}
+          onChange={(v) => setValue("fontSize", v)}
+          min={8}
+          max={72}
+          step={1}
+          className="mt-2"
+        />
+      </Field>
       <div className="flex gap-3">
         <Field label="Outline color" className="flex-1">
           <ColorInput

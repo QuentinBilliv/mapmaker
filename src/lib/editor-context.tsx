@@ -36,6 +36,7 @@ import { type Coord } from "./geo-math";
 import { nextOrder, shiftGeometry, rotateGeometry } from "./geometry-transforms";
 import { type DrawingState, type DrawingPayload, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
 import { useUndoRedo } from "./hooks/use-undo-redo";
+import { deduceLegendEntry as extractLegendEntry } from "./resolve-style";
 
 function geometryCentroid(geom: GeoJSON.Geometry): [number, number] {
   if (geom.type === "Point") return geom.coordinates as [number, number];
@@ -50,7 +51,6 @@ function geometryCentroid(geom: GeoJSON.Geometry): [number, number] {
   for (const c of coords) { x += c[0]; y += c[1]; }
   return [x / coords.length, y / coords.length];
 }
-import { deduceLegendEntry as extractLegendEntry } from "./resolve-style";
 
 interface EditorDataState {
   map: MapData;
@@ -747,6 +747,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   }, [recordSnapshot]);
 
   const reorderGroupChildren = useCallback((groupId: string, orderedChildIds: string[]) => {
+    recordSnapshot();
     setFeatures((prev) =>
       prev.map((f) => {
         if (f.groupId !== groupId) return f;
@@ -754,7 +755,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
         return idx === -1 ? f : { ...f, order: idx } as FeatureData;
       })
     );
-  }, []);
+  }, [recordSnapshot]);
 
   const moveGroup = useCallback((groupId: string, dlng: number, dMercY: number) => {
     setFeatures((prev) =>

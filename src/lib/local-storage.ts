@@ -59,8 +59,9 @@ export function loadFromLocalStorage(): {
     const state: StoredState = JSON.parse(raw);
     if (state.version !== VERSION) return null;
     if (!state.map || !Array.isArray(state.layers) || !Array.isArray(state.features)) return null;
+    const VALID_TYPES = new Set(["polygon", "polyline", "point", "text"]);
     const validFeatures = state.features.filter(
-      (f) => f && typeof f.id === "string" && typeof f.type === "string" && f.geometry,
+      (f) => f && typeof f.id === "string" && VALID_TYPES.has(f.type) && f.geometry && typeof f.geometry.type === "string",
     );
     if (validFeatures.length === 0 && state.features.length > 0) return null;
     const baseMap = BASE_MAPS.find((b) => b.id === state.baseMapId) ?? BASE_MAPS[0];

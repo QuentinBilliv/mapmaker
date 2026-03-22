@@ -5,7 +5,23 @@ const ALLOWED_HOSTS = new Set(["www.geoboundaries.org", "github.com", "raw.githu
 const ISO_RE = /^[A-Z]{3}$/;
 const ADM_RE = /^ADM[0-5]$/;
 
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT = 30;
+const hits = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = hits.get(ip)?.filter((t) => now - t < RATE_WINDOW_MS) ?? [];
+  timestamps.push(now);
+  hits.set(ip, timestamps);
+  return timestamps.length > RATE_LIMIT;
+}
+
 export async function GET(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
   const url = req.nextUrl.searchParams.get("url");
 
   if (url) {
