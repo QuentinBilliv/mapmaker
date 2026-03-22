@@ -196,11 +196,11 @@ export default function FeatureForm() {
           onClose={() => selectFeature(null)}
         />
         <div className="p-3 space-y-3">
-          {selectedFeature.type !== "text" && <LegendEntryPicker feature={selectedFeature} />}
+          <LegendEntryPicker feature={selectedFeature} />
           <StyleFields />
           {selectedFeature.type === "text" ? (
             <>
-              <TextFields />
+              {!selectedFeature.legendEntryId && <TextFields />}
               <CoordinateFields feature={selectedFeature} />
             </>
           ) : selectedFeature.type === "point" ? (
@@ -212,10 +212,9 @@ export default function FeatureForm() {
             <>
               {!selectedFeature.legendEntryId && <StrokeFields showArrows={isLine} />}
               {!selectedFeature.legendEntryId && selectedFeature.type === "polygon" && <FillPatternSelect />}
-
             </>
           )}
-          {selectedFeature.type !== "text" && <LegendEntryToggle feature={selectedFeature} />}
+          <LegendEntryToggle feature={selectedFeature} />
           <FormActions
             onClose={() => selectFeature(null)}
             onCancel={handleCancel}

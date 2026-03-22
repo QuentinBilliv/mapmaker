@@ -5,7 +5,7 @@ import MapCanvas from "./MapCanvas";
 import MapCanvasErrorBoundary from "./MapCanvasErrorBoundary";
 import DrawingToolbar from "./DrawingToolbar";
 import FeatureForm from "./FeatureForm";
-import DrawingSettingsPanel from "./DrawingSettingsPanel";
+
 import MapMetadata from "./MapMetadata";
 import BaseMapSelector from "./BaseMapSelector";
 import Legend from "./Legend";
@@ -27,7 +27,6 @@ export default function EditorShell() {
         <DrawingToolbar />
 
         <MapMetadata />
-        <DrawingSettingsPanel />
         <FeatureForm />
         <BaseMapSelector />
         <Legend />

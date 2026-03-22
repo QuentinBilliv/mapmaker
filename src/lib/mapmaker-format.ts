@@ -94,7 +94,7 @@ const legendEntrySchema = z.object({
   id: z.string().max(100),
   label: z.string().max(MAX_LABEL),
   order: z.number().int().min(0).max(100_000),
-  featureType: z.enum(["point", "polyline", "polygon"]),
+  featureType: z.enum(["point", "polyline", "polygon", "text"]),
   color: colorSchema,
   opacity: z.number().min(0).max(1),
   size: z.number().optional(),
@@ -110,6 +110,11 @@ const legendEntrySchema = z.object({
   lineDecoration: z.enum(["none", "crosses", "crosses-free", "ticks", "triangles-up", "triangles-down", "arrows-down", "arrows-up", "railway"]).optional(),
   decorationSpacing: z.number().min(5).max(200).optional(),
   fillPattern: z.enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"]).optional(),
+  fontSize: z.number().min(8).max(72).optional(),
+  fontFamily: z.enum(["sans", "serif", "mono"]).optional(),
+  textBorderEnabled: z.boolean().optional(),
+  textBorderColor: colorSchema.optional(),
+  textBorderWidth: z.number().min(0).max(5).optional(),
 });
 
 const mapmakerMeta = z.object({
@@ -174,6 +179,7 @@ export function serialize(
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
       if (f.groupId) props["mapmaker:groupId"] = f.groupId;
       if (f.legendEntryId) props["mapmaker:legendEntryId"] = f.legendEntryId;
+      if (f.type === "text") props["mapmaker:textContent"] = f.textContent;
       if (!hasEntry) switch (f.type) {
         case "polygon":
           props["mapmaker:smoothing"] = f.smoothing;
@@ -201,7 +207,6 @@ export function serialize(
           props["mapmaker:borderWidth"] = f.borderWidth;
           break;
         case "text":
-          props["mapmaker:textContent"] = f.textContent;
           props["mapmaker:fontSize"] = f.fontSize;
           props["mapmaker:fontFamily"] = f.fontFamily;
           props["mapmaker:textBorderEnabled"] = f.textBorderEnabled;

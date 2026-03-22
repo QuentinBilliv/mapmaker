@@ -584,7 +584,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
 
   const deduceLegendEntryFromFeature = useCallback((featureId: string, label: string) => {
     const feature = featuresRef.current.find((f) => f.id === featureId);
-    if (!feature || feature.type === "text") return;
+    if (!feature) return;
     recordSnapshot();
     const entryData = extractLegendEntry(feature, label);
     const id = uuid();

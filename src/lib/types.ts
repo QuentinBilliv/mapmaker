@@ -85,7 +85,7 @@ export interface GroupData {
   order: number;
 }
 
-export type LegendFeatureType = "point" | "polyline" | "polygon";
+export type LegendFeatureType = "point" | "polyline" | "polygon" | "text";
 
 interface LegendEntryBase {
   id: string;
@@ -125,8 +125,17 @@ export interface PolygonLegendEntry extends LegendEntryBase {
   fillPattern: FillPattern;
 }
 
-export type LegendEntry = PointLegendEntry | PolylineLegendEntry | PolygonLegendEntry;
-export type NewLegendEntry = Omit<PointLegendEntry, "id" | "order"> | Omit<PolylineLegendEntry, "id" | "order"> | Omit<PolygonLegendEntry, "id" | "order">;
+export interface TextLegendEntry extends LegendEntryBase {
+  featureType: "text";
+  fontSize: number;
+  fontFamily: TextFont;
+  textBorderEnabled: boolean;
+  textBorderColor: string;
+  textBorderWidth: number;
+}
+
+export type LegendEntry = PointLegendEntry | PolylineLegendEntry | PolygonLegendEntry | TextLegendEntry;
+export type NewLegendEntry = Omit<PointLegendEntry, "id" | "order"> | Omit<PolylineLegendEntry, "id" | "order"> | Omit<PolygonLegendEntry, "id" | "order"> | Omit<TextLegendEntry, "id" | "order">;
 
 interface FeatureBase {
   id: string;
