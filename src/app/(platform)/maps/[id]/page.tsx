@@ -6,7 +6,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import ReadOnlyMapView from "@/components/maps/ReadOnlyMapView";
 import { toMapData } from "@/lib/convex-mapdata";
-import type { LayerData, FeatureData, GroupData } from "@/lib/types";
+import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 function Loading() {
   return (
@@ -28,6 +28,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
     layers: LayerData[];
     features: FeatureData[];
     groups: GroupData[];
+    legendEntries?: LegendEntry[];
   } | null>(null);
   const hasFetchedRef = useRef(false);
 
@@ -53,7 +54,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
   }
 
   const data = hasInlineData
-    ? { layers: map.layers!, features: map.features!, groups: map.groups! }
+    ? { layers: map.layers!, features: map.features!, groups: map.groups!, legendEntries: (map as any).legendEntries ?? [] }
     : fileData;
 
   if (!data) return <Loading />;
@@ -64,6 +65,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
       layers={data.layers}
       features={data.features}
       groups={data.groups}
+      legendEntries={data.legendEntries ?? []}
       baseMapId={map.baseMapId}
     />
   );
