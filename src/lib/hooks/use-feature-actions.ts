@@ -33,12 +33,13 @@ interface Deps {
   dispatchDrawing: React.Dispatch<{ type: "RESET_AFTER_ADD"; isText: boolean }>;
   recordSnapshot: () => void;
   featureLimit: number;
+  onFeatureAdded?: (newCount: number) => void;
 }
 
 export function useFeatureActions({
   featuresRef, drawingRef, drawModeRef,
   setFeatures, setSelectedFeatureIds, dispatchDrawing,
-  recordSnapshot, featureLimit,
+  recordSnapshot, featureLimit, onFeatureAdded,
 }: Deps) {
   const selectFeature = useCallback((id: string | null) => {
     setSelectedFeatureIds(id ? [id] : []);
@@ -116,7 +117,8 @@ export function useFeatureActions({
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureIds([newFeature.id]);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
-  }, [featuresRef, drawingRef, drawModeRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit]);
+    onFeatureAdded?.(featuresRef.current!.length + 1);
+  }, [featuresRef, drawingRef, drawModeRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit, onFeatureAdded]);
 
   const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string) => {
     if (featureLimit !== Infinity && featuresRef.current!.length >= featureLimit) return;
@@ -150,7 +152,8 @@ export function useFeatureActions({
     }
     setFeatures((prev) => [...prev, newFeature]);
     setSelectedFeatureIds([newFeature.id]);
-  }, [featuresRef, drawingRef, setFeatures, setSelectedFeatureIds, recordSnapshot, featureLimit]);
+    onFeatureAdded?.(featuresRef.current!.length + 1);
+  }, [featuresRef, drawingRef, setFeatures, setSelectedFeatureIds, recordSnapshot, featureLimit, onFeatureAdded]);
 
   const updateFeature = useCallback(
     (id: string, updates: FeatureUpdate) => {
@@ -172,7 +175,8 @@ export function useFeatureActions({
     } as FeatureData;
     setFeatures((prev) => [...prev, clone]);
     setSelectedFeatureIds([clone.id]);
-  }, [featuresRef, setFeatures, setSelectedFeatureIds, recordSnapshot, featureLimit]);
+    onFeatureAdded?.(featuresRef.current!.length + 1);
+  }, [featuresRef, setFeatures, setSelectedFeatureIds, recordSnapshot, featureLimit, onFeatureAdded]);
 
   const addLabelToFeature = useCallback((id: string) => {
     if (featureLimit !== Infinity && featuresRef.current!.length >= featureLimit) return;
@@ -199,7 +203,8 @@ export function useFeatureActions({
     };
     setFeatures((prev) => [...prev, labelFeature]);
     setSelectedFeatureIds([labelFeature.id]);
-  }, [featuresRef, setFeatures, setSelectedFeatureIds, recordSnapshot, featureLimit]);
+    onFeatureAdded?.(featuresRef.current!.length + 1);
+  }, [featuresRef, setFeatures, setSelectedFeatureIds, recordSnapshot, featureLimit, onFeatureAdded]);
 
   const deleteFeature = useCallback((id: string) => {
     recordSnapshot();

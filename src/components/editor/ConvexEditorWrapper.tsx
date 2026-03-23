@@ -20,7 +20,7 @@ export default function ConvexEditorWrapper({
 
   if (isLoading) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
+      <div className="flex-1 flex items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">Loading map...</p>
       </div>
     );
@@ -28,7 +28,7 @@ export default function ConvexEditorWrapper({
 
   if (notFound || !initialData) {
     return (
-      <div className="h-screen w-screen flex items-center justify-center bg-background">
+      <div className="flex-1 flex items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">
           Map not found or access denied.
         </p>

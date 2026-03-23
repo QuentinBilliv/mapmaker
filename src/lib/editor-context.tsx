@@ -13,6 +13,7 @@ import {
 import { v4 as uuid } from "uuid";
 import type { DrawMode } from "./draw-engine";
 import { DEFAULT_LAYER, DEFAULT_MAP, FEATURE_LIMIT } from "./defaults";
+import toast from "react-hot-toast";
 import { saveToLocalStorage, loadFromLocalStorage, setStorageErrorHandler, type StorageError } from "./local-storage";
 import { BASE_MAPS, type BaseMap } from "./map-style";
 import type {
@@ -157,6 +158,7 @@ interface EditorProviderProps {
   initialData?: StoredMapState;
   onSave?: (state: StoredMapState) => void;
   featureLimit?: number;
+  isAnonymous?: boolean;
 }
 
 const STORAGE_MESSAGES: Record<StorageError, string> = {
@@ -165,7 +167,7 @@ const STORAGE_MESSAGES: Record<StorageError, string> = {
   load_corrupted: "Local save data was corrupted and could not be loaded.",
 };
 
-export function EditorProvider({ children, initialData, onSave, featureLimit = FEATURE_LIMIT }: EditorProviderProps) {
+export function EditorProvider({ children, initialData, onSave, featureLimit = FEATURE_LIMIT, isAnonymous = false }: EditorProviderProps) {
   const [storageWarning, setStorageWarning] = useState<string | null>(null);
 
   useEffect(() => {
@@ -346,6 +348,22 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
 
   // Delegated action hooks
 
+  const onFeatureAdded = useCallback((newCount: number) => {
+    if (!isAnonymous) return;
+    if (newCount === 2) {
+      toast((t) => (
+        <div className="flex items-center gap-2">
+          <span>Create a free account to save your maps and get more features!</span>
+          <button onClick={() => toast.dismiss(t.id)} className="shrink-0 font-bold text-amber-800 hover:text-amber-950">&times;</button>
+        </div>
+      ), {
+        icon: "\u26a0\ufe0f",
+        duration: 8000,
+        style: { background: "#fef3c7", color: "#92400e", border: "1px solid #f59e0b" },
+      });
+    }
+  }, [isAnonymous]);
+
   const {
     selectFeature, selectFeatures,
     addFeature, addBankFeature, updateFeature,
@@ -354,7 +372,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   } = useFeatureActions({
     featuresRef, drawingRef, drawModeRef,
     setFeatures, setSelectedFeatureIds, dispatchDrawing,
-    recordSnapshot, featureLimit,
+    recordSnapshot, featureLimit, onFeatureAdded,
   });
 
   const {
