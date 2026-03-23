@@ -697,7 +697,7 @@ function AddLabelButton({ featureId }: { featureId: string }) {
       className="w-full"
       onClick={() => addLabelToFeature(featureId)}
     >
-      Add label
+      Add label on map
     </Button>
   );
 }
