@@ -86,7 +86,7 @@ function GroupForm() {
   if (!group) return null;
 
   return (
-    <div className="absolute left-16 top-3 z-20 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
+    <div className="absolute left-3 top-16 right-3 z-20 bg-popover rounded-lg shadow-lg overflow-hidden md:left-16 md:top-3 md:right-auto md:w-72">
       <PanelHeader title="Group" onClose={() => selectFeatures([])} />
       <div className="p-3 space-y-3">
         <Field label="Group label">
@@ -192,7 +192,7 @@ export default function FeatureForm() {
 
   return (
     <FormProvider {...methods}>
-      <div className="absolute left-16 top-3 z-20 w-72 max-h-[80vh] bg-popover rounded-lg shadow-lg overflow-hidden flex flex-col">
+      <div className="absolute left-3 top-16 right-3 z-20 max-h-[80vh] bg-popover rounded-lg shadow-lg overflow-hidden flex flex-col md:left-16 md:top-3 md:right-auto md:w-72">
         <PanelHeader
           title={TYPE_LABELS[selectedFeature.type] ?? "Feature"}
           onClose={() => selectFeature(null)}

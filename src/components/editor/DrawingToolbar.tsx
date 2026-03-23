@@ -23,7 +23,7 @@ const TOOLS: { mode: DrawMode; label: string; icon: React.ReactNode }[] = [
 
 export default function DrawingToolbar() {
   return (
-    <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-2">
+    <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-1.5 max-h-[calc(100vh-6rem)] overflow-y-auto md:p-2">
       <ToolButtons />
       <Separator />
       <UndoRedoButtons />

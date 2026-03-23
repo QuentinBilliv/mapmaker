@@ -23,6 +23,11 @@ export default function BaseMapSelector() {
     );
   }
 
+  function handleBaseMapChange(id: string) {
+    const bm = BASE_MAPS.find((b) => b.id === id);
+    if (bm) setActiveBaseMap(bm);
+  }
+
   return (
     <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-popover rounded-lg shadow-lg p-1">
       <Button
@@ -42,16 +47,27 @@ export default function BaseMapSelector() {
         <FaGlobe className="w-3.5 h-3.5" />
       </Button>
       <div className="w-px h-6 bg-border mx-1" />
-      {BASE_MAPS.map((bm) => (
-        <Button
-          key={bm.id}
-          variant={activeBaseMap.id === bm.id ? "default" : "ghost"}
-          size="sm"
-          onClick={() => setActiveBaseMap(bm)}
-        >
-          {bm.label}
-        </Button>
-      ))}
+      <div className="hidden lg:flex items-center gap-1">
+        {BASE_MAPS.map((bm) => (
+          <Button
+            key={bm.id}
+            variant={activeBaseMap.id === bm.id ? "default" : "ghost"}
+            size="sm"
+            onClick={() => setActiveBaseMap(bm)}
+          >
+            {bm.label}
+          </Button>
+        ))}
+      </div>
+      <select
+        value={activeBaseMap.id}
+        onChange={(e) => handleBaseMapChange(e.target.value)}
+        className="lg:hidden h-8 rounded-md border border-input bg-transparent px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
+      >
+        {BASE_MAPS.map((bm) => (
+          <option key={bm.id} value={bm.id}>{bm.label}</option>
+        ))}
+      </select>
     </div>
   );
 }

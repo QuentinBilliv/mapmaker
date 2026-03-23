@@ -38,7 +38,7 @@ function MetadataToggle({ onOpen }: { onOpen: () => void }) {
     <Button
       variant="outline"
       onClick={onOpen}
-      className="absolute top-3 left-1/2 -translate-x-1/2 z-10 shadow-lg"
+      className="absolute top-3 left-16 z-10 shadow-lg md:left-1/2 md:-translate-x-1/2"
     >
       {map.title || "Untitled"}
     </Button>
@@ -73,7 +73,7 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
 
   return (
     <FormProvider {...methods}>
-      <div className="absolute top-3 left-1/2 -translate-x-1/2 z-10 w-96 bg-popover rounded-lg shadow-lg overflow-hidden">
+      <div className="absolute top-14 left-3 right-3 z-10 bg-popover rounded-lg shadow-lg overflow-hidden md:top-3 md:left-1/2 md:right-auto md:-translate-x-1/2 md:w-96">
         <PanelHeader title="Metadata" onClose={() => { save(); onClose(); }} />
         <form onSubmit={save} className="p-3 space-y-3">
           <MetadataFields save={save} />
