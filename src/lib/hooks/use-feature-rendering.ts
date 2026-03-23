@@ -273,7 +273,13 @@ function syncPerFeatureLayersSorted(
           source: FEATURES_SOURCE,
           layout: {
             "text-field": ["get", "textContent"],
-            "text-size": ["get", "fontSize"],
+            "text-size": [
+              "interpolate", ["linear"], ["zoom"],
+              2, ["*", ["get", "fontSize"], 0.25],
+              5, ["*", ["get", "fontSize"], 0.5],
+              8, ["get", "fontSize"],
+              12, ["*", ["get", "fontSize"], 1.5],
+            ],
             "text-font": ["literal", ["Open Sans Regular", "Arial Unicode MS Regular"]],
             "text-allow-overlap": true,
             "text-anchor": "center",
