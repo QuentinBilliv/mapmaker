@@ -7,6 +7,7 @@ import EditorShell from "@/components/editor/EditorShell";
 import Dashboard from "@/components/dashboard/Dashboard";
 import { ANONYMOUS_FEATURE_LIMIT } from "@/lib/defaults";
 
+
 export default function Home() {
   const { isAuthenticated, isLoading } = useConvexAuth();
 

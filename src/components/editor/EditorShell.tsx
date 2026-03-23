@@ -14,6 +14,7 @@ import LegendPanel from "./LegendPanel";
 import CodePanel from "./CodePanel";
 
 import { Button } from "@/components/ui/button";
+import TutorialWelcome from "./TutorialWelcome";
 
 export default function EditorShell() {
   const [showCode, setShowCode] = useState(false);
@@ -30,6 +31,7 @@ export default function EditorShell() {
         <FeatureForm />
         <BaseMapSelector />
         <Legend />
+        <TutorialWelcome />
         <Button
           variant="outline"
           size="sm"
