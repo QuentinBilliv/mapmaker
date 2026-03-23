@@ -396,6 +396,7 @@ function buildGeoJSONSorted(
           properties: {
             id: f.id,
             label: "",
+            description: f.description ?? "",
             color: f.color,
             opacity: f.opacity,
             order: f.order,
@@ -469,6 +470,7 @@ function buildGeoJSONSorted(
       const props = {
         id: f.id,
         label: f.label,
+        description: f.description ?? "",
         color: f.color,
         opacity: f.opacity,
         order: f.order,

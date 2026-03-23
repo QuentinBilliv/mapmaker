@@ -9,6 +9,7 @@ import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useVertexEditing } from "@/lib/hooks/use-vertex-editing";
 import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 import { useGroupEditing } from "@/lib/hooks/use-group-editing";
+import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 
 export default function MapCanvas() {
   const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
@@ -73,6 +74,7 @@ export default function MapCanvas() {
   useMoveListener(mapRef, updateMap);
   useFlyToListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
+  useFeatureTooltip(mapRef, drawMode, styleVersion);
 
   return <div ref={containerRef} className="w-full h-full bg-black" />;
 }

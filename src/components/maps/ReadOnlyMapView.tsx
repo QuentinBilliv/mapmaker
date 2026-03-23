@@ -4,6 +4,7 @@ import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
+import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
@@ -54,6 +55,7 @@ export default function ReadOnlyMapView({
   }, [mapData.center, mapData.zoom]);
 
   useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
+  useFeatureTooltip(mapRef, "select", 0);
 
   return (
     <div className="flex-1 flex flex-col">

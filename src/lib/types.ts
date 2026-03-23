@@ -141,6 +141,7 @@ interface FeatureBase {
   id: string;
   layerId: string;
   label: string;
+  description: string;
   color: string;
   opacity: number;
   order: number;

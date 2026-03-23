@@ -53,3 +53,17 @@
     @apply bg-background text-foreground;
   }
 }
+
+.mapmaker-tooltip .maplibregl-popup-content {
+  background: hsl(var(--popover));
+  color: hsl(var(--popover-foreground));
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  padding: 6px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+}
+.mapmaker-tooltip .maplibregl-popup-tip {
+  display: none;
+}

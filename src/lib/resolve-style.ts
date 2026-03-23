@@ -70,6 +70,7 @@ export function legendEntryToSyntheticFeature(entry: LegendEntry): FeatureData {
     id: entry.id,
     layerId: "default",
     label: entry.label,
+    description: "",
     color: entry.color,
     opacity: entry.opacity,
     order: 0,

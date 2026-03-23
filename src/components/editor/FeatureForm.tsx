@@ -41,6 +41,7 @@ const TYPE_LABELS: Record<string, string> = {
 function featureToFormValues(f: FeatureData): FeatureFormValues {
   const defaults: FeatureFormValues = {
     label: f.label,
+    description: f.description ?? "",
     color: f.color,
     opacity: f.opacity,
     layerId: f.layerId,
@@ -150,6 +151,7 @@ export default function FeatureForm() {
       const v = result.data;
       updateFeature(selectedFeature.id, {
         label: v.label,
+        description: v.description ?? "",
         color: v.color,
         opacity: v.opacity,
         size: isPoint ? v.size : undefined,
@@ -190,12 +192,12 @@ export default function FeatureForm() {
 
   return (
     <FormProvider {...methods}>
-      <div className="absolute left-16 top-3 z-20 w-72 bg-popover rounded-lg shadow-lg overflow-hidden">
+      <div className="absolute left-16 top-3 z-20 w-72 max-h-[80vh] bg-popover rounded-lg shadow-lg overflow-hidden flex flex-col">
         <PanelHeader
           title={TYPE_LABELS[selectedFeature.type] ?? "Feature"}
           onClose={() => selectFeature(null)}
         />
-        <div className="p-3 space-y-3">
+        <div className="p-3 space-y-3 overflow-y-auto">
           <LegendEntryPicker feature={selectedFeature} />
           <StyleFields />
           {selectedFeature.type === "text" ? (
@@ -241,6 +243,14 @@ function StyleFields() {
           type="text"
           {...register("label")}
           placeholder="e.g. Roman Empire"
+        />
+      </Field>
+      <Field label="Description" error={errors.description?.message}>
+        <Textarea
+          {...register("description")}
+          rows={2}
+          placeholder="Visible on hover"
+          className="resize-y"
         />
       </Field>
       {!hasLegendEntry && (
