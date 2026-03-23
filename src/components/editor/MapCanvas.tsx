@@ -10,6 +10,7 @@ import { useVertexEditing } from "@/lib/hooks/use-vertex-editing";
 import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
+import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 
 export default function MapCanvas() {
   const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
@@ -75,6 +76,7 @@ export default function MapCanvas() {
   useFlyToListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
   useFeatureTooltip(mapRef, drawMode, styleVersion);
+  useLegendHighlight(mapRef, styleVersion);
 
   return <div ref={containerRef} className="w-full h-full bg-black" />;
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
@@ -38,6 +38,7 @@ import {
 } from "@/lib/types";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
+import { useHighlight } from "@/lib/highlight-context";
 import {
   Select,
   SelectContent,
@@ -60,6 +61,16 @@ export function LegendDisplay({
 }: LegendDisplayProps) {
   const [open, setOpen] = useState(false);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const { setHoveredLegendEntryId } = useHighlight();
+
+  const onLegendMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>("[data-legend-id]");
+    setHoveredLegendEntryId(el?.dataset.legendId ?? null);
+  }, [setHoveredLegendEntryId]);
+
+  const onLegendMouseLeave = useCallback(() => {
+    setHoveredLegendEntryId(null);
+  }, [setHoveredLegendEntryId]);
 
   const sortedEntries = [...legendEntries].sort((a, b) => a.order - b.order);
   const hasItems = sortedEntries.length > 0;
@@ -93,13 +104,14 @@ export function LegendDisplay({
             </div>
           </div>
           {hasItems ? (
-            <div className="grid grid-cols-3 gap-x-3 gap-y-1">
+            <div className="grid grid-cols-3" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
               {sortedEntries.map((entry) => {
                 const synthetic = legendEntryToSyntheticFeature(entry);
                 return (
                   <div
                     key={entry.id}
-                    className="flex flex-col items-center gap-0.5"
+                    data-legend-id={entry.id}
+                    className="flex flex-col items-center gap-0.5 cursor-default rounded px-2 py-1.5 hover:ring-1 hover:ring-primary/40"
                   >
                     <FeatureSwatch feature={synthetic} />
                     {entry.label && (

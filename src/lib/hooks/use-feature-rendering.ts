@@ -401,6 +401,7 @@ function buildGeoJSONSorted(
             opacity: f.opacity,
             order: f.order,
             featureType: "text",
+            legendEntryId: f.legendEntryId ?? "",
             layerId: f.layerId,
             rotation: f.rotation ?? 0,
             textContent: f.textContent ?? "Text",
@@ -447,7 +448,7 @@ function buildGeoJSONSorted(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth },
+              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
             });
           }
           if (f.arrowStyle === "both") {
@@ -456,7 +457,7 @@ function buildGeoJSONSorted(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth },
+              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
             });
           }
         }
@@ -477,6 +478,7 @@ function buildGeoJSONSorted(
         size: f.type === "point" ? f.size : 1,
         rotation: f.rotation ?? 0,
         featureType: f.type,
+        legendEntryId: f.legendEntryId ?? "",
         layerId: f.layerId,
         iconId,
         patternId,

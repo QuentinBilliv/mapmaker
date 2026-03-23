@@ -1,18 +1,29 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { CreateEntryDialog, EditEntryDialog } from "@/components/ui/legend-display";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
 import { FaTrash, FaPen } from "react-icons/fa6";
+import { useHighlight } from "@/lib/highlight-context";
 
 export default function LegendPanel() {
   const { legendEntries } = useEditorData();
   const { addLegendEntry, updateLegendEntry, deleteLegendEntry } = useEditorActions();
+  const { setHoveredLegendEntryId } = useHighlight();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+
+  const onLegendMouseMove = useCallback((e: React.MouseEvent) => {
+    const el = (e.target as HTMLElement).closest<HTMLElement>("[data-legend-id]");
+    setHoveredLegendEntryId(el?.dataset.legendId ?? null);
+  }, [setHoveredLegendEntryId]);
+
+  const onLegendMouseLeave = useCallback(() => {
+    setHoveredLegendEntryId(null);
+  }, [setHoveredLegendEntryId]);
 
   useEffect(() => {
     const handler = () => setDialogOpen(true);
@@ -41,11 +52,12 @@ export default function LegendPanel() {
           No legend entries. Click + to add one.
         </p>
       ) : (
-        <div className="overflow-y-auto max-h-48">
+        <div className="overflow-y-auto max-h-48" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
           {sorted.map((entry) => (
             <div
               key={entry.id}
-              className="group/row flex items-center gap-2 px-3 py-1.5 text-sm border-b last:border-b-0 hover:bg-muted"
+              data-legend-id={entry.id}
+              className="group/row flex items-center gap-2 px-3 py-1.5 text-sm border-b last:border-b-0 hover:bg-muted hover:ring-1 hover:ring-primary/40 hover:rounded"
             >
               <FeatureSwatch feature={legendEntryToSyntheticFeature(entry)} width={36} height={22} />
               <span className="flex-1 truncate text-xs">{entry.label || "Untitled"}</span>

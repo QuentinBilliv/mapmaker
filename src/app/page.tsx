@@ -2,6 +2,7 @@
 
 import { useConvexAuth } from "convex/react";
 import { EditorProvider } from "@/lib/editor-context";
+import { HighlightProvider } from "@/lib/highlight-context";
 import EditorShell from "@/components/editor/EditorShell";
 import Navbar from "@/components/layout/Navbar";
 import Dashboard from "@/components/dashboard/Dashboard";
@@ -28,9 +29,11 @@ export default function Home() {
 
   return (
     <EditorProvider>
-      <div className="h-screen w-screen flex overflow-hidden">
-        <EditorShell />
-      </div>
+      <HighlightProvider>
+        <div className="h-screen w-screen flex overflow-hidden">
+          <EditorShell />
+        </div>
+      </HighlightProvider>
     </EditorProvider>
   );
 }
