@@ -117,12 +117,12 @@ describe("mapmaker-format round-trip", () => {
     expect(f.type).toBe("polygon");
     if (f.type !== "polygon") throw new Error("unexpected type");
     expect(f.smoothing).toBe(POLYGON.smoothing);
-    expect(f.strokeWidth).toBe((POLYGON as any).strokeWidth);
-    expect(f.lineStyle).toBe((POLYGON as any).lineStyle);
-    expect(f.lineDecoration).toBe((POLYGON as any).lineDecoration);
-    expect(f.decorationSpacing).toBe((POLYGON as any).decorationSpacing);
-    expect(f.fillPattern).toBe((POLYGON as any).fillPattern);
-    expect(f.shapeOrigin).toBe((POLYGON as any).shapeOrigin);
+    expect(f.strokeWidth).toBe(POLYGON.strokeWidth);
+    expect(f.lineStyle).toBe(POLYGON.lineStyle);
+    expect(f.lineDecoration).toBe(POLYGON.lineDecoration);
+    expect(f.decorationSpacing).toBe(POLYGON.decorationSpacing);
+    expect(f.fillPattern).toBe(POLYGON.fillPattern);
+    expect(f.shapeOrigin).toBe(POLYGON.shapeOrigin);
   });
 
   it("preserves polyline properties", () => {

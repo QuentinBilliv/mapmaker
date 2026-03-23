@@ -54,7 +54,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
   }
 
   const data = hasInlineData
-    ? { layers: map.layers!, features: map.features!, groups: map.groups!, legendEntries: (map as any).legendEntries ?? [] }
+    ? { layers: map.layers!, features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
     : fileData;
 
   if (!data) return <Loading />;

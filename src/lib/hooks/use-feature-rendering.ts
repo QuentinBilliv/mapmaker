@@ -167,15 +167,6 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
 
 }
 
-function syncPerFeatureLayers(
-  map: maplibregl.Map,
-  features: FeatureData[],
-  layers: LayerData[],
-  groups: GroupData[] = []
-) {
-  syncPerFeatureLayersSorted(map, visibleSorted(features, layers, groups));
-}
-
 function syncPerFeatureLayersSorted(
   map: maplibregl.Map,
   sorted: FeatureData[],
@@ -369,15 +360,6 @@ function visibleSorted(features: FeatureData[], _layers: LayerData[], groups: Gr
   return result;
 }
 
-function buildGeoJSON(
-  map: maplibregl.Map,
-  features: FeatureData[],
-  layers: LayerData[],
-  groups: GroupData[] = []
-): BuildResult {
-  return buildGeoJSONSorted(map, visibleSorted(features, layers, groups));
-}
-
 function buildGeoJSONSorted(
   map: maplibregl.Map,
   sorted: FeatureData[],
@@ -513,15 +495,12 @@ function setSourceData(
   layers: LayerData[],
   groups: GroupData[] = []
 ): Promise<string>[] {
-  return setSourceDataSorted(map, visibleSorted(features, layers, groups), features, layers, groups);
+  return setSourceDataSorted(map, visibleSorted(features, layers, groups));
 }
 
 function setSourceDataSorted(
   map: maplibregl.Map,
   sorted: FeatureData[],
-  features: FeatureData[],
-  layers: LayerData[],
-  groups: GroupData[] = []
 ): Promise<string>[] {
   const source = map.getSource(FEATURES_SOURCE) as maplibregl.GeoJSONSource;
   const arrowSource = map.getSource(ARROW_SOURCE) as maplibregl.GeoJSONSource;
@@ -554,7 +533,7 @@ function fullUpdate(
 ) {
   ensureSourceAndLayers(map);
   const sorted = visibleSorted(features, layers, groups);
-  const pending = setSourceDataSorted(map, sorted, features, layers, groups);
+  const pending = setSourceDataSorted(map, sorted);
   syncPerFeatureLayersSorted(map, sorted);
   syncDecoSpacing(map, features);
   if (pending.length > 0) {
@@ -596,7 +575,7 @@ export function useFeatureRendering(
 
     if (map.getSource(FEATURES_SOURCE)) {
       const sorted = visibleSorted(resolved, layers, groups);
-      const pending = setSourceDataSorted(map, sorted, resolved, layers, groups);
+      const pending = setSourceDataSorted(map, sorted);
       const key = structuralKey(sorted);
       if (key !== lastKeyRef.current) {
         lastKeyRef.current = key;
@@ -606,7 +585,7 @@ export function useFeatureRendering(
       if (pending.length > 0) {
         Promise.all(pending).then(() => {
           if (dead) return;
-          setSourceDataSorted(map, sorted, resolved, layers, groups);
+          setSourceDataSorted(map, sorted);
         });
       }
     } else {
