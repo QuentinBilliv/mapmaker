@@ -11,14 +11,13 @@ import BaseMapSelector from "./BaseMapSelector";
 import Legend from "./Legend";
 import FeaturePanel from "./FeaturePanel";
 import LegendPanel from "./LegendPanel";
-import CodePanel from "./CodePanel";
+import ExportImportButtons from "./ExportImportButtons";
 
 import { Button } from "@/components/ui/button";
 import TutorialWelcome from "./TutorialWelcome";
-import { FaLayerGroup } from "react-icons/fa6";
+import { FaLayerGroup, FaXmark } from "react-icons/fa6";
 
 export default function EditorShell() {
-  const [showCode, setShowCode] = useState(false);
   const [showSidebar, setShowSidebar] = useState(false);
 
   return (
@@ -43,14 +42,9 @@ export default function EditorShell() {
           >
             <FaLayerGroup className="w-3.5 h-3.5" />
           </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="hidden md:inline-flex text-xs bg-background/80 backdrop-blur-sm"
-            onClick={() => setShowCode((v) => !v)}
-          >
-            {showCode ? "Hide JSON" : "{ } JSON"}
-          </Button>
+          <div className="hidden md:flex gap-1.5">
+            <ExportImportButtons />
+          </div>
         </div>
       </div>
       {showSidebar && (
@@ -64,14 +58,21 @@ export default function EditorShell() {
           showSidebar ? "translate-x-0" : "translate-x-full"
         }`}
       >
+        <div className="flex items-center justify-between px-3 py-2 border-b shrink-0 md:hidden">
+          <div className="flex gap-1.5">
+            <ExportImportButtons />
+          </div>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => setShowSidebar(false)}
+          >
+            <FaXmark className="w-4 h-4" />
+          </Button>
+        </div>
         <FeaturePanel />
         <LegendPanel />
       </aside>
-      {showCode && (
-        <aside className="hidden md:flex w-96 h-full border-l bg-background flex-col overflow-hidden shrink-0">
-          <CodePanel onClose={() => setShowCode(false)} />
-        </aside>
-      )}
     </div>
   );
 }

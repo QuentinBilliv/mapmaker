@@ -35,7 +35,7 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex-1 p-6">
+    <div className="flex-1 overflow-y-auto p-6">
       <div className="w-full max-w-4xl mx-auto space-y-6">
         <div>
           <h1 className="text-lg font-semibold">
