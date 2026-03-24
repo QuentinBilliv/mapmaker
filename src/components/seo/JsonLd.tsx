@@ -5,7 +5,7 @@ export function WebAppJsonLd() {
     name: "MapMaker",
     url: "https://mapmaker.dev",
     description:
-      "Draw, style, and share historical and thematic maps online. Free browser-based cartography tool with GeoJSON export.",
+      "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
     applicationCategory: "DesignApplication",
     operatingSystem: "Any",
     offers: {

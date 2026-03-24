@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "MapMaker — Historical & thematic cartography";
+export const alt = "MapMaker — Thematic cartography";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -65,7 +65,7 @@ export default function OGImage() {
             lineHeight: 1.4,
           }}
         >
-          Create historical & thematic maps online
+          Create thematic maps online
         </span>
         <span
           style={{

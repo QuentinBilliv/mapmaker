@@ -1,12 +1,8 @@
 "use client";
 
 import { useConvexAuth } from "convex/react";
-import { EditorProvider } from "@/lib/editor-context";
-import { HighlightProvider } from "@/lib/highlight-context";
-import EditorShell from "@/components/editor/EditorShell";
 import Dashboard from "@/components/dashboard/Dashboard";
-import { ANONYMOUS_FEATURE_LIMIT } from "@/lib/defaults";
-
+import LandingPage from "@/components/landing/LandingPage";
 
 export default function Home() {
   const { isAuthenticated, isLoading } = useConvexAuth();
@@ -23,13 +19,5 @@ export default function Home() {
     return <Dashboard />;
   }
 
-  return (
-    <EditorProvider featureLimit={ANONYMOUS_FEATURE_LIMIT} isAnonymous>
-      <HighlightProvider>
-        <div className="flex flex-1 overflow-hidden">
-          <EditorShell />
-        </div>
-      </HighlightProvider>
-    </EditorProvider>
-  );
+  return <LandingPage />;
 }

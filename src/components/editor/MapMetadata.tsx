@@ -94,7 +94,7 @@ function MetadataFields({ save }: { save: () => void }) {
         <Input
           type="text"
           {...register("title", { onBlur: save })}
-          placeholder="My historical map"
+          placeholder="My map"
         />
       </Field>
       <Field label="Description" error={errors.description?.message}>

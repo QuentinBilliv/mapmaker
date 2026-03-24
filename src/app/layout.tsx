@@ -22,14 +22,14 @@ const SITE_URL = "https://mapmaker.dev";
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "MapMaker — Create historical & thematic maps",
+    default: "MapMaker — Create thematic maps",
     template: "%s | MapMaker",
   },
   description:
-    "Draw, style, and share historical and thematic maps online. Free browser-based cartography tool with GeoJSON export.",
+    "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
   keywords: [
     "map maker",
-    "historical maps",
+    "thematic maps",
     "thematic cartography",
     "draw map online",
     "GeoJSON editor",
@@ -43,23 +43,23 @@ export const metadata: Metadata = {
     locale: "en_US",
     url: SITE_URL,
     siteName: "MapMaker",
-    title: "MapMaker — Create historical & thematic maps",
+    title: "MapMaker — Create thematic maps",
     description:
-      "Draw, style, and share historical and thematic maps online. Free browser-based cartography tool with GeoJSON export.",
+      "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
     images: [
       {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "MapMaker — Historical & thematic cartography",
+        alt: "MapMaker — Thematic cartography",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MapMaker — Create historical & thematic maps",
+    title: "MapMaker — Create thematic maps",
     description:
-      "Draw, style, and share historical and thematic maps online. Free browser-based cartography tool.",
+      "Draw, style, and share thematic maps online. Free browser-based cartography tool.",
     images: ["/opengraph-image"],
   },
   robots: {
