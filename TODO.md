@@ -3,7 +3,7 @@
 ## High priority — Acquisition & retention
 
 - [x] Landing page with value proposition, map examples, and CTA "Start creating"
-- [ ] Dynamic OG image per public map (show map thumbnail when sharing /maps/[id])
+- [x] Dynamic OG image per public map (show map thumbnail when sharing /maps/[id])
 - [ ] Analytics (Plausible or PostHog)
 
 ## Medium priority — Polish
