@@ -2,7 +2,7 @@
 
 ## High priority — Acquisition & retention
 
-- [ ] Landing page with value proposition, map examples, and CTA "Start creating"
+- [x] Landing page with value proposition, map examples, and CTA "Start creating"
 - [ ] Dynamic OG image per public map (show map thumbnail when sharing /maps/[id])
 - [ ] Analytics (Plausible or PostHog)
 

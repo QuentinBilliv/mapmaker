@@ -51,6 +51,7 @@ export default function ExportImportButtons() {
           importMapData(data);
           setStatus({ message: "Map imported", error: false });
         } catch (err) {
+          console.error("MapMaker import error:", err);
           setStatus({ message: err instanceof Error ? err.message : "Invalid file", error: true });
         }
       } else {
@@ -96,7 +97,8 @@ export default function ExportImportButtons() {
           } else {
             setStatus({ message: "No valid geometries found", error: true });
           }
-        } catch {
+        } catch (err) {
+          console.error("GeoJSON import error:", err);
           setStatus({ message: "Invalid JSON file", error: true });
         }
       }

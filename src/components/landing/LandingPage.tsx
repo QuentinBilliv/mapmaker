@@ -1,7 +1,15 @@
 "use client";
 
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { FaArrowRight, FaPenRuler, FaLayerGroup, FaShareNodes, FaGlobe, FaPalette, FaShapes } from "react-icons/fa6";
+import { FaArrowRight, FaPenRuler, FaLayerGroup, FaShareNodes, FaGlobe, FaPalette, FaShapes, FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+
+const SHOWCASE_MAPS = [
+  { id: "jx78nmwn7a4w8rfhr4dgtznb8h83h3pn", image: "/showcase_1.png", title: "Iceland — Nature & National Parks", description: "Volcanoes, glaciers, waterfalls, and the Ring Road" },
+  { id: "jx7aqv0cn9d72s2s599jx56vbx83hex4", image: "/showcase_2.png", title: "Sake Regions of Japan", description: "Major sake-producing prefectures and their brewing styles" },
+  { id: "jx7e1kxsvx5fdcde4refmhejxd8393bp", image: "/showcase_3.png", title: "The Silk Road", description: "Overland and maritime trade routes from China to the Mediterranean" },
+  { id: "jx723w16yzc4w2fyd73xwz37s583h0kn", image: "/showcase_4.png", title: "Ancient Egypt", description: "Archaeological sites, oases, and trade routes along the Nile" },
+];
 
 export default function LandingPage() {
   return (
@@ -57,56 +65,80 @@ function Hero() {
         </div>
         <div className="mt-16 md:mt-24 relative">
           <div className="absolute -inset-4 bg-gradient-to-t from-[#0f0f0f] via-transparent to-transparent z-10 pointer-events-none" />
-          <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden shadow-2xl shadow-black/40">
-            <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/5">
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-              <span className="ml-3 text-[10px] text-white/20 tracking-wider">mapmaker.dev</span>
-            </div>
-            <div className="aspect-[16/9] bg-gradient-to-br from-[#1a2332] via-[#1e3a2f] to-[#2a1f1a] flex items-center justify-center relative overflow-hidden">
-              <EditorMockup />
-            </div>
-          </div>
+          <MapCarousel />
         </div>
       </div>
     </section>
   );
 }
 
-function EditorMockup() {
+function MapCarousel() {
+  const [current, setCurrent] = useState(0);
+  const [paused, setPaused] = useState(false);
+
+  const next = useCallback(() => setCurrent((i) => (i + 1) % SHOWCASE_MAPS.length), []);
+  const prev = useCallback(() => setCurrent((i) => (i - 1 + SHOWCASE_MAPS.length) % SHOWCASE_MAPS.length), []);
+
+  useEffect(() => {
+    if (paused) return;
+    const timer = setInterval(next, 5000);
+    return () => clearInterval(timer);
+  }, [paused, next]);
+
   return (
-    <div className="w-full h-full relative flex">
-      <div className="absolute inset-0 opacity-30" style={{
-        backgroundImage: `url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 100c50-30 100 20 200-10' stroke='%234a90d9' stroke-width='2' fill='none' opacity='.3'/%3E%3Cpath d='M30 0c-10 60 40 120 20 200' stroke='%234a90d9' stroke-width='1.5' fill='none' opacity='.2'/%3E%3C/svg%3E")`,
-      }} />
-      <div className="absolute left-4 top-4 flex flex-col gap-1.5">
-        {["▸", "⬠", "▭", "◯", "╲", "●", "T"].map((icon, i) => (
-          <div key={i} className={`w-7 h-7 rounded flex items-center justify-center text-[10px] ${i === 1 ? "bg-white/20 text-white" : "bg-white/5 text-white/40"}`}>
-            {icon}
-          </div>
-        ))}
+    <div
+      className="relative"
+      onMouseEnter={() => setPaused(true)}
+      onMouseLeave={() => setPaused(false)}
+    >
+      <div className="rounded-xl border border-white/10 bg-white/[0.03] overflow-hidden shadow-2xl shadow-black/40">
+        <div className="flex items-center gap-1.5 px-4 py-2.5 border-b border-white/5">
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+          <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
+          <span className="ml-3 text-[10px] text-white/20 tracking-wider">mapmaker.dev</span>
+        </div>
+        <div className="aspect-[16/9] bg-[#1a1a1a] relative overflow-hidden">
+          {SHOWCASE_MAPS.map((m, i) => (
+            <div
+              key={m.id}
+              className="absolute inset-0 transition-opacity duration-700"
+              style={{ opacity: i === current ? 1 : 0 }}
+            >
+              <Link href={`/maps/${m.id}`} className="block w-full h-full relative">
+                <img
+                  src={m.image}
+                  alt={m.title}
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute bottom-0 left-0 right-0 px-4 pb-8 pt-16 md:px-6 md:pb-10 md:pt-28" style={{ background: "linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.85) 35%, rgba(0,0,0,0) 100%)" }}>
+                  <h3 className="text-white font-bold text-sm md:text-2xl">{m.title}</h3>
+                  <p className="text-white text-xs md:text-sm mt-1 md:mt-1.5 opacity-80 hidden sm:block">{m.description}</p>
+                </div>
+              </Link>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="absolute top-[15%] left-[20%] w-[35%] h-[40%] rounded-sm border-2 border-amber-400/50 bg-amber-400/10" />
-      <div className="absolute top-[25%] left-[50%]">
-        <div className="w-4 h-4 rounded-full bg-red-500 border-2 border-white shadow-lg" />
-      </div>
-      <div className="absolute top-[55%] left-[30%] right-[25%] h-0.5 bg-blue-400/60" style={{
-        clipPath: "polygon(0% 50%, 15% 0%, 35% 100%, 55% 20%, 75% 80%, 100% 50%)",
-        height: "30px",
-      }} />
-      <svg className="absolute top-[50%] left-[28%]" width="200" height="40" viewBox="0 0 200 40">
-        <path d="M0 20 Q30 0 60 25 T120 15 T200 20" stroke="rgba(96,165,250,0.6)" strokeWidth="2.5" fill="none" />
-      </svg>
-      <div className="absolute right-0 top-0 bottom-0 w-44 bg-black/30 backdrop-blur-sm border-l border-white/5">
-        <div className="px-3 py-2 border-b border-white/5 text-[10px] text-white/40 font-medium tracking-wider">FEATURES</div>
-        {["Roman territory", "Trade route", "Alexandria", "Border line"].map((name, i) => (
-          <div key={i} className="flex items-center gap-2 px-3 py-1.5 text-[10px] text-white/50">
-            <div className={`w-5 h-3 rounded-sm ${
-              i === 0 ? "bg-amber-400/40" : i === 1 ? "bg-blue-400/40" : i === 2 ? "bg-red-400/60" : "bg-white/20"
-            }`} />
-            {name}
-          </div>
+      <button
+        onClick={prev}
+        className="absolute left-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white/70 hover:text-white flex items-center justify-center transition-colors"
+      >
+        <FaChevronLeft className="w-3 h-3" />
+      </button>
+      <button
+        onClick={next}
+        className="absolute right-3 top-1/2 -translate-y-1/2 z-20 w-8 h-8 rounded-full bg-black/50 hover:bg-black/70 text-white/70 hover:text-white flex items-center justify-center transition-colors"
+      >
+        <FaChevronRight className="w-3 h-3" />
+      </button>
+      <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-2">
+        {SHOWCASE_MAPS.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => setCurrent(i)}
+            className={`w-2 h-2 rounded-full transition-colors ${i === current ? "bg-white" : "bg-white/30"}`}
+          />
         ))}
       </div>
     </div>

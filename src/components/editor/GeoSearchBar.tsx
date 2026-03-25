@@ -13,10 +13,12 @@ interface SearchResult {
 
 export default function GeoSearchButton() {
   const [open, setOpen] = useState(false);
+  const btnRef = useRef<HTMLButtonElement>(null);
 
   return (
-    <div className="relative">
+    <>
       <Button
+        ref={btnRef}
         variant={open ? "default" : "ghost"}
         size="icon"
         onClick={() => setOpen((v) => !v)}
@@ -24,23 +26,28 @@ export default function GeoSearchButton() {
       >
         <FaMagnifyingGlass className="text-sm" />
       </Button>
-      {open && <GeoSearchPopover onClose={() => setOpen(false)} />}
-    </div>
+      {open && <GeoSearchPopover anchorRef={btnRef} onClose={() => setOpen(false)} />}
+    </>
   );
 }
 
-function GeoSearchPopover({ onClose }: { onClose: () => void }) {
+function GeoSearchPopover({ anchorRef, onClose }: { anchorRef: React.RefObject<HTMLButtonElement | null>; onClose: () => void }) {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [showResults, setShowResults] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [pos, setPos] = useState<{ top: number; left: number }>({ top: 0, left: 0 });
   const timerRef = useRef<ReturnType<typeof setTimeout>>();
   const containerRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
+    if (anchorRef.current) {
+      const rect = anchorRef.current.getBoundingClientRect();
+      setPos({ top: rect.top, left: rect.right + 8 });
+    }
     inputRef.current?.focus();
-  }, []);
+  }, [anchorRef]);
 
   useEffect(() => {
     const handler = (e: MouseEvent) => {
@@ -87,7 +94,7 @@ function GeoSearchPopover({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <div ref={containerRef} className="absolute left-full ml-2 top-0 z-20 w-72">
+    <div ref={containerRef} className="fixed z-50 w-72" style={{ top: pos.top, left: pos.left }}>
       <div className="relative">
         <Input
           ref={inputRef}
