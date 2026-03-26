@@ -9,6 +9,7 @@ import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
 import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
+import { EmbedButton } from "@/components/maps/EmbedButton";
 import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
@@ -89,9 +90,12 @@ function ReadOnlyMapViewInner({
             ))}
           </div>
         )}
-        <p className="text-[10px] text-muted-foreground mt-1">
-          License: {mapData.license}
-        </p>
+        <div className="flex items-center gap-3 mt-1">
+          <p className="text-[10px] text-muted-foreground">
+            License: {mapData.license}
+          </p>
+          <EmbedButton mapId={mapData.id} />
+        </div>
       </div>
       <div ref={containerRef} className="flex-1 relative">
         <LegendDisplay features={features} legendEntries={legendEntries} />

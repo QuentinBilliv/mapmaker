@@ -9,8 +9,8 @@
 ## Medium priority — Polish
 
 - [x] Custom 404 and 500 error pages
-- [ ] Dark mode
-- [ ] Embed support — allow embedding public maps via iframe
+- [x] Dark mode
+- [x] Embed support — allow embedding public maps via iframe
 - [ ] Keyboard shortcuts reference (visible in UI)
 
 ## Later — Growth
