@@ -146,7 +146,7 @@ export default function MapCard({
       {onDelete && (
         <Dialog>
           <DialogTrigger asChild>
-            <button className="absolute top-2 right-2 size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer opacity-0 group-hover:opacity-100 transition-opacity">
+            <button className="absolute top-2 right-2 size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer md:opacity-0 md:group-hover:opacity-100 transition-opacity">
               <XIcon className="size-3.5" />
             </button>
           </DialogTrigger>

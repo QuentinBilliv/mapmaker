@@ -1,18 +1,15 @@
 "use client";
 
 import { useQuery, useMutation } from "convex/react";
-import { useRouter } from "next/navigation";
 import { api } from "@convex/_generated/api";
-import { PlusIcon } from "lucide-react";
 import MapCard from "@/components/maps/MapCard";
+import NewMapDialog from "@/components/dashboard/NewMapDialog";
 
 export default function Dashboard() {
   const me = useQuery(api.users.getMe);
   const maps = useQuery(api.maps.getMyMaps);
-  const createMap = useMutation(api.maps.createMap);
   const deleteMap = useMutation(api.maps.deleteMap);
   const setVisibility = useMutation(api.maps.setVisibility);
-  const router = useRouter();
 
   if (!me || maps === undefined) {
     return (
@@ -24,15 +21,6 @@ export default function Dashboard() {
 
   const limit = me.mapLimit;
   const atLimit = maps.length >= limit;
-
-  async function handleNewMap() {
-    try {
-      const id = await createMap();
-      router.push(`/maps/${id}/edit`);
-    } catch (err) {
-      console.error(err);
-    }
-  }
 
   return (
     <div className="flex-1 overflow-y-auto p-6">
@@ -65,15 +53,7 @@ export default function Dashboard() {
                 onDelete={() => deleteMap({ mapId: m._id }).catch(console.error)}
               />
             ))}
-            {!atLimit && (
-              <button
-                onClick={handleNewMap}
-                className="border border-dashed rounded-lg flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors min-h-[200px]"
-              >
-                <PlusIcon className="size-8" />
-                <span className="text-sm font-medium">New map</span>
-              </button>
-            )}
+            {!atLimit && <NewMapDialog />}
           </div>
         </div>
       </div>

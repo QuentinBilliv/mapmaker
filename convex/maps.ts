@@ -169,6 +169,48 @@ export const createMap = mutation({
   },
 });
 
+export const createMapFromTemplate = mutation({
+  args: { templateMapId: v.id("maps") },
+  handler: async (ctx, { templateMapId }) => {
+    const user = await getAuthenticatedUser(ctx);
+    const allMaps = await ctx.db
+      .query("maps")
+      .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
+      .collect();
+    const existing = allMaps.filter((m) => !m.deletedAt);
+    const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
+    if (existing.length >= limit) {
+      throw new Error(
+        `Map limit reached (${limit}). Upgrade your account to create more maps.`
+      );
+    }
+    const template = await ctx.db.get(templateMapId);
+    if (!template || template.deletedAt) {
+      throw new Error("Template not found");
+    }
+    const now = Date.now();
+    const title = `${template.title} (copy)`;
+    return await ctx.db.insert("maps", {
+      ownerId: user._id,
+      title,
+      description: template.description,
+      tags: template.tags,
+      license: template.license,
+      center: template.center,
+      zoom: template.zoom,
+      baseMapId: template.baseMapId,
+      layers: template.layers,
+      features: template.features,
+      groups: template.groups,
+      visibility: "private",
+      ownerName: user.name,
+      searchText: buildSearchText(title, template.tags, user.name),
+      createdAt: now,
+      updatedAt: now,
+    });
+  },
+});
+
 export const saveMap = mutation({
   args: {
     mapId: v.id("maps"),
@@ -207,7 +249,18 @@ export const deleteMap = mutation({
   handler: async (ctx, { mapId }) => {
     const { map } = await checkMapOwnership(ctx, mapId);
     if (map.dataFileId) {
-      await ctx.storage.delete(map.dataFileId);
+      try {
+        await ctx.storage.delete(map.dataFileId);
+      } catch {
+        // Storage file may not exist (e.g. copied from template)
+      }
+    }
+    if (map.thumbnailId) {
+      try {
+        await ctx.storage.delete(map.thumbnailId);
+      } catch {
+        // Thumbnail may not exist
+      }
     }
     await ctx.db.patch(map._id, { deletedAt: Date.now() });
   },

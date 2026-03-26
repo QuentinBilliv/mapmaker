@@ -15,6 +15,6 @@
 
 ## Later — Growth
 
-- [ ] Map templates (e.g. Roman Empire, trade routes) for quick start
+- [x] Map templates (e.g. Roman Empire, trade routes) for quick start
 - [ ] Export map as PNG/SVG image
 - [ ] Collaboration — shared editing via link
