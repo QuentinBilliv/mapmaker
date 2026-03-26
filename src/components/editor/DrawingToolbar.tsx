@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import GeoBankDialog from "@/components/editor/GeoBankDialog";
 import GeoSearchButton from "@/components/editor/GeoSearchBar";
+import KeyboardShortcutsButton from "@/components/editor/KeyboardShortcutsDialog";
 
 const TOOLS: { mode: DrawMode; label: string; icon: React.ReactNode }[] = [
   { mode: "select", label: "Select", icon: <FaArrowPointer className="w-4 h-4" /> },
@@ -30,6 +31,7 @@ export default function DrawingToolbar() {
       <Separator />
       <GeoBankButton />
       <GeoSearchButton />
+      <KeyboardShortcutsButton />
     </div>
   );
 }
