@@ -170,7 +170,7 @@ const FEATURES = [
   {
     icon: FaShareNodes,
     title: "Share your maps",
-    desc: "Publish your maps with a public link and let anyone explore your work directly in the browser.",
+    desc: "Publish your maps with a public link or embed them on any website with a simple iframe snippet.",
   },
   {
     icon: FaGlobe,
