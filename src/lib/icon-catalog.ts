@@ -14,10 +14,18 @@ export interface IconPack {
   loader: () => Promise<Record<string, unknown>>;
 }
 
+async function safeImport(loader: () => Promise<Record<string, unknown>>): Promise<Record<string, unknown>> {
+  try {
+    return await loader();
+  } catch {
+    return {};
+  }
+}
+
 const PACKS: IconPack[] = [
-  { id: "fa6", label: "Font Awesome", prefix: "Fa", loader: () => import("react-icons/fa6") },
-  { id: "gi", label: "Game Icons", prefix: "Gi", loader: () => import("react-icons/gi") },
-  { id: "io5", label: "Ionicons", prefix: "Io", loader: () => import("react-icons/io5") },
+  { id: "fa6", label: "Font Awesome", prefix: "Fa", loader: () => safeImport(() => import("react-icons/fa6") as Promise<Record<string, unknown>>) },
+  { id: "gi", label: "Game Icons", prefix: "Gi", loader: () => safeImport(() => import("react-icons/gi") as Promise<Record<string, unknown>>) },
+  { id: "io5", label: "Ionicons", prefix: "Io", loader: () => safeImport(() => import("react-icons/io5") as Promise<Record<string, unknown>>) },
 ];
 
 export { PACKS };

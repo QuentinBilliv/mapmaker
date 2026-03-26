@@ -8,6 +8,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
+import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
 import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
@@ -109,6 +110,7 @@ function EmbedMapView({
 
   useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
   useFeatureTooltip(mapRef, "select", 0);
+  useLegendHighlight(mapRef, 0);
 
   return (
     <div className="w-full h-full relative">

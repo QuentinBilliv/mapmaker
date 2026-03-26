@@ -15,7 +15,7 @@ const TEMPLATES = [
     image: "/showcase_1.png",
   },
   {
-    id: "jx7aqv0cn9d72s2s599jx56vbx83hex4" as Id<"maps">,
+    id: "jx77494rrqvc0012k7c0sznrbd83nj0c" as Id<"maps">,
     title: "Sake Regions of Japan",
     description: "Major sake-producing prefectures and their brewing styles",
     image: "/showcase_2.png",

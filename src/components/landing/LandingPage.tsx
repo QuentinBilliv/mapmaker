@@ -6,7 +6,7 @@ import { FaArrowRight, FaPenRuler, FaLayerGroup, FaShareNodes, FaGlobe, FaPalett
 
 const SHOWCASE_MAPS = [
   { id: "jx78nmwn7a4w8rfhr4dgtznb8h83h3pn", image: "/showcase_1.png", title: "Iceland — Nature & National Parks", description: "Volcanoes, glaciers, waterfalls, and the Ring Road" },
-  { id: "jx7aqv0cn9d72s2s599jx56vbx83hex4", image: "/showcase_2.png", title: "Sake Regions of Japan", description: "Major sake-producing prefectures and their brewing styles" },
+  { id: "jx77494rrqvc0012k7c0sznrbd83nj0c", image: "/showcase_2.png", title: "Sake Regions of Japan", description: "Major sake-producing prefectures and their brewing styles" },
   { id: "jx7e1kxsvx5fdcde4refmhejxd8393bp", image: "/showcase_3.png", title: "The Silk Road", description: "Overland and maritime trade routes from China to the Mediterranean" },
   { id: "jx723w16yzc4w2fyd73xwz37s583h0kn", image: "/showcase_4.png", title: "Ancient Egypt", description: "Archaeological sites, oases, and trade routes along the Nile" },
 ];
@@ -16,6 +16,7 @@ export default function LandingPage() {
     <div className="flex-1 overflow-y-auto">
       <Hero />
       <Features />
+      <EmbedDemo />
       <HowItWorks />
       <CallToAction />
       <Footer />
@@ -199,6 +200,31 @@ function Features() {
               <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">{f.desc}</p>
             </div>
           ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function EmbedDemo() {
+  return (
+    <section className="bg-white py-20 md:py-28 border-t border-black/5">
+      <div className="max-w-5xl mx-auto px-6">
+        <p className="text-xs tracking-[0.2em] uppercase text-amber-700/60 font-medium mb-3">Try it</p>
+        <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a1a] mb-4">
+          Explore a map
+        </h2>
+        <p className="text-base text-[#1a1a1a]/50 max-w-xl mb-8">
+          This is a real map made with MapMaker. Zoom, pan, and hover to explore.
+        </p>
+        <div className="rounded-xl overflow-hidden border shadow-lg">
+          <iframe
+            src="/embed/jx77494rrqvc0012k7c0sznrbd83nj0c"
+            width="100%"
+            height="500"
+            style={{ border: "none" }}
+            allowFullScreen
+          />
         </div>
       </div>
     </section>

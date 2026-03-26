@@ -202,7 +202,8 @@ export default function FeatureForm() {
           <StyleFields />
           {selectedFeature.type === "text" ? (
             <>
-              {!selectedFeature.legendEntryId && <TextFields />}
+              <TextContentField />
+              {!selectedFeature.legendEntryId && <TextStyleFields />}
               <CoordinateFields feature={selectedFeature} />
             </>
           ) : selectedFeature.type === "point" ? (
@@ -461,21 +462,28 @@ function MarkerSelect() {
   );
 }
 
-function TextFields() {
-  const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
+function TextContentField() {
+  const { register, formState: { errors } } = useFormContext<FeatureFormValues>();
+
+  return (
+    <Field label="Text content" error={errors.textContent?.message}>
+      <Textarea
+        {...register("textContent")}
+        rows={3}
+        placeholder="Enter your text..."
+        className="resize-y"
+      />
+    </Field>
+  );
+}
+
+function TextStyleFields() {
+  const { watch, setValue } = useFormContext<FeatureFormValues>();
   const fontSize = watch("fontSize") ?? 24;
   const textBorderWidth = watch("textBorderWidth") ?? 2;
 
   return (
     <>
-      <Field label="Text content" error={errors.textContent?.message}>
-        <Textarea
-          {...register("textContent")}
-          rows={3}
-          placeholder="Enter your text..."
-          className="resize-y"
-        />
-      </Field>
       <Field label={`Size (${fontSize}px)`}>
         <SliderField
           value={fontSize}

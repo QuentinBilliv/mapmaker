@@ -52,9 +52,15 @@ export const getMap = query({
       if (!user || map.ownerId !== user._id) return null;
     }
     if (map.dataFileId) {
-      const dataFileUrl = await ctx.storage.getUrl(map.dataFileId);
-      const { layers: _l, features: _f, groups: _g, ...meta } = map;
-      return { ...meta, visibility: vis, dataFileUrl };
+      try {
+        const dataFileUrl = await ctx.storage.getUrl(map.dataFileId);
+        if (dataFileUrl) {
+          const { layers: _l, features: _f, groups: _g, ...meta } = map;
+          return { ...meta, visibility: vis, dataFileUrl };
+        }
+      } catch {
+        // Storage file not found — fall through to inline data
+      }
     }
     return { ...map, visibility: vis };
   },
