@@ -5,6 +5,7 @@ import { useConvexAuth, useQuery } from "convex/react";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { api } from "@convex/_generated/api";
 import { Button } from "@/components/ui/button";
+import ThemeToggle from "@/components/ui/ThemeToggle";
 
 export default function Navbar() {
   const { isAuthenticated } = useConvexAuth();
@@ -23,6 +24,7 @@ export default function Navbar() {
         Public maps
       </Link>
       <div className="flex-1" />
+      <ThemeToggle />
       {isAuthenticated ? (
         <div className="flex items-center gap-3">
           <Link
