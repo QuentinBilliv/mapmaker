@@ -8,7 +8,7 @@
 
 ## Medium priority — Polish
 
-- [ ] Custom 404 and 500 error pages
+- [x] Custom 404 and 500 error pages
 - [ ] Dark mode
 - [ ] Embed support — allow embedding public maps via iframe
 - [ ] Keyboard shortcuts reference (visible in UI)
