@@ -11,7 +11,7 @@
 - [x] Custom 404 and 500 error pages
 - [x] Dark mode
 - [x] Embed support — allow embedding public maps via iframe
-- [ ] Keyboard shortcuts reference (visible in UI)
+- [x] Keyboard shortcuts reference (visible in UI)
 
 ## Later — Growth
 
