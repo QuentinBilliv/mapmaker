@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import ReactDOM from "react-dom"
 import { cn } from "@/lib/utils"
 
 interface DialogContextValue {
@@ -69,10 +70,15 @@ function DialogContent({
   className?: string
 }) {
   const { open, setOpen } = React.useContext(DialogContext)
+  const [mounted, setMounted] = React.useState(false)
 
-  if (!open) return null
+  React.useEffect(() => {
+    setMounted(true)
+  }, [])
 
-  return (
+  if (!open || !mounted) return null
+
+  return ReactDOM.createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center">
       <div
         className="fixed inset-0 bg-black/50 animate-in fade-in-0"
@@ -80,13 +86,14 @@ function DialogContent({
       />
       <div
         className={cn(
-          "relative z-50 w-full max-w-md rounded-lg border bg-popover p-6 shadow-lg animate-in fade-in-0 zoom-in-95",
+          "relative z-50 w-full max-w-md rounded-lg border bg-popover p-6 shadow-lg animate-in fade-in-0 zoom-in-95 mx-4",
           className
         )}
       >
         {children}
       </div>
-    </div>
+    </div>,
+    document.body
   )
 }
 

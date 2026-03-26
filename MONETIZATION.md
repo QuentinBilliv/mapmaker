@@ -1,128 +1,104 @@
 # Monetization Strategy
 
-## Current State
+## Positioning
 
-- Auth + tier system already implemented (`convex/shared.ts`)
-- Tiers: free (5 maps), paid (50 maps), admin (unlimited)
-- `universityLabel` field exists on users
-- Limits: 10K features/map, 100 layers, 1K groups, 1K legend entries, 950KB payload
+MapMaker sits between geojson.io (too basic) and Felt (too expensive/enterprise). The target is individuals, students, teachers, bloggers, and hobbyists who want to make thematic maps without coding or paying $200/month.
+
+No direct competitor at this price point for this use case.
 
 ## Tier Structure
 
-### Free
+### Free — Try the tool
+- Casual users, bloggers, one-off map makers
+- Persona: Lucas, 24, travel blogger — makes 1-2 maps per year for articles
 
-- 3 maps, 50 features per map
-- Export `.mapmaker` only
-- 1 base map (default)
-- Public maps only
-- Basic styles (solid fill, solid lines, no decorations)
-- Basic shapes (circle, square, triangle)
+### Pro (29€ one-time) — Pay once, use seriously
+- Regular map makers who need advanced styling
+- Persona: Marie, 35, independent history teacher — needs 15-20 detailed maps with patterns, icons, GeoBank
 
-### Pro (~5-8 EUR/month)
+### Unlimited (5€/month) — Power users, volume
+- People who create maps constantly and need more than 50
+- Persona: Prof. Dubois, 52, geography department — 60+ maps accumulated over semesters
 
-- Unlimited maps, 10K features per map
-- All export formats (GeoJSON, `.mapmaker`)
-- 7 base maps
-- Private + unlisted maps
-- All fill patterns (stripes, crosshatch, dots)
-- All line decorations (railway, ticks, arrows, crosses)
-- All line styles (dotted, dashed)
-- Arrow styles (forward, double)
-- All shapes + icon packs (Font Awesome, Game Icons, Ionicons)
-- Custom SVG icons
-- GeoBank (country/subdivision boundaries import)
-- Legend system
-- Smoothing controls
-- Text border customization
-- Font options (serif, monospace)
+## Feature Matrix
 
-### Education (-50% on Pro)
+| Feature | Free | Pro (29€ one-time) | Unlimited (5€/mois) |
+|---|---|---|---|
+| Maps | 3 | 50 | Unlimited |
+| Features per map | 50 | 10,000 | 10,000 |
+| Base maps | OSM, Voyager, Light | All 7 | All 7 |
+| Visibility | All (public, unlisted, private) | All | All |
+| Export | `.mapmaker` only | `.mapmaker` + GeoJSON | All |
+| Point shapes | All 8 | All 8 | All 8 |
+| Fill patterns | Solid, Stripes diagonal | All | All |
+| Line styles | Solid, Dash | All | All |
+| Line decorations | None | All | All |
+| Arrows | All | All | All |
+| Icon packs (react-icons) | No | 3 packs (FA, GI, Io) | 3 packs |
+| Custom SVG | No | Yes | Yes |
+| GeoBank | No | Yes | Yes |
+| Legend | Yes | Yes | Yes |
+| Smoothing | Yes | Yes | Yes |
+| Text border | Yes | Yes | Yes |
+| GeoJSON import | 50 features max | 500 features max | 500 features max |
+| Templates | Yes | Yes | Yes |
+| Embed (iframe) | No | Yes | Yes |
 
-- Same as Pro
-- Requires `.edu` email or institutional verification
-- `universityLabel` displayed on profile
+## Institutional Badge
 
-## What to Gate (Feature Flags)
+Separate from tiers. Attributed manually on request for universities/institutions.
+- Displayed next to the user's name on public maps and profile
+- Example: "Prof. Dubois — Université Lyon 2"
+- `universityLabel` field already exists on user records
+- Can be combined with any tier (typically Pro or Unlimited)
 
-### By category
+## Implementation Strategy
 
-| Category | Free | Pro |
-|----------|------|-----|
-| Maps | 3 | Unlimited |
-| Features/map | 50 | 10,000 |
-| Base maps | 1 | 7 |
-| Visibility | Public | Public + Unlisted + Private |
-| Export | `.mapmaker` | `.mapmaker` + GeoJSON |
-| Fill patterns | Solid only | All (stripes, crosshatch, dots) |
-| Line decorations | None | All (railway, ticks, arrows...) |
-| Line styles | Solid only | Dotted, dashed |
-| Arrow styles | None | Forward, double |
-| Icons | Basic shapes | 3 icon packs + custom SVG |
-| GeoBank | No | Yes |
-| Legend | No | Yes |
-| Smoothing | No | Yes |
-| Text fonts | Sans-serif | Sans-serif + serif + monospace |
-| Text border | No | Yes |
-| GeoJSON import | 50 features max | 500 features max |
+### Step 1 — `canUse` helper
+- Single source of truth in `convex/shared.ts`
+- `canUse(feature, tier)` returns boolean
+- Used client-side (UI gating) and server-side (validation)
 
-### Implementation approach
+### Step 2 — Feature gating UI
+- Don't hide Pro features — show them with a lock icon
+- Clicking a locked feature shows "Upgrade to Pro" toast/modal
+- Files to gate:
+  - `GeoBankDialog` — entire dialog
+  - `FeatureForm` — fill patterns, line styles, line decorations, icons, custom SVG
+  - `IconPickerDialog` — icon packs
+  - `BaseMapSelector` — base maps 4-7
+  - `ExportImportButtons` — GeoJSON export
+  - `EmbedButton` — embed snippet
 
-- Add a `canUse(feature, tier)` helper in `convex/shared.ts`
-- Gate features in UI: show them but with a lock icon + "Upgrade to Pro" tooltip
-- Don't hide pro features — let free users see what they're missing
+### Step 3 — Server-side validation
+- `createMap` — verify map count against tier limit
+- `saveMap` — verify feature count against tier limit
+- Styling checks not needed server-side (no security risk, just UX)
 
-## Payment Integration
+### Step 4 — Pricing page
+- Static page at `/pricing` with the 3 tiers
+- "Upgrade" button → Typeform/waitlist initially (validate demand)
+- Track clicks to measure conversion interest
 
-### Stripe (recommended)
-
-- Stripe Checkout for subscription
+### Step 5 — Stripe integration (later)
+- Stripe Checkout for Pro (one-time payment)
+- Stripe Checkout for Unlimited (monthly subscription)
 - Stripe Customer Portal for manage/cancel
 - Webhook to update `tier` in Convex on payment events
-- Store `stripeCustomerId` on user record
+- Required Convex schema changes:
+  - `stripeCustomerId` on users
+  - `subscriptionStatus` (active, canceled, past_due)
+  - `subscriptionEndDate` for grace period
 
-### Flow
+### Step 6 — Institutional badges (later)
+- Admin-only mutation to set `universityLabel`
+- Badge component displayed on public maps and profile
+- Outreach to geography/GIS/history departments
 
-1. User clicks "Upgrade to Pro"
-2. Redirect to Stripe Checkout (monthly subscription)
-3. On success, webhook fires -> update user tier to "paid"
-4. On cancellation/failure, webhook fires -> revert to "free"
-
-### Required Convex changes
-
-- Add `stripeCustomerId` field to users table
-- Add `subscriptionStatus` field (active, canceled, past_due)
-- Add `subscriptionEndDate` for grace period handling
-- Create webhook endpoint for Stripe events
-
-## Validation First (Before Building Payment)
+## Validation Before Payment
 
 Before implementing Stripe:
-
-1. Add an "Upgrade to Pro" button in the UI (account page + feature gates)
-2. Link it to a Typeform or waitlist (collect email + what feature they want most)
+1. Add "Upgrade to Pro" buttons in the UI (account page + feature gates)
+2. Link to a Typeform or waitlist (collect email + desired feature)
 3. Track clicks to measure demand
 4. If conversion > 2-3% of active users clicking, proceed with Stripe
-
-## Education Channel
-
-- Universities buy site licenses (annual, per-department)
-- Reach out to geography/GIS/history departments
-- Offer free trials for professors
-- `universityLabel` already exists — use it for branding ("Made with MapMaker at [University]")
-
-## Pricing Benchmarks
-
-- geojson.io: free (no pro features, basic)
-- Felt: free tier + $20/month pro
-- Mapbox Studio: free tier + usage-based
-- uMap: free (open source, self-hosted)
-
-MapMaker sits between geojson.io (too basic) and Felt (too expensive for hobbyists). 5-8 EUR/month is the sweet spot.
-
-## Priority Order
-
-1. Validate demand (upgrade button + waitlist)
-2. Implement feature gating UI (lock icons, tooltips)
-3. Stripe integration
-4. Education tier
-5. Annual billing option (-20%)
