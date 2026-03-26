@@ -9,13 +9,13 @@ import { PlusIcon } from "lucide-react";
 
 const TEMPLATES = [
   {
-    id: "jx78nmwn7a4w8rfhr4dgtznb8h83h3pn" as Id<"maps">,
+    id: "jx77494rrqvc0012k7c0sznrbd83nj0c" as Id<"maps">,
     title: "Iceland — Nature & National Parks",
     description: "Volcanoes, glaciers, waterfalls, and the Ring Road",
     image: "/showcase_1.png",
   },
   {
-    id: "jx77494rrqvc0012k7c0sznrbd83nj0c" as Id<"maps">,
+    id: "jx78nmwn7a4w8rfhr4dgtznb8h83h3pn" as Id<"maps">,
     title: "Sake Regions of Japan",
     description: "Major sake-producing prefectures and their brewing styles",
     image: "/showcase_2.png",
