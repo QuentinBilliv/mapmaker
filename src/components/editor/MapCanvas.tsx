@@ -75,7 +75,7 @@ export default function MapCanvas() {
   useMoveListener(mapRef, updateMap);
   useFlyToListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
-  useFeatureTooltip(mapRef, drawMode, styleVersion);
+  useFeatureTooltip(mapRef, drawMode, styleVersion, selectedFeatureIds.length > 0);
   useLegendHighlight(mapRef, styleVersion);
 
   return <div ref={containerRef} className="w-full h-full bg-black" />;

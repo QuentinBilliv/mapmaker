@@ -8,6 +8,7 @@ export function useFeatureTooltip(
   mapRef: React.RefObject<maplibregl.Map | null>,
   drawMode: string,
   styleVersion: number,
+  hasSelection?: boolean,
 ) {
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
@@ -24,7 +25,7 @@ export function useFeatureTooltip(
     popupRef.current = popup;
 
     const onMouseMove = (e: maplibregl.MapMouseEvent) => {
-      if (drawMode !== "select") {
+      if (drawMode !== "select" || hasSelection) {
         popup.remove();
         return;
       }
@@ -72,7 +73,7 @@ export function useFeatureTooltip(
       map.off("mousemove", onMouseMove);
       map.off("mouseout", onMouseLeave);
     };
-  }, [mapRef, drawMode, styleVersion]);
+  }, [mapRef, drawMode, styleVersion, hasSelection]);
 }
 
 function escapeHtml(s: string): string {
