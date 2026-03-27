@@ -33,7 +33,7 @@ export const getMyMaps = query({
       .order("desc")
       .collect();
     return maps
-      .filter((m) => !m.deletedAt)
+
       .map(({ layers: _l, features: _f, groups: _g, dataFileId: _d, ...meta }) => ({
         ...meta,
         visibility: resolveVisibility(meta),
@@ -45,11 +45,11 @@ export const getMap = query({
   args: { mapId: v.id("maps") },
   handler: async (ctx, { mapId }) => {
     const map = await ctx.db.get(mapId);
-    if (!map || map.deletedAt) return null;
+    if (!map) return null;
     const vis = resolveVisibility(map);
     if (vis !== "public" && vis !== "unlisted") {
       const user = await getAuthenticatedUserOrNull(ctx);
-      if (!user || map.ownerId !== user._id) return null;
+      if (!user || (map.ownerId !== user._id && user.tier !== "admin")) return null;
     }
     if (map.dataFileId) {
       try {
@@ -81,7 +81,6 @@ export const browsePublicMaps = query({
       .paginate(paginationOpts);
 
     const filtered = page.page.filter((m) => {
-      if (m.deletedAt) return false;
       if (ownerId && m.ownerId !== ownerId) return false;
       return true;
     });
@@ -120,7 +119,7 @@ export const searchPublicMaps = query({
       })
       .take(PUBLIC_PAGE_SIZE);
 
-    const filtered = results.filter((m) => !m.deletedAt);
+    const filtered = results;
 
     const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
     return await Promise.all(
@@ -145,7 +144,7 @@ export const createMap = mutation({
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
-    const existing = allMaps.filter((m) => !m.deletedAt);
+    const existing = allMaps;
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
     if (existing.length >= limit) {
       throw new Error(
@@ -183,7 +182,7 @@ export const createMapFromTemplate = mutation({
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
-    const existing = allMaps.filter((m) => !m.deletedAt);
+    const existing = allMaps;
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
     if (existing.length >= limit) {
       throw new Error(
@@ -191,7 +190,7 @@ export const createMapFromTemplate = mutation({
       );
     }
     const template = await ctx.db.get(templateMapId);
-    if (!template || template.deletedAt) {
+    if (!template) {
       throw new Error("Template not found");
     }
     const now = Date.now();
@@ -227,8 +226,13 @@ export const saveMap = mutation({
     validateMapMetadata(args);
     const { map } = await checkMapOwnership(ctx, args.mapId);
     if (map.dataFileId && map.dataFileId !== args.dataFileId) {
-      await ctx.storage.delete(map.dataFileId);
+      try { await ctx.storage.delete(map.dataFileId); } catch {}
     }
+    let dataFileSize: number | undefined;
+    try {
+      const meta = await ctx.db.system.get(args.dataFileId);
+      dataFileSize = (meta as { size?: number })?.size;
+    } catch {}
     const owner = await ctx.db.get(map.ownerId);
     const ownerName = owner?.name;
     await ctx.db.patch(map._id, {
@@ -240,6 +244,7 @@ export const saveMap = mutation({
       zoom: args.zoom,
       baseMapId: args.baseMapId,
       dataFileId: args.dataFileId,
+      dataFileSize,
       layers: undefined,
       features: undefined,
       groups: undefined,
@@ -268,7 +273,7 @@ export const deleteMap = mutation({
         // Thumbnail may not exist
       }
     }
-    await ctx.db.patch(map._id, { deletedAt: Date.now() });
+    await ctx.db.delete(map._id);
   },
 });
 
@@ -324,7 +329,7 @@ export const migrateFromLocalStorage = mutation({
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
-    const existing = allMaps.filter((m) => !m.deletedAt);
+    const existing = allMaps;
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
     if (existing.length >= limit) {
       throw new Error(`Map limit reached (${limit}). Cannot migrate.`);

@@ -29,7 +29,6 @@ export const updateName = mutation({
       .withIndex("by_owner", (q) => q.eq("ownerId", userId))
       .collect();
     for (const map of maps) {
-      if (map.deletedAt) continue;
       await ctx.db.patch(map._id, {
         ownerName: trimmed,
         searchText: [map.title, ...map.tags, trimmed].filter(Boolean).join(" "),

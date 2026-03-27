@@ -37,8 +37,8 @@ export async function checkMapOwnership(
 ) {
   const user = await getAuthenticatedUser(ctx);
   const map = await ctx.db.get(mapId);
-  if (!map || map.deletedAt) throw new Error("Map not found");
-  if (map.ownerId !== user._id) throw new Error("Not authorized");
+  if (!map) throw new Error("Map not found");
+  if (map.ownerId !== user._id && user.tier !== "admin") throw new Error("Not authorized");
   return { user, map };
 }
 

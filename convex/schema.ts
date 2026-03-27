@@ -30,6 +30,7 @@ export default defineSchema({
     features: v.optional(v.any()),
     groups: v.optional(v.any()),
     dataFileId: v.optional(v.id("_storage")),
+    dataFileSize: v.optional(v.number()),
     isPublic: v.optional(v.boolean()),
     visibility: v.optional(v.union(v.literal("private"), v.literal("unlisted"), v.literal("public"))),
     ownerName: v.optional(v.string()),
@@ -37,7 +38,6 @@ export default defineSchema({
     createdAt: v.number(),
     updatedAt: v.number(),
     thumbnailId: v.optional(v.id("_storage")),
-    deletedAt: v.optional(v.number()),
   })
     .index("by_owner", ["ownerId"])
     .index("by_public", ["isPublic", "updatedAt"])
