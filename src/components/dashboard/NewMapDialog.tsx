@@ -21,7 +21,7 @@ const TEMPLATES = [
     image: "/showcase_2.png",
   },
   {
-    id: "jx7e1kxsvx5fdcde4refmhejxd8393bp" as Id<"maps">,
+    id: "jx7e6n14xpes80bazt5f9r87ph83pv2b" as Id<"maps">,
     title: "The Silk Road",
     description: "Overland and maritime trade routes from China to the Mediterranean",
     image: "/showcase_3.png",

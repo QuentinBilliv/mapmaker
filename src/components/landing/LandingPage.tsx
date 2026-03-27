@@ -7,7 +7,7 @@ import { FaArrowRight, FaPenRuler, FaLayerGroup, FaShareNodes, FaGlobe, FaPalett
 const SHOWCASE_MAPS = [
   { id: "jx77494rrqvc0012k7c0sznrbd83nj0c", image: "/showcase_1.png", title: "Iceland — Nature & National Parks", description: "Volcanoes, glaciers, waterfalls, and the Ring Road" },
   { id: "jx78nmwn7a4w8rfhr4dgtznb8h83h3pn", image: "/showcase_2.png", title: "Sake Regions of Japan", description: "Major sake-producing prefectures and their brewing styles" },
-  { id: "jx7e1kxsvx5fdcde4refmhejxd8393bp", image: "/showcase_3.png", title: "The Silk Road", description: "Overland and maritime trade routes from China to the Mediterranean" },
+  { id: "jx7e6n14xpes80bazt5f9r87ph83pv2b", image: "/showcase_3.png", title: "The Silk Road", description: "Overland and maritime trade routes from China to the Mediterranean" },
   { id: "jx723w16yzc4w2fyd73xwz37s583h0kn", image: "/showcase_4.png", title: "Ancient Egypt", description: "Archaeological sites, oases, and trade routes along the Nile" },
 ];
 
