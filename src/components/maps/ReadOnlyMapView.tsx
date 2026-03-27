@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from "react";
+import Link from "next/link";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
@@ -10,6 +11,7 @@ import { HighlightProvider } from "@/lib/highlight-context";
 import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
+import { FaPenToSquare } from "react-icons/fa6";
 import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
@@ -19,6 +21,7 @@ interface ReadOnlyMapViewProps {
   groups: GroupData[];
   legendEntries?: LegendEntry[];
   baseMapId: string;
+  editHref?: string;
 }
 
 export default function ReadOnlyMapView(props: ReadOnlyMapViewProps) {
@@ -36,6 +39,7 @@ function ReadOnlyMapViewInner({
   groups,
   legendEntries = [],
   baseMapId,
+  editHref,
 }: ReadOnlyMapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -95,6 +99,15 @@ function ReadOnlyMapViewInner({
             License: {mapData.license}
           </p>
           <EmbedButton mapId={mapData.id} />
+          {editHref && (
+            <Link
+              href={editHref}
+              className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <FaPenToSquare className="w-3 h-3" />
+              Edit
+            </Link>
+          )}
         </div>
       </div>
       <div ref={containerRef} className="flex-1 relative">

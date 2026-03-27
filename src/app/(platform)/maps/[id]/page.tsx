@@ -8,6 +8,12 @@ import ReadOnlyMapView from "@/components/maps/ReadOnlyMapView";
 import { toMapData } from "@/lib/convex-mapdata";
 import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
+function useIsOwner(map: { ownerId?: string } | null | undefined): boolean {
+  const me = useQuery(api.users.getMe);
+  if (!map || !me) return false;
+  return map.ownerId === me._id;
+}
+
 function Loading() {
   return (
     <div className="flex-1 flex items-center justify-center">
@@ -21,6 +27,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
     mapId: params.id as Id<"maps">,
   });
 
+  const isOwner = useIsOwner(map);
   const dataFileUrl = map && "dataFileUrl" in map ? (map.dataFileUrl as string | null) : null;
   const hasInlineData = map && "features" in map && map.features != null;
 
@@ -67,6 +74,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
       groups={data.groups}
       legendEntries={data.legendEntries ?? []}
       baseMapId={map.baseMapId}
+      editHref={isOwner ? `/maps/${params.id}/edit` : undefined}
     />
   );
 }
