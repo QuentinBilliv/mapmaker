@@ -22,6 +22,30 @@ export const setUserTier = mutation({
   },
 });
 
+export const cleanOrphanedStorage = mutation({
+  args: {},
+  handler: async (ctx) => {
+    const admin = await getAuthenticatedUser(ctx);
+    if (admin.tier !== "admin") throw new Error("Admin access required");
+    const maps = await ctx.db.query("maps").collect();
+    const usedIds = new Set<string>();
+    for (const m of maps) {
+      if (m.dataFileId) usedIds.add(m.dataFileId);
+      if (m.thumbnailId) usedIds.add(m.thumbnailId);
+    }
+    const allFiles = await ctx.db.system.query("_storage").collect();
+    let deleted = 0;
+    for (const file of allFiles) {
+      if (!usedIds.has(file._id)) {
+        await ctx.storage.delete(file._id);
+        deleted++;
+      }
+    }
+    console.info(`[audit] cleanOrphanedStorage: admin=${admin.email} deleted=${deleted} files`);
+    return { deleted, total: allFiles.length };
+  },
+});
+
 export const setUniversityLabel = mutation({
   args: {
     targetEmail: v.string(),
