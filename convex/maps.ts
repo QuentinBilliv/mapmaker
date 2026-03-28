@@ -119,11 +119,9 @@ export const searchPublicMaps = query({
       })
       .take(PUBLIC_PAGE_SIZE);
 
-    const filtered = results;
-
     const ownerCache = new Map<string, { name?: string; universityLabel?: string }>();
     return await Promise.all(
-      filtered.map(async ({ layers: _l, features: _f, groups: _g, dataFileId: _d, ...meta }) => {
+      results.map(async ({ layers: _l, features: _f, groups: _g, dataFileId: _d, ...meta }) => {
         let owner = ownerCache.get(meta.ownerId);
         if (!owner) {
           const user = await ctx.db.get(meta.ownerId);
@@ -144,9 +142,8 @@ export const createMap = mutation({
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
-    const existing = allMaps;
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
-    if (existing.length >= limit) {
+    if (allMaps.length >= limit) {
       throw new Error(
         `Map limit reached (${limit}). Upgrade your account to create more maps.`
       );
@@ -192,9 +189,8 @@ export const createMapFromTemplate = mutation({
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
-    const existing = allMaps;
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
-    if (existing.length >= limit) {
+    if (allMaps.length >= limit) {
       throw new Error(
         `Map limit reached (${limit}). Upgrade your account to create more maps.`
       );
@@ -312,7 +308,7 @@ export const saveThumbnail = mutation({
   handler: async (ctx, { mapId, storageId }) => {
     const { map } = await checkMapOwnership(ctx, mapId);
     if (map.thumbnailId) {
-      await ctx.storage.delete(map.thumbnailId);
+      try { await ctx.storage.delete(map.thumbnailId); } catch {}
     }
     await ctx.db.patch(map._id, { thumbnailId: storageId });
   },
@@ -348,9 +344,8 @@ export const migrateFromLocalStorage = mutation({
       .query("maps")
       .withIndex("by_owner", (q) => q.eq("ownerId", user._id))
       .collect();
-    const existing = allMaps;
     const limit = TIER_LIMITS[user.tier ?? "free"] ?? TIER_LIMITS.free;
-    if (existing.length >= limit) {
+    if (allMaps.length >= limit) {
       throw new Error(`Map limit reached (${limit}). Cannot migrate.`);
     }
     const now = Date.now();
