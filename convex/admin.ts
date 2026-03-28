@@ -33,16 +33,27 @@ export const cleanOrphanedStorage = mutation({
       if (m.dataFileId) usedIds.add(m.dataFileId);
       if (m.thumbnailId) usedIds.add(m.thumbnailId);
     }
-    const allFiles = await ctx.db.system.query("_storage").collect();
     let deleted = 0;
-    for (const file of allFiles) {
-      if (!usedIds.has(file._id)) {
-        await ctx.storage.delete(file._id);
-        deleted++;
+    let total = 0;
+    let cursor = null;
+    const BATCH_SIZE = 100;
+    let hasMore = true;
+    while (hasMore) {
+      const batch = await ctx.db.system
+        .query("_storage")
+        .paginate({ numItems: BATCH_SIZE, cursor: cursor as never });
+      total += batch.page.length;
+      for (const file of batch.page) {
+        if (!usedIds.has(file._id)) {
+          await ctx.storage.delete(file._id);
+          deleted++;
+        }
       }
+      hasMore = !batch.isDone;
+      cursor = batch.continueCursor;
     }
     console.info(`[audit] cleanOrphanedStorage: admin=${admin.email} deleted=${deleted} files`);
-    return { deleted, total: allFiles.length };
+    return { deleted, total };
   },
 });
 
@@ -59,6 +70,7 @@ export const setUniversityLabel = mutation({
       .withIndex("email", (q) => q.eq("email", targetEmail))
       .unique();
     if (!target) throw new Error("User not found");
+    if (universityLabel && universityLabel.length > 200) throw new Error("University label too long (max 200 characters)");
     await ctx.db.patch(target._id, { universityLabel });
     console.info(
       `[audit] setUniversityLabel: admin=${admin.email} target=${targetEmail} label=${universityLabel ?? "(removed)"}`
