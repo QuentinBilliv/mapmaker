@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
-import type { FeatureData, GroupData } from "@/lib/types";
+import type { FeatureData, GroupData, LegendEntry } from "@/lib/types";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { resolveFeatureStyle } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ type SidebarItem =
   | { kind: "group"; group: GroupData; children: FeatureData[] };
 
 export default function FeaturePanel() {
-  const { features, groups, selectedFeatureIds, featureLimitReached } = useEditorData();
+  const { features, groups, legendEntries, selectedFeatureIds, featureLimitReached } = useEditorData();
   const {
     selectFeature, selectFeatures, reorderItems, reorderGroupChildren,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
@@ -285,6 +285,7 @@ export default function FeaturePanel() {
                         feature={child}
                         isSelected={selectedSet.has(child.id)}
                         indent
+                        legendEntries={legendEntries}
                         onSelect={() => selectFeature(child.id)}
                         onDuplicate={() => duplicateFeature(child.id)}
                         onDelete={() => deleteFeature(child.id)}
@@ -305,6 +306,7 @@ export default function FeaturePanel() {
                 <FeatureRow
                   feature={item.feature}
                   isSelected={selectedSet.has(item.feature.id)}
+                  legendEntries={legendEntries}
                   onSelect={() => selectFeature(item.feature.id)}
                   onDuplicate={() => duplicateFeature(item.feature.id)}
                   onDelete={() => deleteFeature(item.feature.id)}
@@ -332,7 +334,7 @@ function DropBar({ indent }: { indent?: boolean }) {
   return <div className={`h-0.5 bg-primary ${indent ? "ml-6" : ""}`} />;
 }
 
-function GroupRow({
+const GroupRow = React.memo(function GroupRow({
   group,
   childCount,
   isCollapsed,
@@ -427,12 +429,13 @@ function GroupRow({
       </button>
     </div>
   );
-}
+});
 
-function FeatureRow({
+const FeatureRow = React.memo(function FeatureRow({
   feature,
   isSelected,
   indent,
+  legendEntries,
   onSelect,
   onDuplicate,
   onDelete,
@@ -444,6 +447,7 @@ function FeatureRow({
   feature: FeatureData;
   isSelected: boolean;
   indent?: boolean;
+  legendEntries: LegendEntry[];
   onSelect: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -452,7 +456,6 @@ function FeatureRow({
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd: () => void;
 }) {
-  const { legendEntries } = useEditorData();
   const resolved = resolveFeatureStyle(feature, legendEntries);
 
   return (
@@ -488,4 +491,4 @@ function FeatureRow({
       </button>
     </div>
   );
-}
+});
