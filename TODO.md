@@ -18,7 +18,3 @@
 - [x] Map templates (e.g. Roman Empire, trade routes) for quick start
 - [ ] Export map as PNG/SVG image
 - [ ] Collaboration — shared editing via link
-
-## Technical debt
-
-- [ ] Rate limiting on GeoBank API route — current in-memory limiter does not work in serverless (Vercel). Use Vercel rate limiting or Upstash Redis when GeoBank is opened to Pro users.

@@ -5,11 +5,26 @@ const ALLOWED_HOSTS = new Set(["www.geoboundaries.org", "github.com", "raw.githu
 const ISO_RE = /^[A-Z]{3}$/;
 const ADM_RE = /^ADM[0-5]$/;
 
-// Note: in-memory rate limiting does not work in serverless (Vercel).
-// GeoBank will be feature-gated to Pro users, which provides natural throttling.
-// For production rate limiting, use Vercel's built-in rate limiting or Upstash Redis.
+// Note: in-memory rate limiting is best-effort in serverless (Vercel).
+// It works within a single instance but resets on cold starts.
+// For production, consider Vercel rate limiting or Upstash Redis.
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT = 30;
+const hits = new Map<string, number[]>();
+
+function isRateLimited(ip: string): boolean {
+  const now = Date.now();
+  const timestamps = hits.get(ip)?.filter((t) => now - t < RATE_WINDOW_MS) ?? [];
+  timestamps.push(now);
+  hits.set(ip, timestamps);
+  return timestamps.length > RATE_LIMIT;
+}
 
 export async function GET(req: NextRequest) {
+  const ip = req.headers.get("x-forwarded-for")?.split(",")[0].trim() ?? "unknown";
+  if (isRateLimited(ip)) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
   const url = req.nextUrl.searchParams.get("url");
 
   if (url) {
