@@ -174,9 +174,19 @@ export const createMap = mutation({
   },
 });
 
+const ALLOWED_TEMPLATE_IDS = new Set([
+  "jx77494rrqvc0012k7c0sznrbd83nj0c",
+  "jx78nmwn7a4w8rfhr4dgtznb8h83h3pn",
+  "jx7e6n14xpes80bazt5f9r87ph83pv2b",
+  "jx723w16yzc4w2fyd73xwz37s583h0kn",
+]);
+
 export const createMapFromTemplate = mutation({
   args: { templateMapId: v.id("maps") },
   handler: async (ctx, { templateMapId }) => {
+    if (!ALLOWED_TEMPLATE_IDS.has(templateMapId)) {
+      throw new Error("Template not found");
+    }
     const user = await getAuthenticatedUser(ctx);
     const allMaps = await ctx.db
       .query("maps")
@@ -207,6 +217,7 @@ export const createMapFromTemplate = mutation({
       layers: template.layers,
       features: template.features,
       groups: template.groups,
+      legendEntries: template.legendEntries,
       visibility: "private",
       ownerName: user.name,
       searchText: buildSearchText(title, template.tags, user.name),
@@ -220,19 +231,26 @@ export const saveMap = mutation({
   args: {
     mapId: v.id("maps"),
     ...vMapMetadataArgs,
-    dataFileId: v.id("_storage"),
+    dataFileId: v.optional(v.id("_storage")),
+    layers: v.optional(v.any()),
+    features: v.optional(v.any()),
+    groups: v.optional(v.any()),
+    legendEntries: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
     validateMapMetadata(args);
     const { map } = await checkMapOwnership(ctx, args.mapId);
+    const isFileMode = !!args.dataFileId;
     if (map.dataFileId && map.dataFileId !== args.dataFileId) {
       try { await ctx.storage.delete(map.dataFileId); } catch {}
     }
     let dataFileSize: number | undefined;
-    try {
-      const meta = await ctx.db.system.get(args.dataFileId);
-      dataFileSize = (meta as { size?: number })?.size;
-    } catch {}
+    if (args.dataFileId) {
+      try {
+        const meta = await ctx.db.system.get(args.dataFileId);
+        dataFileSize = (meta as { size?: number })?.size;
+      } catch {}
+    }
     const owner = await ctx.db.get(map.ownerId);
     const ownerName = owner?.name;
     await ctx.db.patch(map._id, {
@@ -243,11 +261,12 @@ export const saveMap = mutation({
       center: args.center,
       zoom: args.zoom,
       baseMapId: args.baseMapId,
-      dataFileId: args.dataFileId,
-      dataFileSize,
-      layers: undefined,
-      features: undefined,
-      groups: undefined,
+      dataFileId: isFileMode ? args.dataFileId : undefined,
+      dataFileSize: isFileMode ? dataFileSize : undefined,
+      layers: isFileMode ? undefined : args.layers,
+      features: isFileMode ? undefined : args.features,
+      groups: isFileMode ? undefined : args.groups,
+      legendEntries: isFileMode ? undefined : args.legendEntries,
       ownerName,
       searchText: buildSearchText(args.title, args.tags, ownerName),
       updatedAt: Date.now(),

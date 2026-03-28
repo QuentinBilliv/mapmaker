@@ -29,6 +29,7 @@ export default defineSchema({
     layers: v.optional(v.any()),
     features: v.optional(v.any()),
     groups: v.optional(v.any()),
+    legendEntries: v.optional(v.any()),
     dataFileId: v.optional(v.id("_storage")),
     dataFileSize: v.optional(v.number()),
     isPublic: v.optional(v.boolean()),

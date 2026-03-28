@@ -44,7 +44,7 @@ export function useConvexPersistence(mapId: string) {
     const map = toMapData(convexMap);
     const baseMapId = convexMap.baseMapId;
     if (hasInlineData) {
-      return { map, layers: convexMap.layers, features: convexMap.features, groups: convexMap.groups, legendEntries: [], baseMapId };
+      return { map, layers: convexMap.layers, features: convexMap.features, groups: convexMap.groups, legendEntries: (convexMap as Record<string, unknown>).legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId };
     }
     if (fileData) {
       return { map, layers: fileData.layers, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId };
@@ -54,35 +54,17 @@ export function useConvexPersistence(mapId: string) {
 
   const uploadAbortRef = useRef<AbortController | null>(null);
 
+  const INLINE_THRESHOLD = 500_000;
+
   const onSave = useCallback(
     (state: StoredMapState) => {
       if (savePausedRef.current) return;
       clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(async () => {
         try {
-          uploadAbortRef.current?.abort();
-          const abort = new AbortController();
-          uploadAbortRef.current = abort;
-
-          const uploadUrl = await generateUploadUrl();
-          if (abort.signal.aborted) return;
-
-          const blob = new Blob(
-            [JSON.stringify({ layers: state.layers, features: state.features, groups: state.groups, legendEntries: state.legendEntries })],
-            { type: "application/json" }
-          );
-
-          const uploadRes = await fetch(uploadUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: blob,
-            signal: abort.signal,
-          });
-          if (!uploadRes.ok) throw new Error("Upload failed");
-          const { storageId } = await uploadRes.json();
-          if (abort.signal.aborted) return;
-
-          await saveMapMutation({
+          const payload = JSON.stringify({ layers: state.layers, features: state.features, groups: state.groups, legendEntries: state.legendEntries });
+          const payloadSize = new Blob([payload]).size;
+          const metadata = {
             mapId: mapId as Id<"maps">,
             title: state.map.title,
             description: state.map.description,
@@ -91,8 +73,39 @@ export function useConvexPersistence(mapId: string) {
             center: state.map.center,
             zoom: state.map.zoom,
             baseMapId: state.baseMapId,
-            dataFileId: storageId,
-          });
+          };
+
+          if (payloadSize < INLINE_THRESHOLD) {
+            await saveMapMutation({
+              ...metadata,
+              layers: state.layers,
+              features: state.features,
+              groups: state.groups,
+              legendEntries: state.legendEntries,
+            });
+          } else {
+            uploadAbortRef.current?.abort();
+            const abort = new AbortController();
+            uploadAbortRef.current = abort;
+
+            const uploadUrl = await generateUploadUrl();
+            if (abort.signal.aborted) return;
+
+            const uploadRes = await fetch(uploadUrl, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: payload,
+              signal: abort.signal,
+            });
+            if (!uploadRes.ok) throw new Error("Upload failed");
+            const { storageId } = await uploadRes.json();
+            if (abort.signal.aborted) return;
+
+            await saveMapMutation({
+              ...metadata,
+              dataFileId: storageId,
+            });
+          }
         } catch (err) {
           if (err instanceof DOMException && err.name === "AbortError") return;
           const msg = (err as Error).message ?? "";
@@ -103,7 +116,7 @@ export function useConvexPersistence(mapId: string) {
             console.error(err);
           }
         }
-      }, 500);
+      }, 2500);
     },
     [mapId, saveMapMutation, generateUploadUrl]
   );
