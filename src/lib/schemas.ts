@@ -25,7 +25,6 @@ export const featureSchema = z.object({
   opacity: z.number().min(0).max(1),
   size: z.number().min(0.5).max(3),
   shape: z.enum(POINT_SHAPE_VALUES),
-  icon: z.string().optional(),
   customSvg: z.string().optional(),
   borderColor: hexColor,
   borderWidth: z.number().min(0).max(12),

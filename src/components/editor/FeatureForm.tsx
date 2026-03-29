@@ -10,6 +10,7 @@ import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERN
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { sanitizeSvg } from "@/lib/svg-sanitizer";
+import { resolveIconToSvg } from "@/lib/icon-catalog";
 import { useColorSwatches } from "@/lib/hooks/use-color-swatches";
 import { useCatalogIcon } from "@/lib/hooks/use-catalog-icon";
 
@@ -47,7 +48,6 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     layerId: f.layerId,
     size: 1,
     shape: "circle",
-    icon: undefined,
     customSvg: undefined,
     borderColor: COLORS.white,
     borderWidth: DEFAULT_BORDER_WIDTH,
@@ -67,7 +67,7 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
   };
   switch (f.type) {
     case "point":
-      return { ...defaults, size: f.size, shape: f.shape ?? "circle", icon: f.icon, customSvg: f.customSvg, borderColor: f.borderColor, borderWidth: f.borderWidth };
+      return { ...defaults, size: f.size, shape: f.shape ?? "circle", customSvg: f.customSvg, borderColor: f.borderColor, borderWidth: f.borderWidth };
     case "text":
       return { ...defaults, textContent: f.textContent, fontSize: f.fontSize, fontFamily: f.fontFamily, textBorderEnabled: f.textBorderEnabled, textBorderColor: f.textBorderColor, textBorderWidth: f.textBorderWidth };
     case "polyline":
@@ -155,8 +155,7 @@ export default function FeatureForm() {
         color: v.color,
         opacity: v.opacity,
         size: isPoint ? v.size : undefined,
-        shape: isPoint ? (v.icon || v.customSvg ? undefined : v.shape) : undefined,
-        icon: isPoint ? v.icon : undefined,
+        shape: isPoint ? (v.customSvg ? undefined : v.shape) : undefined,
         customSvg: isPoint ? v.customSvg : undefined,
         borderColor: isPoint ? v.borderColor : undefined,
         borderWidth: isPoint ? v.borderWidth : undefined,
@@ -276,9 +275,8 @@ function PointFields() {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
   const size = watch("size");
   const borderWidth = watch("borderWidth");
-  const icon = watch("icon");
   const customSvg = watch("customSvg");
-  const hasCustomIcon = !!icon || !!customSvg;
+  const hasCustomIcon = !!customSvg;
 
   return (
     <>
@@ -362,10 +360,10 @@ function MarkerSelect() {
   const fileRef = useRef<HTMLInputElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   const [svgError, setSvgError] = useState<string | null>(null);
+  const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
   const shape = watch("shape");
-  const icon = watch("icon");
   const customSvg = watch("customSvg");
-  const SelectedIcon = useCatalogIcon(icon);
+  const SelectedIcon = useCatalogIcon(catalogIconId);
 
   const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -381,13 +379,22 @@ function MarkerSelect() {
       try {
         const sanitized = sanitizeSvg(reader.result as string);
         setValue("customSvg", sanitized);
-        setValue("icon", undefined);
+        setCatalogIconId(null);
       } catch {
         setSvgError("Invalid SVG file");
       }
     };
     reader.readAsText(file);
     e.target.value = "";
+  };
+
+  const handleIconSelect = async (iconId: string) => {
+    const svg = await resolveIconToSvg(iconId);
+    if (svg) {
+      setValue("customSvg", svg);
+      setValue("shape", "circle");
+      setCatalogIconId(iconId);
+    }
   };
 
   return (
@@ -397,12 +404,12 @@ function MarkerSelect() {
           {POINT_SHAPES.map((s) => (
             <Button
               key={s.value}
-              variant={!icon && !customSvg && shape === s.value ? "default" : "outline"}
+              variant={!customSvg && shape === s.value ? "default" : "outline"}
               size="icon-sm"
               onClick={() => {
                 setValue("shape", s.value);
-                setValue("icon", undefined);
                 setValue("customSvg", undefined);
+                setCatalogIconId(null);
               }}
               title={s.label}
             >
@@ -410,7 +417,7 @@ function MarkerSelect() {
             </Button>
           ))}
           {SelectedIcon && (
-            <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)} title={icon}>
+            <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
               <SelectedIcon size={14} />
             </Button>
           )}
@@ -431,7 +438,7 @@ function MarkerSelect() {
             {customSvg ? "Replace SVG" : "Upload SVG"}
           </Button>
           {customSvg && (
-            <Button variant="ghost" size="xs" onClick={() => setValue("customSvg", undefined)}>
+            <Button variant="ghost" size="xs" onClick={() => { setValue("customSvg", undefined); setCatalogIconId(null); }}>
               ✕
             </Button>
           )}
@@ -451,12 +458,8 @@ function MarkerSelect() {
       <IconPickerDialog
         open={pickerOpen}
         onOpenChange={setPickerOpen}
-        selected={icon}
-        onSelect={(i) => {
-          setValue("icon", i);
-          setValue("shape", "circle");
-          setValue("customSvg", undefined);
-        }}
+        selected={catalogIconId ?? undefined}
+        onSelect={handleIconSelect}
       />
     </Field>
   );

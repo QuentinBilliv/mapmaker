@@ -61,7 +61,7 @@ interface EditorActions {
   setActiveOpacity: (opacity: number) => void;
   setActiveSize: (size: number) => void;
   setActiveShape: (shape: PointShape) => void;
-  setActiveIcon: (icon: string | null) => void;
+  setActiveCustomSvg: (svg: string | null) => void;
   setActiveBorderColor: (color: string) => void;
   setActiveBorderWidth: (width: number) => void;
   setActiveSmoothing: (smoothing: number) => void;
@@ -310,7 +310,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       case "point":
         payload.activePoint = {
           size: last.size, shape: last.shape ?? "circle",
-          icon: last.icon ?? null, borderColor: last.borderColor, borderWidth: last.borderWidth,
+          customSvg: last.customSvg ?? null, borderColor: last.borderColor, borderWidth: last.borderWidth,
         };
         break;
       case "text":
@@ -329,7 +329,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const setActiveOpacity = useCallback((opacity: number) => set({ activeOpacity: opacity }), [set]);
   const setActiveSize = useCallback((size: number) => set({ activePoint: { size } }), [set]);
   const setActiveShape = useCallback((shape: PointShape) => set({ activePoint: { shape } }), [set]);
-  const setActiveIcon = useCallback((icon: string | null) => set({ activePoint: { icon } }), [set]);
+  const setActiveCustomSvg = useCallback((customSvg: string | null) => set({ activePoint: { customSvg } }), [set]);
   const setActiveBorderColor = useCallback((color: string) => set({ activePoint: { borderColor: color } }), [set]);
   const setActiveBorderWidth = useCallback((width: number) => set({ activePoint: { borderWidth: width } }), [set]);
   const setActiveSmoothing = useCallback((smoothing: number) => set({ activeStroke: { smoothing } }), [set]);
@@ -448,7 +448,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const actionsValue = useMemo<EditorActions>(
     () => ({
       setDrawMode, setActiveLabel, setActiveColor, setActiveOpacity,
-      setActiveSize, setActiveShape, setActiveIcon,
+      setActiveSize, setActiveShape, setActiveCustomSvg,
       setActiveBorderColor, setActiveBorderWidth,
       setActiveSmoothing, setActiveStrokeWidth, setActiveLineStyle,
       setActiveArrowStyle, setActiveLineDecoration, setActiveDecorationSpacing,
@@ -471,7 +471,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     }),
     [
       setDrawMode, setActiveLabel, setActiveColor, setActiveOpacity,
-      setActiveSize, setActiveShape, setActiveIcon,
+      setActiveSize, setActiveShape, setActiveCustomSvg,
       setActiveBorderColor, setActiveBorderWidth,
       setActiveSmoothing, setActiveStrokeWidth, setActiveLineStyle,
       setActiveArrowStyle, setActiveLineDecoration, setActiveDecorationSpacing,

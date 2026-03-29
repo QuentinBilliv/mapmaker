@@ -99,7 +99,6 @@ export interface PointLegendEntry extends LegendEntryBase {
   featureType: "point";
   size: number;
   shape?: PointShape;
-  icon?: string;
   customSvg?: string;
   borderColor: string;
   borderWidth: number;
@@ -174,7 +173,6 @@ export interface PointFeature extends FeatureBase {
   type: "point";
   size: number;
   shape?: PointShape;
-  icon?: string;
   customSvg?: string;
   borderColor: string;
   borderWidth: number;

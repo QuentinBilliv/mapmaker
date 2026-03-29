@@ -1,8 +1,5 @@
 import maplibregl from "maplibre-gl";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import type { PointShape } from "./types";
-import { loadCatalogEntry } from "./icon-catalog";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
 import { sanitizeSvg } from "./svg-sanitizer";
 import { SHAPE_DRAWERS } from "./draw-primitives";
@@ -57,46 +54,6 @@ export function ensureShapeIcon(
   if (!map.hasImage(id)) {
     addIfMissing(map, id, renderShape(shape, color, borderColor, borderWidth));
   }
-  return id;
-}
-
-export function catalogIconId(iconId: string, color: string): string {
-  return `catalog-${iconId}-${color.replace("#", "")}`;
-}
-
-export async function ensureCatalogIcon(
-  map: maplibregl.Map,
-  iconId: string,
-  color: string
-): Promise<string> {
-  const id = catalogIconId(iconId, color);
-  if (map.hasImage(id)) return id;
-
-  const entry = await loadCatalogEntry(iconId);
-  if (!entry) return ensureShapeIcon(map, "circle", color);
-
-  const svgMarkup = renderToStaticMarkup(createElement(entry.Icon, { size: SIZE }));
-  const blob = new Blob([svgMarkup], { type: "image/svg+xml" });
-  const url = URL.createObjectURL(blob);
-
-  try {
-    const img = await loadImage(url);
-    const canvas = document.createElement("canvas");
-    canvas.width = SIZE;
-    canvas.height = SIZE;
-    const ctx = canvas.getContext("2d")!;
-    const scale = Math.min(SIZE / img.width, SIZE / img.height);
-    const w = img.width * scale;
-    const h = img.height * scale;
-    ctx.drawImage(img, (SIZE - w) / 2, (SIZE - h) / 2, w, h);
-    ctx.globalCompositeOperation = "source-in";
-    ctx.fillStyle = color;
-    ctx.fillRect(0, 0, SIZE, SIZE);
-    addIfMissing(map, id, ctx.getImageData(0, 0, SIZE, SIZE));
-  } finally {
-    URL.revokeObjectURL(url);
-  }
-
   return id;
 }
 

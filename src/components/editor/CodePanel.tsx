@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
-import { serialize, deserialize, geometrySchema } from "@/lib/mapmaker-format";
+import { serialize, deserialize, migrateIconsToSvg, geometrySchema } from "@/lib/mapmaker-format";
 import { geometryTypeToFeatureType } from "@/lib/geojson";
 
 const MAX_IMPORT_SIZE = 5_000_000;
@@ -42,7 +42,7 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
   }, [map, layers, features, groups, legendEntries, activeBaseMap, mode]);
 
   const handleMapmakerChange = useCallback(
-    (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    async (e: React.ChangeEvent<HTMLTextAreaElement>) => {
       const raw = e.target.value;
       setValue(raw);
       if (!raw.trim()) {
@@ -51,6 +51,7 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       }
       try {
         const data = deserialize(raw);
+        await migrateIconsToSvg(data);
         setError(null);
         internalUpdate.current = true;
         importMapData(data);

@@ -17,6 +17,7 @@ import SliderField from "@/components/ui/SliderField";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import { useCatalogIcon } from "@/lib/hooks/use-catalog-icon";
+import { resolveIconToSvg } from "@/lib/icon-catalog";
 import type {
   FeatureData,
   LegendEntry,
@@ -169,8 +170,9 @@ export function CreateEntryDialog({
   const [opacity, setOpacity] = useState(1);
   const [size, setSize] = useState(1);
   const [shape, setShape] = useState<PointShape>("circle");
-  const [icon, setIcon] = useState<string | undefined>();
-  const SelectedIcon = useCatalogIcon(icon);
+  const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
+  const [customSvg, setCustomSvg] = useState<string | undefined>();
+  const SelectedIcon = useCatalogIcon(catalogIconId);
   const [borderColor, setBorderColor] = useState(COLORS.white);
   const [borderWidth, setBorderWidth] = useState(DEFAULT_BORDER_WIDTH);
   const [strokeWidth, setStrokeWidth] = useState(3);
@@ -193,7 +195,8 @@ export function CreateEntryDialog({
     setOpacity(1);
     setSize(1);
     setShape("circle");
-    setIcon(undefined);
+    setCatalogIconId(null);
+    setCustomSvg(undefined);
     setBorderColor(COLORS.white);
     setBorderWidth(DEFAULT_BORDER_WIDTH);
     setStrokeWidth(3);
@@ -216,8 +219,8 @@ export function CreateEntryDialog({
         ...base,
         featureType: "point",
         size,
-        shape: icon ? undefined : shape,
-        icon,
+        shape: customSvg ? undefined : shape,
+        customSvg,
         borderColor,
         borderWidth,
       });
@@ -344,12 +347,13 @@ export function CreateEntryDialog({
                       <Button
                         key={s.value}
                         variant={
-                          !icon && shape === s.value ? "default" : "outline"
+                          !customSvg && shape === s.value ? "default" : "outline"
                         }
                         size="icon-sm"
                         onClick={() => {
                           setShape(s.value);
-                          setIcon(undefined);
+                          setCatalogIconId(null);
+                          setCustomSvg(undefined);
                         }}
                         title={s.label}
                       >
@@ -357,7 +361,7 @@ export function CreateEntryDialog({
                       </Button>
                     ))}
                     {SelectedIcon && (
-                      <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)} title={icon}>
+                      <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
                         <SelectedIcon size={14} />
                       </Button>
                     )}
@@ -372,10 +376,14 @@ export function CreateEntryDialog({
                   <IconPickerDialog
                     open={pickerOpen}
                     onOpenChange={setPickerOpen}
-                    selected={icon}
-                    onSelect={(i) => {
-                      setIcon(i);
-                      setShape("circle");
+                    selected={catalogIconId ?? undefined}
+                    onSelect={async (i) => {
+                      const svg = await resolveIconToSvg(i);
+                      if (svg) {
+                        setCustomSvg(svg);
+                        setShape("circle");
+                        setCatalogIconId(i);
+                      }
                     }}
                   />
                 </Field>
@@ -389,7 +397,7 @@ export function CreateEntryDialog({
                     scale={100}
                   />
                 </Field>
-                {!icon && <div className="flex gap-3">
+                {!customSvg && <div className="flex gap-3">
                   <Field label="Border color" className="flex-1">
                     <ColorInput
                       value={borderColor}
@@ -568,7 +576,8 @@ export function EditEntryDialog({
   onUpdate: (updates: Partial<LegendEntry>) => void;
 }) {
   const [pickerOpen, setPickerOpen] = useState(false);
-  const SelectedIcon = useCatalogIcon(entry.featureType === "point" ? entry.icon : undefined);
+  const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
+  const SelectedIcon = useCatalogIcon(catalogIconId);
   const isStroke = entry.featureType === "polyline" || entry.featureType === "polygon";
 
   return (
@@ -594,23 +603,23 @@ export function EditEntryDialog({
               <Field label="Marker">
                 <div className="flex gap-1 flex-wrap">
                   {POINT_SHAPES.map((s) => (
-                    <Button key={s.value} variant={!entry.icon && entry.shape === s.value ? "default" : "outline"} size="icon-sm" onClick={() => onUpdate({ shape: s.value, icon: undefined })} title={s.label}>
+                    <Button key={s.value} variant={!entry.customSvg && entry.shape === s.value ? "default" : "outline"} size="icon-sm" onClick={() => { onUpdate({ shape: s.value, customSvg: undefined }); setCatalogIconId(null); }} title={s.label}>
                       <ShapePreview shape={s.value} />
                     </Button>
                   ))}
                   {SelectedIcon && (
-                    <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)} title={entry.icon}>
+                    <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
                       <SelectedIcon size={14} />
                     </Button>
                   )}
                   <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>More icons</Button>
                 </div>
-                <IconPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} selected={entry.icon} onSelect={(i) => onUpdate({ icon: i, shape: "circle" })} />
+                <IconPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} selected={catalogIconId ?? undefined} onSelect={async (i) => { const svg = await resolveIconToSvg(i); if (svg) { onUpdate({ customSvg: svg, shape: "circle" }); setCatalogIconId(i); } }} />
               </Field>
               <Field label={`Size (${Math.round(entry.size * 100)}%)`}>
                 <SliderField value={entry.size} onChange={(v) => onUpdate({ size: v })} min={50} max={300} step={25} scale={100} />
               </Field>
-              {!entry.icon && (
+              {!entry.customSvg && (
                 <div className="flex gap-3">
                   <Field label="Border color" className="flex-1">
                     <ColorInput value={entry.borderColor} onChange={(e) => onUpdate({ borderColor: (e.target as HTMLInputElement).value })} />

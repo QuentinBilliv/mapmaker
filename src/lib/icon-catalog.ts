@@ -1,4 +1,6 @@
 import { type IconType } from "react-icons";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 export interface CatalogEntry {
   id: string;
@@ -70,4 +72,10 @@ export async function loadCatalogEntry(id: string): Promise<CatalogEntry | undef
   if (_globalMap.has(id)) return _globalMap.get(id);
   await loadAllPacks();
   return _globalMap.get(id);
+}
+
+export async function resolveIconToSvg(iconId: string): Promise<string | null> {
+  const entry = await loadCatalogEntry(iconId);
+  if (!entry) return null;
+  return renderToStaticMarkup(createElement(entry.Icon, { size: 128 }));
 }

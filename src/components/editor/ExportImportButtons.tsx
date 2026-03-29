@@ -2,7 +2,7 @@
 
 import { useRef, useState, useCallback } from "react";
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
-import { serialize, deserialize, geometrySchema } from "@/lib/mapmaker-format";
+import { serialize, deserialize, migrateIconsToSvg, geometrySchema } from "@/lib/mapmaker-format";
 import { geometryTypeToFeatureType } from "@/lib/geojson";
 import { Button } from "@/components/ui/button";
 import { FaDownload, FaUpload } from "react-icons/fa6";
@@ -41,13 +41,14 @@ export default function ExportImportButtons() {
     }
 
     const reader = new FileReader();
-    reader.onload = () => {
+    reader.onload = async () => {
       const raw = reader.result as string;
       const isMapmaker = file.name.endsWith(".mapmaker");
 
       if (isMapmaker) {
         try {
           const data = deserialize(raw);
+          await migrateIconsToSvg(data);
           importMapData(data);
           setStatus({ message: "Map imported", error: false });
         } catch (err) {

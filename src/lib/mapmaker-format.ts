@@ -203,7 +203,6 @@ export function serialize(
         case "point":
           props["mapmaker:size"] = f.size;
           if (f.shape) props["mapmaker:shape"] = f.shape;
-          if (f.icon) props["mapmaker:icon"] = f.icon;
           if (f.customSvg) props["mapmaker:customSvg"] = f.customSvg;
           props["mapmaker:borderColor"] = f.borderColor;
           props["mapmaker:borderWidth"] = f.borderWidth;
@@ -236,6 +235,7 @@ export interface DeserializedMap {
   features: FeatureWithoutId[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
+  pendingIconMigrations: { featureIndex: number; iconId: string }[];
 }
 
 export function deserialize(raw: string): DeserializedMap {
@@ -250,6 +250,8 @@ export function deserialize(raw: string): DeserializedMap {
 
   const validLayerIds = new Set(result.mapmaker.layers.map((l) => l.id));
   const knownBaseMap = BASE_MAPS.find((b) => b.id === result.mapmaker.baseMap);
+
+  const pendingIconMigrations: { featureIndex: number; iconId: string }[] = [];
 
   const features: FeatureWithoutId[] = result.features.flatMap((f, idx): FeatureWithoutId[] => {
     const p = f.properties;
@@ -285,8 +287,11 @@ export function deserialize(raw: string): DeserializedMap {
         return [{ ...base, type: "polygon" as const, shapeOrigin: p["mapmaker:shapeOrigin"], smoothing: p["mapmaker:smoothing"], strokeWidth: p["mapmaker:strokeWidth"], lineStyle: p["mapmaker:lineStyle"], lineDecoration: p["mapmaker:lineDecoration"], decorationSpacing: p["mapmaker:decorationSpacing"], fillPattern: p["mapmaker:fillPattern"] }];
       case "polyline":
         return [{ ...base, type: "polyline" as const, smoothing: p["mapmaker:smoothing"], strokeWidth: p["mapmaker:strokeWidth"], lineStyle: p["mapmaker:lineStyle"], arrowStyle: p["mapmaker:arrowStyle"], lineDecoration: p["mapmaker:lineDecoration"], decorationSpacing: p["mapmaker:decorationSpacing"] }];
-      case "point":
-        return [{ ...base, type: "point" as const, size: p["mapmaker:size"] ?? 1, shape: p["mapmaker:shape"], icon: p["mapmaker:icon"], customSvg, borderColor: p["mapmaker:borderColor"] ?? "#ffffff", borderWidth: p["mapmaker:borderWidth"] ?? 0 }];
+      case "point": {
+        const legacyIcon: string | undefined = !customSvg ? p["mapmaker:icon"] : undefined;
+        if (legacyIcon) pendingIconMigrations.push({ featureIndex: idx, iconId: legacyIcon });
+        return [{ ...base, type: "point" as const, size: p["mapmaker:size"] ?? 1, shape: p["mapmaker:shape"], customSvg, borderColor: p["mapmaker:borderColor"] ?? "#ffffff", borderWidth: p["mapmaker:borderWidth"] ?? 0 }];
+      }
       case "text":
         return [{ ...base, type: "text" as const, textContent: p["mapmaker:textContent"] ?? "", fontSize: p["mapmaker:fontSize"] ?? 24, fontFamily: p["mapmaker:fontFamily"] ?? "sans", textBorderEnabled: p["mapmaker:textBorderEnabled"] ?? true, textBorderColor: p["mapmaker:textBorderColor"] ?? "#ffffff", textBorderWidth: p["mapmaker:textBorderWidth"] ?? 2 }];
     }
@@ -306,5 +311,29 @@ export function deserialize(raw: string): DeserializedMap {
     features,
     groups: result.mapmaker.groups,
     legendEntries: (result.mapmaker.legendEntries ?? []) as LegendEntry[],
+    pendingIconMigrations,
   };
+}
+
+export async function migrateIconsToSvg(data: DeserializedMap): Promise<void> {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const legendMigrations = data.legendEntries
+    .filter((e) => e.featureType === "point" && !!(e as any).icon && !(e as any).customSvg)
+    .map((e) => ({ entry: e as any, iconId: (e as any).icon as string }));
+
+  if (data.pendingIconMigrations.length === 0 && legendMigrations.length === 0) return;
+  const { resolveIconToSvg } = await import("./icon-catalog");
+  await Promise.all([
+    ...data.pendingIconMigrations.map(async ({ featureIndex, iconId }) => {
+      const feature = data.features[featureIndex];
+      if (!feature || feature.type !== "point") return;
+      const svg = await resolveIconToSvg(iconId);
+      if (svg) feature.customSvg = svg;
+    }),
+    ...legendMigrations.map(async ({ entry, iconId }) => {
+      const svg = await resolveIconToSvg(iconId);
+      if (svg) entry.customSvg = svg;
+      delete entry.icon;
+    }),
+  ]);
 }

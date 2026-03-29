@@ -84,8 +84,8 @@ export function useFeatureActions({
         newFeature = {
           ...base, type: "point",
           size: s.activePoint.size,
-          shape: s.activePoint.icon ? undefined : s.activePoint.shape,
-          icon: s.activePoint.icon ?? undefined,
+          shape: s.activePoint.customSvg ? undefined : s.activePoint.shape,
+          customSvg: s.activePoint.customSvg ?? undefined,
           borderColor: s.activePoint.borderColor,
           borderWidth: s.activePoint.borderWidth,
         };

@@ -1,8 +1,5 @@
 import type { FeatureData, LineStyle, FillPattern } from "./types";
 import { SHAPE_DRAWERS, DECO_DRAWERS, DECO_OFFSET_Y } from "./draw-primitives";
-import { loadCatalogEntry } from "./icon-catalog";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import { sanitizeSvg } from "./svg-sanitizer";
 
 const DASH_MAP: Record<LineStyle, number[] | undefined> = {
@@ -83,15 +80,6 @@ async function drawIconFromSvg(ctx: CanvasRenderingContext2D, svgMarkup: string,
 }
 
 async function drawPoint(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "point" }, w: number, h: number) {
-  if (f.icon) {
-    const entry = await loadCatalogEntry(f.icon);
-    if (entry) {
-      const svgMarkup = renderToStaticMarkup(createElement(entry.Icon, { size: Math.min(w, h) * 0.7 }));
-      await drawIconFromSvg(ctx, svgMarkup, f.color, f.opacity, w, h, f.rotation ?? 0);
-      return;
-    }
-  }
-
   if (f.customSvg) {
     const sanitized = sanitizeSvg(f.customSvg);
     await drawIconFromSvg(ctx, sanitized, f.color, f.opacity, w, h, f.rotation ?? 0);

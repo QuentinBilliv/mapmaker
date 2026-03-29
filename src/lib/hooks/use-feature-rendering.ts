@@ -6,8 +6,6 @@ import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, GroupData
 import { resolveAllFeatures } from "@/lib/resolve-style";
 import {
   ensureShapeIcon,
-  catalogIconId,
-  ensureCatalogIcon,
   customSvgIconId,
   ensureCustomSvgIcon,
   ICON_SCALE,
@@ -402,11 +400,6 @@ function buildGeoJSONSorted(
           iconId = customSvgIconId(f.customSvg, f.color);
           if (!map.hasImage(iconId)) {
             pendingSvgs.push(ensureCustomSvgIcon(map, f.customSvg, f.color));
-          }
-        } else if (f.icon) {
-          iconId = catalogIconId(f.icon, f.color);
-          if (!map.hasImage(iconId)) {
-            pendingSvgs.push(ensureCatalogIcon(map, f.icon, f.color));
           }
         } else {
           const shape: PointShape = f.shape ?? "circle";

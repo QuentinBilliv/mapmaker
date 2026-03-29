@@ -65,7 +65,6 @@ const POINT: FeatureData = {
   order: 2,
   size: 2,
   shape: "star",
-  icon: undefined,
   customSvg: undefined,
   borderColor: "#ffffff",
   borderWidth: 3,

@@ -16,7 +16,7 @@ function applyLegendEntry(feature: FeatureData, entry: LegendEntry): FeatureData
   switch (entry.featureType) {
     case "point": {
       const e = entry as PointLegendEntry;
-      return { ...feature, color: e.color, opacity: e.opacity, size: e.size, shape: e.shape, icon: e.icon, customSvg: e.customSvg, borderColor: e.borderColor, borderWidth: e.borderWidth } as PointFeature;
+      return { ...feature, color: e.color, opacity: e.opacity, size: e.size, shape: e.shape, customSvg: e.customSvg, borderColor: e.borderColor, borderWidth: e.borderWidth } as PointFeature;
     }
     case "polyline": {
       const e = entry as PolylineLegendEntry;
@@ -55,7 +55,7 @@ export function deduceLegendEntry(feature: FeatureData, label: string): Omit<Poi
   const base = { label, color: feature.color, opacity: feature.opacity };
   switch (feature.type) {
     case "point":
-      return { ...base, featureType: "point", size: feature.size, shape: feature.shape, icon: feature.icon, customSvg: feature.customSvg, borderColor: feature.borderColor, borderWidth: feature.borderWidth };
+      return { ...base, featureType: "point", size: feature.size, shape: feature.shape, customSvg: feature.customSvg, borderColor: feature.borderColor, borderWidth: feature.borderWidth };
     case "polyline":
       return { ...base, featureType: "polyline", smoothing: feature.smoothing, strokeWidth: feature.strokeWidth, lineStyle: feature.lineStyle, arrowStyle: feature.arrowStyle, lineDecoration: feature.lineDecoration, decorationSpacing: feature.decorationSpacing };
     case "polygon":
@@ -78,7 +78,7 @@ export function legendEntryToSyntheticFeature(entry: LegendEntry): FeatureData {
   };
   switch (entry.featureType) {
     case "point":
-      return { ...base, type: "point", size: entry.size, shape: entry.shape, icon: entry.icon, customSvg: entry.customSvg, borderColor: entry.borderColor, borderWidth: entry.borderWidth };
+      return { ...base, type: "point", size: entry.size, shape: entry.shape, customSvg: entry.customSvg, borderColor: entry.borderColor, borderWidth: entry.borderWidth };
     case "polyline":
       return { ...base, type: "polyline", smoothing: entry.smoothing, strokeWidth: entry.strokeWidth, lineStyle: entry.lineStyle, arrowStyle: entry.arrowStyle, lineDecoration: entry.lineDecoration, decorationSpacing: entry.decorationSpacing, geometry: { type: "LineString" as const, coordinates: [[0, 0], [1, 1]] } };
     case "polygon":

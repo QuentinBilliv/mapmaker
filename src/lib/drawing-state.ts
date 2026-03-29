@@ -14,7 +14,7 @@ import { BASE_MAPS } from "./map-style";
 export interface PointStyle {
   size: number;
   shape: PointShape;
-  icon: string | null;
+  customSvg: string | null;
   borderColor: string;
   borderWidth: number;
 }
@@ -62,7 +62,7 @@ export type DrawingAction =
 export const INITIAL_POINT_STYLE: PointStyle = {
   size: 1,
   shape: "circle",
-  icon: null,
+  customSvg: null,
   borderColor: COLORS.white,
   borderWidth: DEFAULT_BORDER_WIDTH,
 };
