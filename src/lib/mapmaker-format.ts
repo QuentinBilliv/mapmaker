@@ -316,10 +316,11 @@ export function deserialize(raw: string): DeserializedMap {
 }
 
 export async function migrateIconsToSvg(data: DeserializedMap): Promise<void> {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const legendMigrations = data.legendEntries
-    .filter((e) => e.featureType === "point" && !!(e as any).icon && !(e as any).customSvg)
-    .map((e) => ({ entry: e as any, iconId: (e as any).icon as string }));
+  type LegacyEntry = LegendEntry & { icon?: string };
+  const legendMigrations = (data.legendEntries as LegacyEntry[])
+    .filter((e): e is LegacyEntry & { icon: string; featureType: "point" } =>
+      e.featureType === "point" && !!e.icon && !e.customSvg)
+    .map((e) => ({ entry: e, iconId: e.icon }));
 
   if (data.pendingIconMigrations.length === 0 && legendMigrations.length === 0) return;
   const { resolveIconToSvg } = await import("./icon-catalog");
