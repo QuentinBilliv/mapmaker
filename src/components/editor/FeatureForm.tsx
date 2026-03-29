@@ -9,7 +9,7 @@ import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
 import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type FeatureData, type FeatureUpdate } from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
-import { sanitizeSvg } from "@/lib/svg-sanitizer";
+import CustomSvgDialog from "@/components/editor/CustomSvgDialog";
 import { resolveIconToSvg } from "@/lib/icon-catalog";
 import { useColorSwatches } from "@/lib/hooks/use-color-swatches";
 import { useCatalogIcon } from "@/lib/hooks/use-catalog-icon";
@@ -357,36 +357,12 @@ function CoordinateFields({ feature }: { feature: FeatureData }) {
 
 function MarkerSelect() {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
-  const fileRef = useRef<HTMLInputElement>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [svgError, setSvgError] = useState<string | null>(null);
+  const [svgDialogOpen, setSvgDialogOpen] = useState(false);
   const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
   const shape = watch("shape");
   const customSvg = watch("customSvg");
   const SelectedIcon = useCatalogIcon(catalogIconId);
-
-  const handleUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setSvgError(null);
-    if (file.size > 256 * 1024) {
-      setSvgError("SVG file must be under 256 KB");
-      e.target.value = "";
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      try {
-        const sanitized = sanitizeSvg(reader.result as string);
-        setValue("customSvg", sanitized);
-        setCatalogIconId(null);
-      } catch {
-        setSvgError("Invalid SVG file");
-      }
-    };
-    reader.readAsText(file);
-    e.target.value = "";
-  };
 
   const handleIconSelect = async (iconId: string) => {
     const svg = await resolveIconToSvg(iconId);
@@ -421,45 +397,29 @@ function MarkerSelect() {
               <SelectedIcon size={14} />
             </Button>
           )}
-          <Button
-            variant="outline"
-            size="xs"
-            onClick={() => setPickerOpen(true)}
-          >
-            More icons
-          </Button>
-        </div>
-        <div className="flex gap-1 items-center">
-          <Button
-            variant={customSvg ? "default" : "outline"}
-            size="xs"
-            onClick={() => fileRef.current?.click()}
-          >
-            {customSvg ? "Replace SVG" : "Upload SVG"}
-          </Button>
-          {customSvg && (
-            <Button variant="ghost" size="xs" onClick={() => { setValue("customSvg", undefined); setCatalogIconId(null); }}>
-              ✕
+          {customSvg && !catalogIconId && (
+            <Button variant="default" size="icon-sm" onClick={() => setSvgDialogOpen(true)}>
+              <span className="w-3.5 h-3.5" dangerouslySetInnerHTML={{ __html: customSvg }} />
             </Button>
           )}
-          <input
-            ref={fileRef}
-            type="file"
-            accept=".svg"
-            onChange={handleUpload}
-            className="hidden"
-            aria-label="Upload SVG marker"
-          />
+          <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>
+            More icons
+          </Button>
+          <Button variant="outline" size="xs" onClick={() => setSvgDialogOpen(true)}>
+            Custom SVG
+          </Button>
         </div>
-        {svgError && (
-          <p className="text-xs text-destructive">{svgError}</p>
-        )}
       </div>
       <IconPickerDialog
         open={pickerOpen}
         onOpenChange={setPickerOpen}
         selected={catalogIconId ?? undefined}
         onSelect={handleIconSelect}
+      />
+      <CustomSvgDialog
+        open={svgDialogOpen}
+        onOpenChange={setSvgDialogOpen}
+        onSubmit={(svg) => { setValue("customSvg", svg); setCatalogIconId(null); }}
       />
     </Field>
   );
