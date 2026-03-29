@@ -27,6 +27,7 @@ export default function IconPickerDialog({
   onSelect: (id: string) => void;
 }) {
   const [query, setQuery] = useState("");
+  const [activePack, setActivePack] = useState<string | null>(null);
   const [catalog, setCatalog] = useState<CatalogEntry[]>([]);
   const [loadError, setLoadError] = useState(false);
 
@@ -39,34 +40,41 @@ export default function IconPickerDialog({
   }, [open, catalog.length, loadError]);
 
   const filtered = useMemo(() => {
-    if (!query.trim()) return catalog;
-    const q = query.toLowerCase();
-    return catalog.filter(
-      (e) => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q)
-    );
-  }, [query, catalog]);
+    let result = catalog;
+    if (activePack) result = result.filter((e) => e.pack === activePack);
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      result = result.filter((e) => e.name.toLowerCase().includes(q) || e.id.toLowerCase().includes(q));
+    }
+    return result;
+  }, [query, activePack, catalog]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-sm max-h-[80vh] flex flex-col">
+      <DialogContent className="max-w-sm h-[80vh] flex flex-col gap-3 overflow-hidden">
         <DialogHeader>
           <DialogTitle>Choose an icon</DialogTitle>
         </DialogHeader>
-        <div className="flex gap-1 text-xs flex-wrap">
+        <div className="flex gap-1.5 text-xs flex-wrap">
           {PACKS.map((p) => (
-            <span key={p.id} className="px-1.5 py-0.5 rounded bg-muted text-muted-foreground">
+            <Button
+              key={p.id}
+              variant={activePack === p.id ? "default" : "outline"}
+              size="xs"
+              onClick={() => setActivePack(activePack === p.id ? null : p.id)}
+            >
               {p.label}
-            </span>
+            </Button>
           ))}
         </div>
         <Input
           type="text"
-          placeholder="Search across all packs..."
+          placeholder={activePack ? `Search ${PACKS.find((p) => p.id === activePack)?.label}...` : "Search across all packs..."}
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           autoFocus
         />
-        <div className="flex-1 min-h-0">
+        <div className="flex-1 min-h-0 relative">
           {loadError ? (
             <p className="text-sm text-destructive text-center py-4">Failed to load icons</p>
           ) : catalog.length === 0 ? (
@@ -119,7 +127,7 @@ function VirtualIconGrid({
   }
 
   return (
-    <div ref={scrollRef} onScroll={onScroll} className="overflow-y-auto h-full">
+    <div ref={scrollRef} onScroll={onScroll} className="overflow-y-auto absolute inset-0">
       <div style={{ height: totalHeight, paddingTop: startRow * ROW_H }} className="relative">
         <div className="grid grid-cols-6 gap-1">
           {visibleEntries.map((e) => (

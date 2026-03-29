@@ -16,18 +16,22 @@ export interface IconPack {
   loader: () => Promise<Record<string, unknown>>;
 }
 
-async function safeImport(loader: () => Promise<Record<string, unknown>>): Promise<Record<string, unknown>> {
-  try {
-    return await loader();
-  } catch {
-    return {};
+async function safeImport(loader: () => Promise<Record<string, unknown>>, label?: string): Promise<Record<string, unknown>> {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      return await loader();
+    } catch {
+      if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)));
+    }
   }
+  console.warn(`[icon-catalog] Failed to load pack "${label}" after retries`);
+  return {};
 }
 
 const PACKS: IconPack[] = [
-  { id: "fa6", label: "Font Awesome", prefix: "Fa", loader: () => safeImport(() => import("react-icons/fa6") as Promise<Record<string, unknown>>) },
-  { id: "gi", label: "Game Icons", prefix: "Gi", loader: () => safeImport(() => import("react-icons/gi") as Promise<Record<string, unknown>>) },
-  { id: "io5", label: "Ionicons", prefix: "Io", loader: () => safeImport(() => import("react-icons/io5") as Promise<Record<string, unknown>>) },
+  { id: "fa6", label: "Font Awesome", prefix: "Fa", loader: () => safeImport(() => import("@/lib/icon-packs/fa6") as Promise<Record<string, unknown>>, "fa6") },
+  { id: "gi", label: "Game Icons", prefix: "Gi", loader: () => safeImport(() => import("react-icons/gi") as Promise<Record<string, unknown>>, "gi") },
+  { id: "io5", label: "Ionicons", prefix: "Io", loader: () => safeImport(() => import("react-icons/io5") as Promise<Record<string, unknown>>, "io5") },
 ];
 
 export { PACKS };
