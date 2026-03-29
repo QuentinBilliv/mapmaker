@@ -11,6 +11,7 @@ import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
+import { computeFeaturesBounds } from "@/lib/geojson";
 
 export default function MapCanvas() {
   const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
@@ -18,7 +19,8 @@ export default function MapCanvas() {
   const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap);
+  const initialBounds = useMemo(() => computeFeaturesBounds(features), []);
+  const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap, initialBounds);
 
   const selectedFeatureIdsRef = useRef(selectedFeatureIds);
   selectedFeatureIdsRef.current = selectedFeatureIds;
@@ -74,6 +76,7 @@ export default function MapCanvas() {
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useMoveListener(mapRef, updateMap);
   useFlyToListener(mapRef);
+  useFitBoundsListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
   useFeatureTooltip(mapRef, drawMode, styleVersion, selectedFeatureIds.length > 0);
   useLegendHighlight(mapRef, styleVersion);
@@ -115,6 +118,20 @@ function useProjectionListener(mapRef: React.RefObject<maplibregl.Map | null>, s
     map.setProjection({ type: projectionRef.current });
   }, [mapRef, styleVersion]);
 }
+
+function useFitBoundsListener(mapRef: React.RefObject<maplibregl.Map | null>) {
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const map = mapRef.current;
+      if (!map) return;
+      const { bounds } = (e as CustomEvent).detail;
+      map.fitBounds(bounds, { padding: 60, maxZoom: 16, duration: 1500 });
+    };
+    window.addEventListener("mapmaker:fitbounds", handler);
+    return () => window.removeEventListener("mapmaker:fitbounds", handler);
+  }, [mapRef]);
+}
+
 
 function useMoveListener(
   mapRef: React.RefObject<maplibregl.Map | null>,

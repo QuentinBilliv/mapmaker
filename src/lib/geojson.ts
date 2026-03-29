@@ -29,6 +29,36 @@ export function parseGeometry(raw: string): GeoJSON.Geometry | null {
   }
 }
 
+export type LngLatBounds = [[number, number], [number, number]];
+
+export function computeFeaturesBounds(
+  features: { geometry: GeoJSON.Geometry }[]
+): LngLatBounds | null {
+  let minLng = Infinity, minLat = Infinity, maxLng = -Infinity, maxLat = -Infinity;
+  let hasCoords = false;
+
+  function visit(coords: unknown) {
+    if (typeof (coords as number[])[0] === "number" && typeof (coords as number[])[1] === "number") {
+      const [lng, lat] = coords as [number, number];
+      if (lng < minLng) minLng = lng;
+      if (lng > maxLng) maxLng = lng;
+      if (lat < minLat) minLat = lat;
+      if (lat > maxLat) maxLat = lat;
+      hasCoords = true;
+      return;
+    }
+    for (const child of coords as unknown[]) visit(child);
+  }
+
+  for (const f of features) {
+    const g = f.geometry;
+    if ("coordinates" in g) visit(g.coordinates);
+  }
+
+  if (!hasCoords) return null;
+  return [[minLng, minLat], [maxLng, maxLat]];
+}
+
 export function geometryTypeToFeatureType(
   geoType: string
 ): "polygon" | "polyline" | "point" {

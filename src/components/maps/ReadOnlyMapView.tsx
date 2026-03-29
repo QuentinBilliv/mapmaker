@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useMemo, useRef } from "react";
 import Link from "next/link";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -12,6 +12,7 @@ import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare } from "react-icons/fa6";
+import { computeFeaturesBounds } from "@/lib/geojson";
 import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
@@ -45,15 +46,22 @@ function ReadOnlyMapViewInner({
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   const baseMap = BASE_MAPS.find((b) => b.id === baseMapId) ?? BASE_MAPS[0];
+  const bounds = useMemo(() => computeFeaturesBounds(features), [features]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
+    const opts: maplibregl.MapOptions = {
       container: containerRef.current,
       style: baseMap.style as maplibregl.StyleSpecification,
-      center: mapData.center,
-      zoom: mapData.zoom,
-    });
+    };
+    if (bounds) {
+      opts.bounds = bounds as maplibregl.LngLatBoundsLike;
+      opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
+    } else {
+      opts.center = mapData.center;
+      opts.zoom = mapData.zoom;
+    }
+    const map = new maplibregl.Map(opts);
     map.addControl(new maplibregl.NavigationControl(), "top-right");
     mapRef.current = map;
     return () => {
@@ -61,13 +69,6 @@ function ReadOnlyMapViewInner({
       mapRef.current = null;
     };
   }, [baseMap.style]);
-
-  useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-    map.setCenter(mapData.center as [number, number]);
-    map.setZoom(mapData.zoom);
-  }, [mapData.center, mapData.zoom]);
 
   useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
   useFeatureTooltip(mapRef, "select", 0);

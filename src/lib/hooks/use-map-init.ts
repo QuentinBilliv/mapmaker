@@ -4,12 +4,14 @@ import { useRef, useEffect, useState } from "react";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import type { BaseMap } from "@/lib/map-style";
+import type { LngLatBounds } from "@/lib/geojson";
 
 export function useMapInit(
   containerRef: React.RefObject<HTMLDivElement | null>,
   center: [number, number],
   zoom: number,
-  baseMap: BaseMap
+  baseMap: BaseMap,
+  bounds?: LngLatBounds | null
 ) {
   const mapRef = useRef<maplibregl.Map | null>(null);
   const [styleVersion, setStyleVersion] = useState(0);
@@ -17,13 +19,20 @@ export function useMapInit(
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
 
-    const map = new maplibregl.Map({
+    const opts: maplibregl.MapOptions = {
       container: containerRef.current,
       style: baseMap.style,
-      center,
-      zoom,
       doubleClickZoom: false,
-    });
+    };
+    if (bounds) {
+      opts.bounds = bounds as maplibregl.LngLatBoundsLike;
+      opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
+    } else {
+      opts.center = center;
+      opts.zoom = zoom;
+    }
+
+    const map = new maplibregl.Map(opts);
 
     map.addControl(new maplibregl.NavigationControl(), "bottom-right");
     map.addControl(new maplibregl.ScaleControl(), "bottom-left");

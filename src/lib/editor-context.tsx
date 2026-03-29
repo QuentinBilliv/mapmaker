@@ -32,6 +32,7 @@ import type {
   TextFont,
 } from "./types";
 import type { DeserializedMap } from "./mapmaker-format";
+import { computeFeaturesBounds } from "./geojson";
 import { type DrawingState, type DrawingPayload, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
 import { useUndoRedo } from "./hooks/use-undo-redo";
 import { useFeatureActions } from "./hooks/use-feature-actions";
@@ -406,14 +407,18 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     recordSnapshot();
     setMap((prev) => ({ ...prev, ...data.map }));
     setLayers(data.layers);
-    setFeatures(
-      (featureLimit === Infinity ? data.features : data.features.slice(0, featureLimit)).map((f) => ({ ...f, id: uuid() }) as FeatureData)
-    );
+    const importedFeatures = (featureLimit === Infinity ? data.features : data.features.slice(0, featureLimit))
+      .map((f) => ({ ...f, id: uuid() }) as FeatureData);
+    setFeatures(importedFeatures);
     setGroups(data.groups ?? []);
     setLegendEntries(data.legendEntries ?? []);
     const bm = BASE_MAPS.find((b) => b.id === data.baseMapId);
     if (bm) dispatchDrawing({ type: "SET", payload: { activeBaseMap: bm } });
     setSelectedFeatureIds([]);
+    const bounds = computeFeaturesBounds(importedFeatures);
+    if (bounds) {
+      setTimeout(() => window.dispatchEvent(new CustomEvent("mapmaker:fitbounds", { detail: { bounds } })), 100);
+    }
   }, [recordSnapshot, featureLimit]);
 
   const registerDrawingControls = useCallback(

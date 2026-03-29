@@ -2,8 +2,8 @@ import type { MapData, LayerData } from "./types";
 
 export const LICENSES = ["CC BY", "CC BY-SA", "CC BY-NC", "Public domain"] as const;
 
-export const DEFAULT_CENTER: [number, number] = [2.3, 46.5];
-export const DEFAULT_ZOOM = 5;
+export const DEFAULT_CENTER: [number, number] = [0, 20];
+export const DEFAULT_ZOOM = 1;
 
 export const COLORS: Record<string, string> = {
   primary: "#1a1a1a",
