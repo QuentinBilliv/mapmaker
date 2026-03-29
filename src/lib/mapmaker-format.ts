@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
+import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
 import { BASE_MAPS } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
@@ -316,11 +316,13 @@ export function deserialize(raw: string): DeserializedMap {
 }
 
 export async function migrateIconsToSvg(data: DeserializedMap): Promise<void> {
-  type LegacyEntry = LegendEntry & { icon?: string };
-  const legendMigrations = (data.legendEntries as LegacyEntry[])
-    .filter((e): e is LegacyEntry & { icon: string; featureType: "point" } =>
-      e.featureType === "point" && !!e.icon && !e.customSvg)
-    .map((e) => ({ entry: e, iconId: e.icon }));
+  type LegacyPointEntry = PointLegendEntry & { icon?: string };
+  const legendMigrations: { entry: LegacyPointEntry; iconId: string }[] = [];
+  for (const e of data.legendEntries) {
+    if (e.featureType !== "point") continue;
+    const le = e as LegacyPointEntry;
+    if (le.icon && !le.customSvg) legendMigrations.push({ entry: le, iconId: le.icon });
+  }
 
   if (data.pendingIconMigrations.length === 0 && legendMigrations.length === 0) return;
   const { resolveIconToSvg } = await import("./icon-catalog");
