@@ -399,7 +399,7 @@ function MarkerSelect() {
           )}
           {customSvg && !catalogIconId && (
             <Button variant="default" size="icon-sm" onClick={() => setSvgDialogOpen(true)}>
-              <span className="w-3.5 h-3.5" dangerouslySetInnerHTML={{ __html: customSvg }} />
+              <span className="w-3.5 h-3.5 block overflow-hidden [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: customSvg }} />
             </Button>
           )}
           <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>
