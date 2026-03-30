@@ -7,7 +7,7 @@ interface FileDropZoneProps {
   accept: string;
   maxSizeKB?: number;
   label?: string;
-  onFile: (content: string) => void;
+  onFile: (content: string, fileName?: string) => void;
   onError?: (message: string) => void;
   className?: string;
 }
@@ -30,7 +30,7 @@ export default function FileDropZone({
         return;
       }
       const reader = new FileReader();
-      reader.onload = () => onFile(reader.result as string);
+      reader.onload = () => onFile(reader.result as string, file.name);
       reader.onerror = () => onError?.("Failed to read file");
       reader.readAsText(file);
     },
