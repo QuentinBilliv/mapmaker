@@ -11,7 +11,9 @@ export default function ThemeToggle() {
   useEffect(() => {
     setMounted(true);
     const stored = localStorage.getItem("theme");
-    const prefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+    const prefersDark = window.matchMedia(
+      "(prefers-color-scheme: dark)",
+    ).matches;
     const isDark = stored === "dark" || (!stored && prefersDark);
     setDark(isDark);
     document.documentElement.classList.toggle("dark", isDark);
@@ -32,8 +34,13 @@ export default function ThemeToggle() {
       size="icon-xs"
       onClick={toggle}
       title={dark ? "Switch to light mode" : "Switch to dark mode"}
+      className="mr-2"
     >
-      {dark ? <FaSun className="w-3.5 h-3.5" /> : <FaMoon className="w-3.5 h-3.5" />}
+      {dark ? (
+        <FaSun className="w-3.5 h-3.5" />
+      ) : (
+        <FaMoon className="w-3.5 h-3.5" />
+      )}
     </Button>
   );
 }
