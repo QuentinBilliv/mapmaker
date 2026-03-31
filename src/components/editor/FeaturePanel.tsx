@@ -406,6 +406,8 @@ const GroupRow = React.memo(function GroupRow({
           onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setEditing(false); }}
           onClick={(e) => e.stopPropagation()}
           className="h-5 text-sm px-1 py-0 flex-1"
+          maxLength={100}
+          showCounter={false}
         />
       ) : (
         <span className="flex-1 truncate" onDoubleClick={startRename}>

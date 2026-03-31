@@ -313,6 +313,7 @@ export function CreateEntryDialog({
                 onChange={(e) => setLabel(e.target.value)}
                 placeholder="e.g. Naval bases"
                 className="h-8 text-sm"
+                maxLength={50}
               />
             </Field>
             <div className="flex gap-3">
@@ -588,7 +589,7 @@ export function EditEntryDialog({
         </DialogHeader>
         <div className="space-y-3 max-h-[60vh] overflow-y-auto pr-1">
           <Field label="Label">
-            <Input value={entry.label} onChange={(e) => onUpdate({ label: e.target.value })} className="h-8 text-sm" />
+            <Input value={entry.label} onChange={(e) => onUpdate({ label: e.target.value })} className="h-8 text-sm" maxLength={50} />
           </Field>
           <div className="flex gap-3">
             <Field label="Color" className="flex-1">

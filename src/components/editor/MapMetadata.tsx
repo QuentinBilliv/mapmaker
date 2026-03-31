@@ -95,12 +95,14 @@ function MetadataFields({ save }: { save: () => void }) {
           type="text"
           {...register("title", { onBlur: save })}
           placeholder="My map"
+          maxLength={100}
         />
       </Field>
       <Field label="Description" error={errors.description?.message}>
         <Textarea
           {...register("description", { onBlur: save })}
           rows={2}
+          maxLength={500}
         />
       </Field>
       <Field label="License" error={errors.license?.message}>
@@ -123,6 +125,7 @@ function MetadataFields({ save }: { save: () => void }) {
           type="text"
           {...register("tagsStr", { onBlur: save })}
           placeholder="Rome, Mediterranean, Trade"
+          maxLength={200}
         />
       </Field>
     </>

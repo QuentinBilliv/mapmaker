@@ -95,6 +95,7 @@ function GroupForm() {
             value={group.label}
             onChange={(e) => updateGroup(group.id, { label: e.target.value })}
             placeholder="e.g. Legend block"
+            maxLength={100}
           />
         </Field>
         <div className="text-xs text-muted-foreground">
@@ -243,6 +244,7 @@ function StyleFields() {
           type="text"
           {...register("label")}
           placeholder="e.g. Roman Empire"
+          maxLength={100}
         />
       </Field>
       <Field label="Description" error={errors.description?.message}>
@@ -251,6 +253,7 @@ function StyleFields() {
           rows={2}
           placeholder="Visible on hover"
           className="resize-y"
+          maxLength={500}
         />
       </Field>
       {!hasLegendEntry && (
@@ -435,6 +438,7 @@ function TextContentField() {
         rows={3}
         placeholder="Enter your text..."
         className="resize-y"
+        maxLength={1000}
       />
     </Field>
   );
