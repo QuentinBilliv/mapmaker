@@ -219,12 +219,12 @@ export default function FeatureForm() {
           )}
           {!selectedFeature.legendEntryId && <LegendEntryToggle feature={selectedFeature} />}
           {selectedFeature.type !== "text" && <AddLabelButton featureId={selectedFeature.id} />}
-          <FormActions
-            onClose={() => selectFeature(null)}
-            onCancel={handleCancel}
-            onDelete={() => deleteFeature(selectedFeature.id)}
-          />
         </div>
+        <FormActions
+          onClose={() => selectFeature(null)}
+          onCancel={handleCancel}
+          onDelete={() => deleteFeature(selectedFeature.id)}
+        />
       </div>
     </FormProvider>
   );
@@ -687,7 +687,7 @@ function FormActions({
   onDelete: () => void;
 }) {
   return (
-    <div className="flex gap-2 pt-1">
+    <div className="flex gap-2 p-3 border-t border-border shrink-0">
       <Button onClick={onClose} className="flex-1">
         OK
       </Button>
