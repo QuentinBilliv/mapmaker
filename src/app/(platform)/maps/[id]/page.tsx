@@ -67,14 +67,19 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
   if (!data) return <Loading />;
 
   return (
-    <ReadOnlyMapView
-      map={toMapData(map)}
-      layers={data.layers}
-      features={data.features}
-      groups={data.groups}
-      legendEntries={data.legendEntries ?? []}
-      baseMapId={map.baseMapId}
-      editHref={isOwner ? `/maps/${params.id}/edit` : undefined}
-    />
+    <>
+      <div className="px-4 py-2 border-b shrink-0">
+        <h1 className="text-lg font-semibold">{map.title || "Untitled map"}</h1>
+      </div>
+      <ReadOnlyMapView
+        map={toMapData(map)}
+        layers={data.layers}
+        features={data.features}
+        groups={data.groups}
+        legendEntries={data.legendEntries ?? []}
+        baseMapId={map.baseMapId}
+        editHref={isOwner ? `/maps/${params.id}/edit` : undefined}
+      />
+    </>
   );
 }

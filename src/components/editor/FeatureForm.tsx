@@ -6,7 +6,19 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "@/lib/defaults";
 import { featureSchema, type FeatureFormValues } from "@/lib/schemas";
-import { POINT_SHAPES, LINE_STYLES, ARROW_STYLES, LINE_DECORATIONS, FILL_PATTERNS, type LineStyle, type ArrowStyle, type LineDecoration, type FillPattern, type FeatureData, type FeatureUpdate } from "@/lib/types";
+import {
+  POINT_SHAPES,
+  LINE_STYLES,
+  ARROW_STYLES,
+  LINE_DECORATIONS,
+  FILL_PATTERNS,
+  type LineStyle,
+  type ArrowStyle,
+  type LineDecoration,
+  type FillPattern,
+  type FeatureData,
+  type FeatureUpdate,
+} from "@/lib/types";
 import { ShapePreview } from "@/components/ui/marker-icons";
 import IconPickerDialog from "@/components/editor/IconPickerDialog";
 import CustomSvgDialog from "@/components/editor/CustomSvgDialog";
@@ -21,7 +33,6 @@ import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import SliderField from "@/components/ui/SliderField";
 import ColorInput from "@/components/ui/ColorInput";
 import {
@@ -67,13 +78,44 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
   };
   switch (f.type) {
     case "point":
-      return { ...defaults, size: f.size, shape: f.shape ?? "circle", customSvg: f.customSvg, borderColor: f.borderColor, borderWidth: f.borderWidth };
+      return {
+        ...defaults,
+        size: f.size,
+        shape: f.shape ?? "circle",
+        customSvg: f.customSvg,
+        borderColor: f.borderColor,
+        borderWidth: f.borderWidth,
+      };
     case "text":
-      return { ...defaults, textContent: f.textContent, fontSize: f.fontSize, fontFamily: f.fontFamily, textBorderEnabled: f.textBorderEnabled, textBorderColor: f.textBorderColor, textBorderWidth: f.textBorderWidth };
+      return {
+        ...defaults,
+        textContent: f.textContent,
+        fontSize: f.fontSize,
+        fontFamily: f.fontFamily,
+        textBorderEnabled: f.textBorderEnabled,
+        textBorderColor: f.textBorderColor,
+        textBorderWidth: f.textBorderWidth,
+      };
     case "polyline":
-      return { ...defaults, smoothing: f.smoothing, strokeWidth: f.strokeWidth, lineStyle: f.lineStyle, arrowStyle: f.arrowStyle, lineDecoration: f.lineDecoration, decorationSpacing: f.decorationSpacing };
+      return {
+        ...defaults,
+        smoothing: f.smoothing,
+        strokeWidth: f.strokeWidth,
+        lineStyle: f.lineStyle,
+        arrowStyle: f.arrowStyle,
+        lineDecoration: f.lineDecoration,
+        decorationSpacing: f.decorationSpacing,
+      };
     case "polygon":
-      return { ...defaults, smoothing: f.smoothing, strokeWidth: f.strokeWidth, lineStyle: f.lineStyle, lineDecoration: f.lineDecoration, decorationSpacing: f.decorationSpacing, fillPattern: f.fillPattern };
+      return {
+        ...defaults,
+        smoothing: f.smoothing,
+        strokeWidth: f.strokeWidth,
+        lineStyle: f.lineStyle,
+        lineDecoration: f.lineDecoration,
+        decorationSpacing: f.decorationSpacing,
+        fillPattern: f.fillPattern,
+      };
   }
 }
 
@@ -82,7 +124,9 @@ function GroupForm() {
   const { updateGroup, dissolveGroup, selectFeatures } = useEditorActions();
 
   const firstFeature = features.find((f) => f.id === selectedFeatureIds[0]);
-  const group = firstFeature?.groupId ? groups.find((g) => g.id === firstFeature.groupId) : null;
+  const group = firstFeature?.groupId
+    ? groups.find((g) => g.id === firstFeature.groupId)
+    : null;
   if (!group) return null;
 
   return (
@@ -116,14 +160,17 @@ function GroupForm() {
 
 export default function FeatureForm() {
   const { selectedFeature, selectedFeatureIds } = useEditorData();
-  const { updateFeature, deleteFeature, selectFeature, recordSnapshot } = useEditorActions();
+  const { updateFeature, deleteFeature, selectFeature, recordSnapshot } =
+    useEditorActions();
 
   const originalRef = useRef<FeatureUpdate | null>(null);
   const snapshotTakenRef = useRef(false);
 
   const methods = useForm<FeatureFormValues>({
     resolver: zodResolver(featureSchema),
-    defaultValues: selectedFeature ? featureToFormValues(selectedFeature) : undefined,
+    defaultValues: selectedFeature
+      ? featureToFormValues(selectedFeature)
+      : undefined,
     mode: "onChange",
   });
 
@@ -160,13 +207,13 @@ export default function FeatureForm() {
         customSvg: isPoint ? v.customSvg : undefined,
         borderColor: isPoint ? v.borderColor : undefined,
         borderWidth: isPoint ? v.borderWidth : undefined,
-        smoothing: (isPoint || isText) ? 0 : v.smoothing,
-        strokeWidth: (isPoint || isText) ? 0 : v.strokeWidth,
-        lineStyle: (isPoint || isText) ? "solid" : v.lineStyle,
+        smoothing: isPoint || isText ? 0 : v.smoothing,
+        strokeWidth: isPoint || isText ? 0 : v.strokeWidth,
+        lineStyle: isPoint || isText ? "solid" : v.lineStyle,
         arrowStyle: isLine ? v.arrowStyle : "none",
-        lineDecoration: (isPoint || isText) ? "none" : v.lineDecoration,
-        decorationSpacing: (isPoint || isText) ? 50 : v.decorationSpacing,
-        fillPattern: (!isPoint && !isLine && !isText) ? v.fillPattern : "none",
+        lineDecoration: isPoint || isText ? "none" : v.lineDecoration,
+        decorationSpacing: isPoint || isText ? 50 : v.decorationSpacing,
+        fillPattern: !isPoint && !isLine && !isText ? v.fillPattern : "none",
         textContent: isText ? v.textContent : undefined,
         fontSize: isText ? v.fontSize : undefined,
         fontFamily: isText ? v.fontFamily : undefined,
@@ -213,12 +260,19 @@ export default function FeatureForm() {
             </>
           ) : (
             <>
-              {!selectedFeature.legendEntryId && <StrokeFields showArrows={isLine} />}
-              {!selectedFeature.legendEntryId && selectedFeature.type === "polygon" && <FillPatternSelect />}
+              {!selectedFeature.legendEntryId && (
+                <StrokeFields showArrows={isLine} />
+              )}
+              {!selectedFeature.legendEntryId &&
+                selectedFeature.type === "polygon" && <FillPatternSelect />}
             </>
           )}
-          {!selectedFeature.legendEntryId && <LegendEntryToggle feature={selectedFeature} />}
-          {selectedFeature.type !== "text" && <AddLabelButton featureId={selectedFeature.id} />}
+          {!selectedFeature.legendEntryId && (
+            <AddToLegendButton feature={selectedFeature} />
+          )}
+          {selectedFeature.type !== "text" && (
+            <AddLabelButton featureId={selectedFeature.id} />
+          )}
         </div>
         <FormActions
           onClose={() => selectFeature(null)}
@@ -231,7 +285,12 @@ export default function FeatureForm() {
 }
 
 function StyleFields() {
-  const { register, watch, setValue, formState: { errors } } = useFormContext<FeatureFormValues>();
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+  } = useFormContext<FeatureFormValues>();
   const { features, selectedFeature } = useEditorData();
   const swatches = useColorSwatches(features);
   const opacity = watch("opacity");
@@ -265,8 +324,18 @@ function StyleFields() {
               onColorSelect={(c) => setValue("color", c)}
             />
           </Field>
-          <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
-            <FormSlider name="opacity" min={0} max={100} step={5} scale={100} className="mt-2" />
+          <Field
+            label={`Opacity (${Math.round(opacity * 100)}%)`}
+            className="flex-1"
+          >
+            <FormSlider
+              name="opacity"
+              min={0}
+              max={100}
+              step={5}
+              scale={100}
+              className="mt-2"
+            />
           </Field>
         </div>
       )}
@@ -292,11 +361,19 @@ function PointFields() {
           <Field label="Border" className="flex-1">
             <ColorInput
               value={watch("borderColor")}
-              onChange={(e) => setValue("borderColor", (e.target as HTMLInputElement).value)}
+              onChange={(e) =>
+                setValue("borderColor", (e.target as HTMLInputElement).value)
+              }
             />
           </Field>
           <Field label={`Width (${borderWidth}px)`} className="flex-1">
-            <FormSlider name="borderWidth" min={0} max={12} step={1} className="mt-2" />
+            <FormSlider
+              name="borderWidth"
+              min={0}
+              max={12}
+              step={1}
+              className="mt-2"
+            />
           </Field>
         </div>
       )}
@@ -306,9 +383,14 @@ function PointFields() {
 
 function CoordinateFields({ feature }: { feature: FeatureData }) {
   const { updateFeature, recordSnapshot } = useEditorActions();
-  const coords = feature.geometry.type === "Point" ? feature.geometry.coordinates : null;
-  const [lng, setLng] = useState(coords ? String(Math.round(coords[0] * 1e6) / 1e6) : "");
-  const [lat, setLat] = useState(coords ? String(Math.round(coords[1] * 1e6) / 1e6) : "");
+  const coords =
+    feature.geometry.type === "Point" ? feature.geometry.coordinates : null;
+  const [lng, setLng] = useState(
+    coords ? String(Math.round(coords[0] * 1e6) / 1e6) : "",
+  );
+  const [lat, setLat] = useState(
+    coords ? String(Math.round(coords[1] * 1e6) / 1e6) : "",
+  );
   const snapshotTakenRef = useRef(false);
 
   useEffect(() => {
@@ -324,7 +406,13 @@ function CoordinateFields({ feature }: { feature: FeatureData }) {
     const parsedLng = parseFloat(newLng);
     const parsedLat = parseFloat(newLat);
     if (isNaN(parsedLng) || isNaN(parsedLat)) return;
-    if (parsedLat < -90 || parsedLat > 90 || parsedLng < -180 || parsedLng > 180) return;
+    if (
+      parsedLat < -90 ||
+      parsedLat > 90 ||
+      parsedLng < -180 ||
+      parsedLng > 180
+    )
+      return;
     if (!snapshotTakenRef.current) {
       snapshotTakenRef.current = true;
       recordSnapshot();
@@ -341,8 +429,14 @@ function CoordinateFields({ feature }: { feature: FeatureData }) {
           type="text"
           inputMode="decimal"
           value={lng}
-          onChange={(e) => { setLng(e.target.value); commit(e.target.value, lat); }}
-          onBlur={() => { const v = parseFloat(lng); if (!isNaN(v)) setLng(String(Math.round(v * 1e6) / 1e6)); }}
+          onChange={(e) => {
+            setLng(e.target.value);
+            commit(e.target.value, lat);
+          }}
+          onBlur={() => {
+            const v = parseFloat(lng);
+            if (!isNaN(v)) setLng(String(Math.round(v * 1e6) / 1e6));
+          }}
         />
       </Field>
       <Field label="Latitude" className="flex-1">
@@ -350,8 +444,14 @@ function CoordinateFields({ feature }: { feature: FeatureData }) {
           type="text"
           inputMode="decimal"
           value={lat}
-          onChange={(e) => { setLat(e.target.value); commit(lng, e.target.value); }}
-          onBlur={() => { const v = parseFloat(lat); if (!isNaN(v)) setLat(String(Math.round(v * 1e6) / 1e6)); }}
+          onChange={(e) => {
+            setLat(e.target.value);
+            commit(lng, e.target.value);
+          }}
+          onBlur={() => {
+            const v = parseFloat(lat);
+            if (!isNaN(v)) setLat(String(Math.round(v * 1e6) / 1e6));
+          }}
         />
       </Field>
     </div>
@@ -396,19 +496,38 @@ function MarkerSelect() {
             </Button>
           ))}
           {SelectedIcon && (
-            <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
+            <Button
+              variant="default"
+              size="icon-sm"
+              onClick={() => setPickerOpen(true)}
+            >
               <SelectedIcon size={14} />
             </Button>
           )}
           {customSvg && !catalogIconId && (
-            <Button variant="default" size="icon-sm" onClick={() => setSvgDialogOpen(true)}>
-              <span className="w-3.5 h-3.5 block overflow-hidden [&>svg]:w-full [&>svg]:h-full" dangerouslySetInnerHTML={{ __html: customSvg }} />
+            <Button
+              variant="default"
+              size="icon-sm"
+              onClick={() => setSvgDialogOpen(true)}
+            >
+              <span
+                className="w-3.5 h-3.5 block overflow-hidden [&>svg]:w-full [&>svg]:h-full"
+                dangerouslySetInnerHTML={{ __html: customSvg }}
+              />
             </Button>
           )}
-          <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => setPickerOpen(true)}
+          >
             More icons
           </Button>
-          <Button variant="outline" size="xs" onClick={() => setSvgDialogOpen(true)}>
+          <Button
+            variant="outline"
+            size="xs"
+            onClick={() => setSvgDialogOpen(true)}
+          >
             Custom SVG
           </Button>
         </div>
@@ -422,14 +541,20 @@ function MarkerSelect() {
       <CustomSvgDialog
         open={svgDialogOpen}
         onOpenChange={setSvgDialogOpen}
-        onSubmit={(svg) => { setValue("customSvg", svg); setCatalogIconId(null); }}
+        onSubmit={(svg) => {
+          setValue("customSvg", svg);
+          setCatalogIconId(null);
+        }}
       />
     </Field>
   );
 }
 
 function TextContentField() {
-  const { register, formState: { errors } } = useFormContext<FeatureFormValues>();
+  const {
+    register,
+    formState: { errors },
+  } = useFormContext<FeatureFormValues>();
 
   return (
     <Field label="Text content" error={errors.textContent?.message}>
@@ -465,7 +590,9 @@ function TextStyleFields() {
         <Field label="Outline color" className="flex-1">
           <ColorInput
             value={watch("textBorderColor") ?? "#ffffff"}
-            onChange={(e) => setValue("textBorderColor", (e.target as HTMLInputElement).value)}
+            onChange={(e) =>
+              setValue("textBorderColor", (e.target as HTMLInputElement).value)
+            }
           />
         </Field>
         <Field label={`Outline (${textBorderWidth}px)`} className="flex-1">
@@ -496,54 +623,88 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
     <>
       <div className="flex gap-3">
         <Field label={`Stroke (${strokeWidth}px)`} className="flex-1">
-          <FormSlider name="strokeWidth" min={1} max={10} step={1} className="mt-2" />
+          <FormSlider
+            name="strokeWidth"
+            min={1}
+            max={10}
+            step={1}
+            className="mt-2"
+          />
         </Field>
         <Field label="Line style" className="flex-1">
-          <Select value={lineStyle} onValueChange={(v) => setValue("lineStyle", v as LineStyle)}>
+          <Select
+            value={lineStyle}
+            onValueChange={(v) => setValue("lineStyle", v as LineStyle)}
+          >
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {LINE_STYLES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
       </div>
       <Field label="Line decoration">
-        <Select value={lineDecoration} onValueChange={(v) => setValue("lineDecoration", v as LineDecoration)}>
+        <Select
+          value={lineDecoration}
+          onValueChange={(v) => setValue("lineDecoration", v as LineDecoration)}
+        >
           <SelectTrigger className="w-full">
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
             {LINE_DECORATIONS.map((d) => (
-              <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>
+              <SelectItem key={d.value} value={d.value}>
+                {d.label}
+              </SelectItem>
             ))}
           </SelectContent>
         </Select>
       </Field>
       {lineDecoration !== "none" && (
         <Field label={`Decoration spacing (${decorationSpacing}px)`}>
-          <FormSlider name="decorationSpacing" min={5} max={200} step={5} className="mt-2" />
+          <FormSlider
+            name="decorationSpacing"
+            min={5}
+            max={200}
+            step={5}
+            className="mt-2"
+          />
         </Field>
       )}
       {showArrows && (
         <Field label="Arrows">
-          <Select value={arrowStyle} onValueChange={(v) => setValue("arrowStyle", v as ArrowStyle)}>
+          <Select
+            value={arrowStyle}
+            onValueChange={(v) => setValue("arrowStyle", v as ArrowStyle)}
+          >
             <SelectTrigger className="w-full">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
               {ARROW_STYLES.map((s) => (
-                <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
+                <SelectItem key={s.value} value={s.value}>
+                  {s.label}
+                </SelectItem>
               ))}
             </SelectContent>
           </Select>
         </Field>
       )}
       <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
-        <FormSlider name="smoothing" min={0} max={100} step={5} scale={100} className="mt-2" />
+        <FormSlider
+          name="smoothing"
+          min={0}
+          max={100}
+          step={5}
+          scale={100}
+          className="mt-2"
+        />
       </Field>
     </>
   );
@@ -570,7 +731,6 @@ function FillPatternSelect() {
     </Field>
   );
 }
-
 
 function FormSlider({
   name,
@@ -606,7 +766,9 @@ function FormSlider({
 function LegendEntryPicker({ feature }: { feature: FeatureData }) {
   const { legendEntries } = useEditorData();
   const { assignLegendEntry } = useEditorActions();
-  const matchingEntries = legendEntries.filter((e) => e.featureType === feature.type);
+  const matchingEntries = legendEntries.filter(
+    (e) => e.featureType === feature.type,
+  );
   if (matchingEntries.length === 0) return null;
   return (
     <Field label="Legend style">
@@ -633,7 +795,11 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
                 : "border-border text-muted-foreground hover:border-foreground/30"
             }`}
           >
-            <FeatureSwatch feature={legendEntryToSyntheticFeature(e)} width={20} height={16} />
+            <FeatureSwatch
+              feature={legendEntryToSyntheticFeature(e)}
+              width={20}
+              height={16}
+            />
             {e.label || "Untitled"}
           </button>
         ))}
@@ -642,8 +808,9 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
   );
 }
 
-function LegendEntryToggle({ feature }: { feature: FeatureData }) {
-  const { assignLegendEntry, deduceLegendEntryFromFeature } = useEditorActions();
+function AddToLegendButton({ feature }: { feature: FeatureData }) {
+  const { assignLegendEntry, deduceLegendEntryFromFeature } =
+    useEditorActions();
   const inLegend = !!feature.legendEntryId;
 
   const handleToggle = (checked: boolean) => {
@@ -655,10 +822,15 @@ function LegendEntryToggle({ feature }: { feature: FeatureData }) {
   };
 
   return (
-    <label className="flex items-center gap-2 cursor-pointer">
-      <Checkbox checked={inLegend} onCheckedChange={handleToggle} />
-      <span className="text-xs">Add to legend</span>
-    </label>
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="w-full"
+      onClick={() => handleToggle(!inLegend)}
+    >
+      Add to legend
+    </Button>
   );
 }
 

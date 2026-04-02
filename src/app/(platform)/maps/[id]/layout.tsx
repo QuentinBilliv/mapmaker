@@ -39,21 +39,13 @@ export async function generateMetadata({
   };
 }
 
-export default async function MapLayout({
+export default function MapLayout({
   children,
-  params,
 }: {
   children: React.ReactNode;
-  params: { id: string };
 }) {
-  const map = await getMap(params.id);
-  const title = map?.title || "Untitled map";
-
   return (
     <div className="flex-1 flex flex-col">
-      <div className="px-4 py-2 border-b shrink-0">
-        <h1 className="text-lg font-semibold">{title}</h1>
-      </div>
       {children}
     </div>
   );

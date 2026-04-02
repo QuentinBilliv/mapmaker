@@ -54,7 +54,7 @@ export default function EditorShell() {
         />
       )}
       <aside
-        className={`fixed right-0 top-0 bottom-0 z-40 w-72 bg-popover flex flex-col overflow-hidden shrink-0 border-l transition-transform duration-200 md:static md:translate-x-0 md:h-full ${
+        className={`fixed right-0 top-0 bottom-0 z-40 w-72 bg-popover flex flex-col shrink-0 border-l transition-transform duration-200 md:static md:!translate-x-0 md:max-h-[calc(100vh-3rem)] md:overflow-y-auto ${
           showSidebar ? "translate-x-0" : "translate-x-full"
         }`}
       >
