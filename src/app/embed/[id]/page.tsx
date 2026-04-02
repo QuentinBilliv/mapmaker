@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
@@ -13,6 +13,7 @@ import { HighlightProvider } from "@/lib/highlight-context";
 import { BASE_MAPS } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { toMapData } from "@/lib/convex-mapdata";
+import { computeFeaturesBounds } from "@/lib/geojson";
 import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
@@ -91,22 +92,29 @@ function EmbedMapView({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const baseMap = BASE_MAPS.find((b) => b.id === baseMapId) ?? BASE_MAPS[0];
+  const bounds = useMemo(() => computeFeaturesBounds(features), [features]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const map = new maplibregl.Map({
+    const opts: maplibregl.MapOptions = {
       container: containerRef.current,
       style: baseMap.style as maplibregl.StyleSpecification,
-      center: mapData.center,
-      zoom: mapData.zoom,
-    });
+    };
+    if (bounds) {
+      opts.bounds = bounds as maplibregl.LngLatBoundsLike;
+      opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
+    } else {
+      opts.center = mapData.center;
+      opts.zoom = mapData.zoom;
+    }
+    const map = new maplibregl.Map(opts);
     map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
     mapRef.current = map;
     return () => {
       map.remove();
       mapRef.current = null;
     };
-  }, [baseMap.style, mapData.center, mapData.zoom]);
+  }, [baseMap.style]);
 
   useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
   useFeatureTooltip(mapRef, "select", 0);
