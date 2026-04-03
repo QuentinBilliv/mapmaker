@@ -13,6 +13,7 @@ import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { computeFeaturesBounds } from "@/lib/geojson";
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
@@ -46,7 +47,8 @@ function ReadOnlyMapViewInner({
   const mapRef = useRef<maplibregl.Map | null>(null);
 
   const baseMap = BASE_MAPS.find((b) => b.id === baseMapId) ?? BASE_MAPS[0];
-  const bounds = useMemo(() => computeFeaturesBounds(features), [features]);
+  const isDefaultView = mapData.center[0] === DEFAULT_CENTER[0] && mapData.center[1] === DEFAULT_CENTER[1] && mapData.zoom === DEFAULT_ZOOM;
+  const bounds = useMemo(() => isDefaultView ? computeFeaturesBounds(features) : null, [features, isDefaultView]);
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;

@@ -12,6 +12,7 @@ import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { computeFeaturesBounds } from "@/lib/geojson";
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 
 export default function MapCanvas() {
   const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
@@ -19,7 +20,8 @@ export default function MapCanvas() {
   const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const initialBounds = useMemo(() => computeFeaturesBounds(features), []);
+  const isDefaultView = map.center[0] === DEFAULT_CENTER[0] && map.center[1] === DEFAULT_CENTER[1] && map.zoom === DEFAULT_ZOOM;
+  const initialBounds = useMemo(() => isDefaultView ? computeFeaturesBounds(features) : null, []);
   const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap, initialBounds);
 
   const selectedFeatureIdsRef = useRef(selectedFeatureIds);
@@ -74,7 +76,7 @@ export default function MapCanvas() {
   }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef]);
   const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
-  useMoveListener(mapRef, updateMap);
+  useSaveViewListener(mapRef, updateMap);
   useFlyToListener(mapRef);
   useFitBoundsListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
@@ -133,31 +135,18 @@ function useFitBoundsListener(mapRef: React.RefObject<maplibregl.Map | null>) {
 }
 
 
-function useMoveListener(
+function useSaveViewListener(
   mapRef: React.RefObject<maplibregl.Map | null>,
   updateMap: (updates: { center: [number, number]; zoom: number }) => void
 ) {
-  const onMoveEnd = useCallback(() => {
-    const m = mapRef.current;
-    if (!m) return;
-    const c = m.getCenter();
-    updateMap({ center: [c.lng, c.lat], zoom: m.getZoom() });
-  }, [mapRef, updateMap]);
-
   useEffect(() => {
-    const map = mapRef.current;
-    if (!map) return;
-
-    const setup = () => map.on("moveend", onMoveEnd);
-    if (map.isStyleLoaded()) {
-      setup();
-    } else {
-      map.on("load", setup);
-    }
-
-    return () => {
-      map.off("load", setup);
-      map.off("moveend", onMoveEnd);
+    const handler = () => {
+      const m = mapRef.current;
+      if (!m) return;
+      const c = m.getCenter();
+      updateMap({ center: [c.lng, c.lat], zoom: m.getZoom() });
     };
-  }, [mapRef, onMoveEnd]);
+    window.addEventListener("mapmaker:save-view", handler);
+    return () => window.removeEventListener("mapmaker:save-view", handler);
+  }, [mapRef, updateMap]);
 }

@@ -314,6 +314,17 @@ export const saveThumbnail = mutation({
   },
 });
 
+export const removeThumbnail = mutation({
+  args: { mapId: v.id("maps") },
+  handler: async (ctx, { mapId }) => {
+    const { map } = await checkMapOwnership(ctx, mapId);
+    if (map.thumbnailId) {
+      try { await ctx.storage.delete(map.thumbnailId); } catch {}
+      await ctx.db.patch(map._id, { thumbnailId: undefined });
+    }
+  },
+});
+
 export const getThumbnailUrl = query({
   args: { storageId: v.id("_storage") },
   handler: async (ctx, { storageId }) => {
