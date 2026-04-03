@@ -76,7 +76,7 @@ function ReadOnlyMapViewInner({
   useFeatureTooltip(mapRef, "select", 0);
   useLegendHighlight(mapRef, 0);
 
-  const [headerOpen, setHeaderOpen] = useState(true);
+  const [headerOpen, setHeaderOpen] = useState(false);
 
   return (
     <div className="flex-1 flex flex-col relative overflow-visible">
