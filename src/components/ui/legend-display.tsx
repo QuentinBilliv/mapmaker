@@ -184,6 +184,8 @@ export function CreateEntryDialog({
   const [fillPattern, setFillPattern] = useState<FillPattern>("none");
   const [fontSize, setFontSize] = useState(16);
   const [fontFamily, setFontFamily] = useState<TextFont>("sans");
+  const [bold, setBold] = useState(false);
+  const [italic, setItalic] = useState(false);
   const [textBorderColor, setTextBorderColor] = useState(COLORS.white);
   const [textBorderWidth, setTextBorderWidth] = useState(2);
   const [pickerOpen, setPickerOpen] = useState(false);
@@ -208,6 +210,8 @@ export function CreateEntryDialog({
     setFillPattern("none");
     setFontSize(16);
     setFontFamily("sans");
+    setBold(false);
+    setItalic(false);
     setTextBorderColor(COLORS.white);
     setTextBorderWidth(2);
   }
@@ -252,6 +256,8 @@ export function CreateEntryDialog({
         featureType: "text",
         fontSize,
         fontFamily,
+        bold,
+        italic,
         textBorderEnabled: textBorderWidth > 0,
         textBorderColor,
         textBorderWidth,
@@ -427,7 +433,7 @@ export function CreateEntryDialog({
                     <SliderField
                       value={strokeWidth}
                       onChange={setStrokeWidth}
-                      min={1}
+                      min={0}
                       max={10}
                       step={1}
                       className="mt-2"
@@ -530,9 +536,19 @@ export function CreateEntryDialog({
             )}
             {featureType === "text" && (
               <>
-                <Field label={`Font size (${fontSize}px)`}>
-                  <SliderField value={fontSize} onChange={setFontSize} min={8} max={72} step={1} className="mt-2" />
-                </Field>
+                <div className="flex gap-3 items-end">
+                  <Field label={`Font size (${fontSize}px)`} className="flex-1">
+                    <SliderField value={fontSize} onChange={setFontSize} min={8} max={72} step={1} className="mt-2" />
+                  </Field>
+                  <div className="flex gap-1 pb-0.5">
+                    <Button type="button" variant={bold ? "default" : "outline"} size="icon-sm" onClick={() => setBold(!bold)} title="Bold">
+                      <span className="font-bold text-xs">B</span>
+                    </Button>
+                    <Button type="button" variant={italic ? "default" : "outline"} size="icon-sm" onClick={() => setItalic(!italic)} title="Italic">
+                      <span className="italic text-xs">I</span>
+                    </Button>
+                  </div>
+                </div>
                 <div className="flex gap-3">
                   <Field label="Outline color" className="flex-1">
                     <ColorInput value={textBorderColor} onChange={(e) => setTextBorderColor((e.target as HTMLInputElement).value)} />
@@ -636,7 +652,7 @@ export function EditEntryDialog({
             <>
               <div className="flex gap-3">
                 <Field label={`Stroke (${entry.strokeWidth}px)`} className="flex-1">
-                  <SliderField value={entry.strokeWidth} onChange={(v) => onUpdate({ strokeWidth: v })} min={1} max={10} step={1} className="mt-2" />
+                  <SliderField value={entry.strokeWidth} onChange={(v) => onUpdate({ strokeWidth: v })} min={0} max={10} step={1} className="mt-2" />
                 </Field>
                 <Field label="Line style" className="flex-1">
                   <Select value={entry.lineStyle} onValueChange={(v) => onUpdate({ lineStyle: v as LineStyle })}>
@@ -682,17 +698,25 @@ export function EditEntryDialog({
           )}
           {entry.featureType === "text" && (
             <>
-              <div className="flex gap-3">
+              <div className="flex gap-3 items-end">
                 <Field label={`Font size (${entry.fontSize}px)`} className="flex-1">
                   <SliderField value={entry.fontSize} onChange={(v) => onUpdate({ fontSize: v })} min={8} max={72} step={1} className="mt-2" />
                 </Field>
+                <div className="flex gap-1 pb-0.5">
+                  <Button type="button" variant={entry.bold ? "default" : "outline"} size="icon-sm" onClick={() => onUpdate({ bold: !entry.bold })} title="Bold">
+                    <span className="font-bold text-xs">B</span>
+                  </Button>
+                  <Button type="button" variant={entry.italic ? "default" : "outline"} size="icon-sm" onClick={() => onUpdate({ italic: !entry.italic })} title="Italic">
+                    <span className="italic text-xs">I</span>
+                  </Button>
+                </div>
               </div>
               <div className="flex gap-3">
                 <Field label="Outline color" className="flex-1">
                   <ColorInput value={entry.textBorderColor} onChange={(e) => onUpdate({ textBorderColor: (e.target as HTMLInputElement).value })} />
                 </Field>
                 <Field label={`Outline (${entry.textBorderWidth}px)`} className="flex-1">
-                  <SliderField value={entry.textBorderWidth} onChange={(v) => onUpdate({ textBorderWidth: v })} min={0} max={8} step={1} className="mt-2" />
+                  <SliderField value={entry.textBorderWidth} onChange={(v) => onUpdate({ textBorderWidth: v, textBorderEnabled: v > 0 })} min={0} max={8} step={1} className="mt-2" />
                 </Field>
               </div>
             </>

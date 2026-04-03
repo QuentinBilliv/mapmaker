@@ -38,6 +38,8 @@ export const featureSchema = z.object({
   textContent: z.string().max(500, "Text is too long").optional(),
   fontSize: z.number().min(8).max(72).optional(),
   fontFamily: z.enum(TEXT_FONT_VALUES).optional(),
+  bold: z.boolean().optional(),
+  italic: z.boolean().optional(),
   textBorderEnabled: z.boolean().optional(),
   textBorderColor: hexColor.optional(),
   textBorderWidth: z.number().min(0).max(5).optional(),

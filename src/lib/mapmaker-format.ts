@@ -54,6 +54,8 @@ const mapmakerProps = z
     "mapmaker:textContent": z.string().max(MAX_LABEL).optional(),
     "mapmaker:fontSize": z.number().min(8).max(72).optional(),
     "mapmaker:fontFamily": z.enum(["sans", "serif", "mono"]).optional(),
+    "mapmaker:bold": z.boolean().optional(),
+    "mapmaker:italic": z.boolean().optional(),
     "mapmaker:textBorderEnabled": z.boolean().optional(),
     "mapmaker:textBorderColor": colorSchema.optional(),
     "mapmaker:textBorderWidth": z.number().min(0).max(5).optional(),
@@ -113,6 +115,8 @@ const legendEntrySchema = z.object({
   fillPattern: z.enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"]).optional(),
   fontSize: z.number().min(8).max(72).optional(),
   fontFamily: z.enum(["sans", "serif", "mono"]).optional(),
+  bold: z.boolean().optional(),
+  italic: z.boolean().optional(),
   textBorderEnabled: z.boolean().optional(),
   textBorderColor: colorSchema.optional(),
   textBorderWidth: z.number().min(0).max(5).optional(),
@@ -210,6 +214,8 @@ export function serialize(
         case "text":
           props["mapmaker:fontSize"] = f.fontSize;
           props["mapmaker:fontFamily"] = f.fontFamily;
+          if (f.bold) props["mapmaker:bold"] = f.bold;
+          if (f.italic) props["mapmaker:italic"] = f.italic;
           props["mapmaker:textBorderEnabled"] = f.textBorderEnabled;
           props["mapmaker:textBorderColor"] = f.textBorderColor;
           props["mapmaker:textBorderWidth"] = f.textBorderWidth;
@@ -293,7 +299,7 @@ export function deserialize(raw: string): DeserializedMap {
         return [{ ...base, type: "point" as const, size: p["mapmaker:size"] ?? 1, shape: p["mapmaker:shape"], customSvg, borderColor: p["mapmaker:borderColor"] ?? "#ffffff", borderWidth: p["mapmaker:borderWidth"] ?? 0 }];
       }
       case "text":
-        return [{ ...base, type: "text" as const, textContent: p["mapmaker:textContent"] ?? "", fontSize: p["mapmaker:fontSize"] ?? 24, fontFamily: p["mapmaker:fontFamily"] ?? "sans", textBorderEnabled: p["mapmaker:textBorderEnabled"] ?? true, textBorderColor: p["mapmaker:textBorderColor"] ?? "#ffffff", textBorderWidth: p["mapmaker:textBorderWidth"] ?? 2 }];
+        return [{ ...base, type: "text" as const, textContent: p["mapmaker:textContent"] ?? "", fontSize: p["mapmaker:fontSize"] ?? 24, fontFamily: p["mapmaker:fontFamily"] ?? "sans", bold: p["mapmaker:bold"] ?? false, italic: p["mapmaker:italic"] ?? false, textBorderEnabled: p["mapmaker:textBorderEnabled"] ?? true, textBorderColor: p["mapmaker:textBorderColor"] ?? "#ffffff", textBorderWidth: p["mapmaker:textBorderWidth"] ?? 2 }];
     }
   });
 

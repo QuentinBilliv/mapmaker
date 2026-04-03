@@ -28,7 +28,7 @@ function applyLegendEntry(feature: FeatureData, entry: LegendEntry): FeatureData
     }
     case "text": {
       const e = entry as TextLegendEntry;
-      return { ...feature, color: e.color, opacity: e.opacity, fontSize: e.fontSize, fontFamily: e.fontFamily, textBorderEnabled: e.textBorderEnabled, textBorderColor: e.textBorderColor, textBorderWidth: e.textBorderWidth } as TextFeature;
+      return { ...feature, color: e.color, opacity: e.opacity, fontSize: e.fontSize, fontFamily: e.fontFamily, bold: e.bold, italic: e.italic, textBorderEnabled: e.textBorderEnabled, textBorderColor: e.textBorderColor, textBorderWidth: e.textBorderWidth } as TextFeature;
     }
   }
 }
@@ -61,7 +61,7 @@ export function deduceLegendEntry(feature: FeatureData, label: string): Omit<Poi
     case "polygon":
       return { ...base, featureType: "polygon", smoothing: feature.smoothing, strokeWidth: feature.strokeWidth, lineStyle: feature.lineStyle, lineDecoration: feature.lineDecoration, decorationSpacing: feature.decorationSpacing, fillPattern: feature.fillPattern };
     case "text":
-      return { ...base, featureType: "text", fontSize: feature.fontSize, fontFamily: feature.fontFamily, textBorderEnabled: feature.textBorderEnabled, textBorderColor: feature.textBorderColor, textBorderWidth: feature.textBorderWidth };
+      return { ...base, featureType: "text", fontSize: feature.fontSize, fontFamily: feature.fontFamily, bold: feature.bold, italic: feature.italic, textBorderEnabled: feature.textBorderEnabled, textBorderColor: feature.textBorderColor, textBorderWidth: feature.textBorderWidth };
   }
 }
 
@@ -84,6 +84,6 @@ export function legendEntryToSyntheticFeature(entry: LegendEntry): FeatureData {
     case "polygon":
       return { ...base, type: "polygon", smoothing: entry.smoothing, strokeWidth: entry.strokeWidth, lineStyle: entry.lineStyle, lineDecoration: entry.lineDecoration, decorationSpacing: entry.decorationSpacing, fillPattern: entry.fillPattern, geometry: { type: "Polygon" as const, coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] } };
     case "text":
-      return { ...base, type: "text", textContent: "Text", fontSize: entry.fontSize, fontFamily: entry.fontFamily, textBorderEnabled: entry.textBorderEnabled, textBorderColor: entry.textBorderColor, textBorderWidth: entry.textBorderWidth };
+      return { ...base, type: "text", textContent: "Text", fontSize: entry.fontSize, fontFamily: entry.fontFamily, bold: entry.bold, italic: entry.italic, textBorderEnabled: entry.textBorderEnabled, textBorderColor: entry.textBorderColor, textBorderWidth: entry.textBorderWidth };
   }
 }

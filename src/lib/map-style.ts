@@ -7,7 +7,7 @@ export interface BaseMap {
   style: StyleSpecification;
 }
 
-const GLYPHS = "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf";
+const GLYPHS = "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf";
 
 function rasterStyle(
   name: string,

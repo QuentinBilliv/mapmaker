@@ -92,6 +92,8 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
         textContent: f.textContent,
         fontSize: f.fontSize,
         fontFamily: f.fontFamily,
+        bold: f.bold ?? false,
+        italic: f.italic ?? false,
         textBorderEnabled: f.textBorderEnabled,
         textBorderColor: f.textBorderColor,
         textBorderWidth: f.textBorderWidth,
@@ -217,6 +219,8 @@ export default function FeatureForm() {
         textContent: isText ? v.textContent : undefined,
         fontSize: isText ? v.fontSize : undefined,
         fontFamily: isText ? v.fontFamily : undefined,
+        bold: isText ? v.bold : undefined,
+        italic: isText ? v.italic : undefined,
         textBorderEnabled: isText ? (v.textBorderWidth ?? 0) > 0 : undefined,
         textBorderColor: isText ? v.textBorderColor : undefined,
         textBorderWidth: isText ? v.textBorderWidth : undefined,
@@ -572,20 +576,44 @@ function TextContentField() {
 function TextStyleFields() {
   const { watch, setValue } = useFormContext<FeatureFormValues>();
   const fontSize = watch("fontSize") ?? 24;
+  const bold = watch("bold") ?? false;
+  const italic = watch("italic") ?? false;
   const textBorderWidth = watch("textBorderWidth") ?? 2;
 
   return (
     <>
-      <Field label={`Size (${fontSize}px)`}>
-        <SliderField
-          value={fontSize}
-          onChange={(v) => setValue("fontSize", v)}
-          min={8}
-          max={72}
-          step={1}
-          className="mt-2"
-        />
-      </Field>
+      <div className="flex gap-3 items-end">
+        <Field label={`Size (${fontSize}px)`} className="flex-1">
+          <SliderField
+            value={fontSize}
+            onChange={(v) => setValue("fontSize", v)}
+            min={8}
+            max={72}
+            step={1}
+            className="mt-2"
+          />
+        </Field>
+        <div className="flex gap-1 pb-0.5">
+          <Button
+            type="button"
+            variant={bold ? "default" : "outline"}
+            size="icon-sm"
+            onClick={() => setValue("bold", !bold)}
+            title="Bold"
+          >
+            <span className="font-bold text-xs">B</span>
+          </Button>
+          <Button
+            type="button"
+            variant={italic ? "default" : "outline"}
+            size="icon-sm"
+            onClick={() => setValue("italic", !italic)}
+            title="Italic"
+          >
+            <span className="italic text-xs">I</span>
+          </Button>
+        </div>
+      </div>
       <div className="flex gap-3">
         <Field label="Outline color" className="flex-1">
           <ColorInput
@@ -625,7 +653,7 @@ function StrokeFields({ showArrows }: { showArrows: boolean }) {
         <Field label={`Stroke (${strokeWidth}px)`} className="flex-1">
           <FormSlider
             name="strokeWidth"
-            min={1}
+            min={0}
             max={10}
             step={1}
             className="mt-2"

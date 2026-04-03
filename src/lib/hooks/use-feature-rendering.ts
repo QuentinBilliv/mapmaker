@@ -256,6 +256,11 @@ function syncPerFeatureLayersSorted(
         break;
       }
       case "text": {
+        const fontVariant = f.bold && f.italic
+          ? "Open Sans Bold Italic"
+          : f.bold ? "Open Sans Bold"
+          : f.italic ? "Open Sans Italic"
+          : "Open Sans Regular";
         map.addLayer({
           id: `${ZF}${f.id}-text`,
           type: "symbol",
@@ -269,7 +274,7 @@ function syncPerFeatureLayersSorted(
               8, ["get", "fontSize"],
               12, ["*", ["get", "fontSize"], 1.5],
             ],
-            "text-font": ["literal", ["Open Sans Regular", "Arial Unicode MS Regular"]],
+            "text-font": ["literal", [fontVariant, "Arial Unicode MS Regular"]],
             "text-allow-overlap": true,
             "text-anchor": "center",
             "text-max-width": 30,
@@ -386,6 +391,8 @@ function buildGeoJSONSorted(
             rotation: f.rotation ?? 0,
             textContent: f.textContent ?? "Text",
             fontSize: f.fontSize ?? 24,
+            bold: f.bold ?? false,
+            italic: f.italic ?? false,
             textBorderEnabled: f.textBorderEnabled ?? true,
             textBorderColor: f.textBorderColor ?? COLORS.white,
             textBorderWidth: f.textBorderWidth ?? 2,
@@ -542,6 +549,8 @@ function structuralKey(sorted: FeatureData[]): string {
   for (const f of sorted) {
     if (f.type === "polygon" || f.type === "polyline") {
       key += `${f.id}:${f.type[0]}:${f.lineStyle}:${f.lineDecoration};`;
+    } else if (f.type === "text") {
+      key += `${f.id}:t:${f.bold ? "b" : ""}${f.italic ? "i" : ""};`;
     } else {
       key += `${f.id}:${f.type[0]};`;
     }

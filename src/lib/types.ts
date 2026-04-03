@@ -128,6 +128,8 @@ export interface TextLegendEntry extends LegendEntryBase {
   featureType: "text";
   fontSize: number;
   fontFamily: TextFont;
+  bold?: boolean;
+  italic?: boolean;
   textBorderEnabled: boolean;
   textBorderColor: string;
   textBorderWidth: number;
@@ -183,6 +185,8 @@ export interface TextFeature extends FeatureBase {
   textContent: string;
   fontSize: number;
   fontFamily: TextFont;
+  bold?: boolean;
+  italic?: boolean;
   textBorderEnabled: boolean;
   textBorderColor: string;
   textBorderWidth: number;
