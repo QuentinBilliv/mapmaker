@@ -146,23 +146,6 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     filter: ["all", ["in", "$type", "LineString", "Polygon"], ["==", "lineDecoration", "railway"]],
   });
 
-  map.addLayer({
-    id: "features-arrows",
-    type: "symbol",
-    source: ARROW_SOURCE,
-    layout: {
-      "icon-image": ARROW_ICON_ID,
-      "icon-size": ["*", ["get", "strokeWidth"], 0.15],
-      "icon-rotate": ["get", "bearing"],
-      "icon-allow-overlap": true,
-      "icon-rotation-alignment": "map",
-    },
-    paint: {
-      "icon-color": ["get", "color"],
-      "icon-opacity": ["get", "opacity"],
-    },
-  });
-
 }
 
 function syncPerFeatureLayersSorted(
@@ -175,6 +158,8 @@ function syncPerFeatureLayersSorted(
       if (l.id.startsWith(ZF)) map.removeLayer(l.id);
     }
   }
+
+  if (map.getLayer("features-arrows")) map.removeLayer("features-arrows");
 
   const before = map.getLayer(FIRST_OVERLAY) ? FIRST_OVERLAY : undefined;
 
@@ -226,6 +211,25 @@ function syncPerFeatureLayersSorted(
               ...(dash ? { "line-dasharray": dash } : {}),
             },
             filter: ["all", ["==", ["geometry-type"], "LineString"], idFilter],
+          }, before);
+        }
+        if (f.arrowStyle !== "none") {
+          map.addLayer({
+            id: `${ZF}${f.id}-arrow`,
+            type: "symbol",
+            source: ARROW_SOURCE,
+            layout: {
+              "icon-image": ARROW_ICON_ID,
+              "icon-size": ["*", ["get", "strokeWidth"], 0.15],
+              "icon-rotate": ["get", "bearing"],
+              "icon-allow-overlap": true,
+              "icon-rotation-alignment": "map",
+            },
+            paint: {
+              "icon-color": ["get", "color"],
+              "icon-opacity": ["get", "opacity"],
+            },
+            filter: ["==", ["get", "id"], f.id],
           }, before);
         }
         break;
@@ -430,7 +434,7 @@ function buildGeoJSONSorted(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
+              properties: { id: f.id, bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
             });
           }
           if (f.arrowStyle === "both") {
@@ -439,7 +443,7 @@ function buildGeoJSONSorted(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
+              properties: { id: f.id, bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
             });
           }
         }
@@ -548,7 +552,7 @@ function structuralKey(sorted: FeatureData[]): string {
   let key = "";
   for (const f of sorted) {
     if (f.type === "polygon" || f.type === "polyline") {
-      key += `${f.id}:${f.type[0]}:${f.lineStyle}:${f.lineDecoration};`;
+      key += `${f.id}:${f.type[0]}:${f.lineStyle}:${f.lineDecoration}:${f.type === "polyline" ? f.arrowStyle : ""};`;
     } else if (f.type === "text") {
       key += `${f.id}:t:${f.bold ? "b" : ""}${f.italic ? "i" : ""};`;
     } else {
