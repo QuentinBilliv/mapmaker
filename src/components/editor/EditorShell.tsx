@@ -11,6 +11,7 @@ import BaseMapSelector from "./BaseMapSelector";
 import Legend from "./Legend";
 import FeaturePanel from "./FeaturePanel";
 import LegendPanel from "./LegendPanel";
+import ChoroplethPanel from "./ChoroplethPanel";
 import ExportImportButtons from "./ExportImportButtons";
 
 import { Button } from "@/components/ui/button";
@@ -72,6 +73,7 @@ export default function EditorShell() {
         </div>
         <FeaturePanel />
         <LegendPanel />
+        <ChoroplethPanel />
       </aside>
     </div>
   );

@@ -18,6 +18,9 @@ import { smoothGeometry } from "@/lib/smooth-geometry";
 
 const FEATURES_SOURCE = "map-features";
 const ARROW_SOURCE = "arrow-heads";
+const CHOROPLETH_SOURCE = "choropleth-countries";
+const CHOROPLETH_FILL = "choropleth-fill";
+const CHOROPLETH_BORDER = "choropleth-border";
 const ARROW_ICON_ID = "arrowhead";
 const ARROW_SIZE = 48;
 const ZF = "zf-";
@@ -81,6 +84,32 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
   map.addSource(ARROW_SOURCE, {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] },
+  });
+
+  map.addSource(CHOROPLETH_SOURCE, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+
+  map.addLayer({
+    id: CHOROPLETH_FILL,
+    type: "fill",
+    source: CHOROPLETH_SOURCE,
+    paint: {
+      "fill-color": ["get", "_color"],
+      "fill-opacity": ["*", ["get", "_painted"], 0.7],
+    },
+  });
+
+  map.addLayer({
+    id: CHOROPLETH_BORDER,
+    type: "line",
+    source: CHOROPLETH_SOURCE,
+    paint: {
+      "line-color": "#666666",
+      "line-width": 0.5,
+      "line-opacity": 0,
+    },
   });
 
   ensureAllDecorationIcons(map);
@@ -261,10 +290,10 @@ function syncPerFeatureLayersSorted(
       }
       case "text": {
         const fontVariant = f.bold && f.italic
-          ? "Open Sans Bold Italic"
-          : f.bold ? "Open Sans Bold"
-          : f.italic ? "Open Sans Italic"
-          : "Open Sans Regular";
+          ? "Noto Sans Bold Italic"
+          : f.bold ? "Noto Sans Bold"
+          : f.italic ? "Noto Sans Italic"
+          : "Noto Sans Regular";
         map.addLayer({
           id: `${ZF}${f.id}-text`,
           type: "symbol",
@@ -611,4 +640,4 @@ export function useFeatureRendering(
   }, [mapRef, resolved, layers, groups, styleVersion]);
 }
 
-export { FEATURES_SOURCE, ZF };
+export { FEATURES_SOURCE, ZF, CHOROPLETH_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER };

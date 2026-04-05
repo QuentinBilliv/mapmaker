@@ -17,14 +17,14 @@ function sanitizeLabel(raw: unknown): string {
 }
 
 export default function ExportImportButtons() {
-  const { map, layers, features, groups, legendEntries, featureLimit } = useEditorData();
+  const { map, layers, features, groups, legendEntries, choropleth, featureLimit } = useEditorData();
   const { activeBaseMap } = useDrawingState();
   const { importMapData, addBankFeature, clearAllFeatures } = useEditorActions();
   const [status, setStatus] = useState<{ message: string; error: boolean } | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const handleExport = useCallback(() => {
-    const json = serialize(map, layers, features, activeBaseMap.id, groups, legendEntries);
+    const json = serialize(map, layers, features, activeBaseMap.id, groups, legendEntries, choropleth);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");

@@ -1,6 +1,7 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
-import { BASE_MAPS } from "./map-style";
+import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData } from "./types";
+import { DEFAULT_CHOROPLETH } from "./types";
+import { findBaseMap } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
 
@@ -133,6 +134,11 @@ const mapmakerMeta = z.object({
     zoom: z.number().min(0).max(22).default(1),
   }),
   baseMap: z.string().max(100).default("osm"),
+  choropleth: z.object({
+    enabled: z.boolean().default(false),
+    entries: z.record(z.string(), z.string().max(30)).default({}),
+    opacity: z.number().min(0).max(1).default(0.7),
+  }).default({ enabled: false, entries: {}, opacity: 0.7 }),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
   legendEntries: z.array(legendEntrySchema).max(1000).default([]),
@@ -150,7 +156,8 @@ export function serialize(
   features: FeatureData[],
   baseMapId: string,
   groups: GroupData[] = [],
-  legendEntries: LegendEntry[] = []
+  legendEntries: LegendEntry[] = [],
+  choropleth: ChoroplethData = DEFAULT_CHOROPLETH,
 ): string {
   const doc = {
     type: "FeatureCollection" as const,
@@ -165,6 +172,11 @@ export function serialize(
         zoom: map.zoom,
       },
       baseMap: baseMapId,
+      choropleth: {
+        enabled: choropleth.enabled,
+        entries: choropleth.entries,
+        opacity: choropleth.opacity,
+      },
       layers: layers.map(({ id, name, visible, order }) => ({ id, name, visible, order })),
       groups: groups.map(({ id, label, order }) => ({ id, label, order })),
       legendEntries: legendEntries.map((e) => ({ ...e })),
@@ -237,6 +249,7 @@ type FeatureWithoutId =
 export interface DeserializedMap {
   map: Omit<MapData, "id">;
   baseMapId: string;
+  choropleth: ChoroplethData;
   layers: LayerData[];
   features: FeatureWithoutId[];
   groups: GroupData[];
@@ -255,7 +268,7 @@ export function deserialize(raw: string): DeserializedMap {
   const result = documentSchema.parse(parsed);
 
   const validLayerIds = new Set(result.mapmaker.layers.map((l) => l.id));
-  const knownBaseMap = BASE_MAPS.find((b) => b.id === result.mapmaker.baseMap);
+  const knownBaseMap = findBaseMap(result.mapmaker.baseMap);
 
   const pendingIconMigrations: { featureIndex: number; iconId: string }[] = [];
 
@@ -312,7 +325,8 @@ export function deserialize(raw: string): DeserializedMap {
       center: result.mapmaker.map.center,
       zoom: result.mapmaker.map.zoom,
     },
-    baseMapId: knownBaseMap?.id ?? "osm",
+    baseMapId: knownBaseMap.id,
+    choropleth: result.mapmaker.choropleth as ChoroplethData,
     layers: result.mapmaker.layers,
     features,
     groups: result.mapmaker.groups,

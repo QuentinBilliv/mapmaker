@@ -11,11 +11,12 @@ import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
+import { useChoropleth } from "@/lib/hooks/use-choropleth";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 
 export default function MapCanvas() {
-  const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
+  const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature, choropleth } = useEditorData();
   const { drawMode, activeBaseMap } = useDrawingState();
   const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
 
@@ -52,6 +53,7 @@ export default function MapCanvas() {
   );
 
   useFeatureRendering(mapRef, features, layers, groups, styleVersion, legendEntries);
+  useChoropleth(mapRef, choropleth, styleVersion);
 
   const selectedGroupId = useMemo(() => {
     if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;

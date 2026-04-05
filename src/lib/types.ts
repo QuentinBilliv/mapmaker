@@ -74,10 +74,22 @@ export type ShapeOrigin = "rectangle" | "circle";
 export type TextFont = "sans" | "serif" | "mono";
 
 export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] = [
-  { value: "sans", label: "Sans-serif", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
-  { value: "serif", label: "Serif", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
-  { value: "mono", label: "Monospace", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "sans", label: "Sans-serif", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "serif", label: "Serif", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "mono", label: "Monospace", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
 ];
+
+export interface ChoroplethData {
+  enabled: boolean;
+  entries: Record<string, string>;
+  opacity: number;
+}
+
+export const DEFAULT_CHOROPLETH: ChoroplethData = {
+  enabled: false,
+  entries: {},
+  opacity: 0.7,
+};
 
 export interface GroupData {
   id: string;

@@ -10,7 +10,7 @@ import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
-import { BASE_MAPS } from "@/lib/map-style";
+import { findBaseMap } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { toMapData } from "@/lib/convex-mapdata";
 import { computeFeaturesBounds } from "@/lib/geojson";
@@ -92,7 +92,7 @@ function EmbedMapView({
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
-  const baseMap = BASE_MAPS.find((b) => b.id === baseMapId) ?? BASE_MAPS[0];
+  const baseMap = findBaseMap(baseMapId);
   const isDefaultView = mapData.center[0] === DEFAULT_CENTER[0] && mapData.center[1] === DEFAULT_CENTER[1] && mapData.zoom === DEFAULT_ZOOM;
   const bounds = useMemo(() => isDefaultView ? computeFeaturesBounds(features) : null, [features, isDefaultView]);
 

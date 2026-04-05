@@ -4,10 +4,10 @@ import { COLORS } from "./defaults";
 export interface BaseMap {
   id: string;
   label: string;
-  style: StyleSpecification;
+  style: StyleSpecification | string;
 }
 
-const GLYPHS = "https://fonts.openmaptiles.org/{fontstack}/{range}.pbf";
+const GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
 
 function rasterStyle(
   name: string,
@@ -30,6 +30,21 @@ function rasterStyle(
 }
 
 export const BASE_MAPS: BaseMap[] = [
+  {
+    id: "liberty",
+    label: "Liberty",
+    style: "https://tiles.openfreemap.org/styles/liberty",
+  },
+  {
+    id: "bright",
+    label: "Bright",
+    style: "https://tiles.openfreemap.org/styles/bright",
+  },
+  {
+    id: "positron",
+    label: "Positron",
+    style: "https://tiles.openfreemap.org/styles/positron",
+  },
   {
     id: "osm",
     label: "OpenStreetMap",
@@ -85,16 +100,15 @@ export const BASE_MAPS: BaseMap[] = [
       '&copy; <a href="https://www.esri.com/">Esri</a>'
     ),
   },
-  {
-    id: "natgeo",
-    label: "National Geographic",
-    style: rasterStyle(
-      "ESRI NatGeo",
-      ["https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"],
-      '&copy; <a href="https://www.esri.com/">Esri</a> &copy; National Geographic',
-      16
-    ),
-  },
 ];
 
 export const DEFAULT_BASE_MAP = BASE_MAPS[0];
+
+const LEGACY_BASE_MAP_IDS: Record<string, string> = {
+  natgeo: "liberty",
+};
+
+export function findBaseMap(id: string): BaseMap {
+  const resolved = LEGACY_BASE_MAP_IDS[id] ?? id;
+  return BASE_MAPS.find((b) => b.id === resolved) ?? BASE_MAPS[0];
+}

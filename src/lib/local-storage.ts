@@ -1,6 +1,6 @@
 import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "./types";
 import type { BaseMap } from "./map-style";
-import { BASE_MAPS } from "./map-style";
+import { findBaseMap } from "./map-style";
 import { DEFAULT_MAP, DEFAULT_LAYER } from "./defaults";
 
 const STORAGE_KEY = "mapmaker:current";
@@ -64,7 +64,7 @@ export function loadFromLocalStorage(): {
       (f) => f && typeof f.id === "string" && VALID_TYPES.has(f.type) && f.geometry && typeof f.geometry.type === "string",
     );
     if (validFeatures.length === 0 && state.features.length > 0) return null;
-    const baseMap = BASE_MAPS.find((b) => b.id === state.baseMapId) ?? BASE_MAPS[0];
+    const baseMap = findBaseMap(state.baseMapId);
     return {
       map: { ...DEFAULT_MAP, ...state.map },
       layers: state.layers.length > 0 ? state.layers : [DEFAULT_LAYER],

@@ -192,9 +192,17 @@ describe("mapmaker-format round-trip", () => {
     expect(result.features).toHaveLength(0);
   });
 
-  it("falls back to osm for unknown base map", () => {
+  it("falls back to default for unknown base map", () => {
     const json = serialize(MAP, [LAYER], [], "unknown-map-id");
     const result = deserialize(json);
-    expect(result.baseMapId).toBe("osm");
+    expect(result.baseMapId).toBe("liberty");
+  });
+
+  it("migrates legacy natgeo base map to liberty", () => {
+    const json = serialize(MAP, [LAYER], [], "osm");
+    const parsed = JSON.parse(json);
+    parsed.mapmaker.baseMap = "natgeo";
+    const result = deserialize(JSON.stringify(parsed));
+    expect(result.baseMapId).toBe("liberty");
   });
 });

@@ -8,7 +8,7 @@ import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { HighlightProvider } from "@/lib/highlight-context";
-import { BASE_MAPS } from "@/lib/map-style";
+import { findBaseMap } from "@/lib/map-style";
 import { toMapData } from "@/lib/convex-mapdata";
 import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
@@ -82,7 +82,7 @@ function PreviewMapInner({
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
-  const baseMap = BASE_MAPS.find((b) => b.id === baseMapId) ?? BASE_MAPS[0];
+  const baseMap = findBaseMap(baseMapId);
 
   useEffect(() => {
     if (!active || !containerRef.current) return;
