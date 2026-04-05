@@ -108,7 +108,7 @@ interface EditorActions {
   deduceLegendEntryFromFeature: (featureId: string, label: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
   setChoropleth: (updates: Partial<ChoroplethData>) => void;
-  setChoroplethColor: (country: string, color: string) => void;
+  setChoroplethColor: (iso: string, color: string, name: string) => void;
   removeChoroplethEntry: (country: string) => void;
   updateMap: (updates: Partial<MapData>) => void;
   importMapData: (data: DeserializedMap) => void;
@@ -412,10 +412,10 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setChoroplethState((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const setChoroplethColor = useCallback((country: string, color: string) => {
+  const setChoroplethColor = useCallback((iso: string, color: string, name: string) => {
     setChoroplethState((prev) => ({
       ...prev,
-      entries: { ...prev.entries, [country]: color },
+      entries: { ...prev.entries, [iso]: { color, name } },
     }));
   }, []);
 

@@ -1,0 +1,1733 @@
+{
+  "type": "FeatureCollection",
+  "mapmaker": {
+    "version": 1,
+    "map": {
+      "title": "Archaeological Sites of Creuse",
+      "description": "A comprehensive map of the major archaeological sites across the Creuse department (23), spanning from Neolithic megaliths to medieval fortresses.",
+      "tags": [
+        "archaeology",
+        "creuse",
+        "france",
+        "history",
+        "megalith",
+        "gallo-roman",
+        "medieval"
+      ],
+      "license": "CC BY",
+      "center": [
+        2.05,
+        46.1
+      ],
+      "zoom": 9
+    },
+    "baseMap": "voyager",
+    "layers": [
+      {
+        "id": "default",
+        "name": "All Sites",
+        "visible": true,
+        "order": 0
+      }
+    ],
+    "groups": [
+      {
+        "id": "g0000001-0001-4000-8000-000000000001",
+        "label": "Prehistoric & Megalithic",
+        "order": 0
+      },
+      {
+        "id": "g0000001-0002-4000-8000-000000000002",
+        "label": "Iron Age / Oppida",
+        "order": 1
+      },
+      {
+        "id": "g0000001-0003-4000-8000-000000000003",
+        "label": "Gallo-Roman",
+        "order": 2
+      },
+      {
+        "id": "g0000001-0004-4000-8000-000000000004",
+        "label": "Early Middle Ages",
+        "order": 3
+      },
+      {
+        "id": "g0000001-0005-4000-8000-000000000005",
+        "label": "Medieval",
+        "order": 4
+      },
+      {
+        "id": "g0000001-0006-4000-8000-000000000006",
+        "label": "Museums",
+        "order": 5
+      },
+      {
+        "id": "g0000001-0007-4000-8000-000000000007",
+        "label": "Paleolithic / Bronze Age",
+        "order": 6
+      },
+      {
+        "id": "g0000001-0008-4000-8000-000000000008",
+        "label": "Dolmens",
+        "order": 7
+      },
+      {
+        "id": "g0000001-0009-4000-8000-000000000009",
+        "label": "Menhirs",
+        "order": 8
+      },
+      {
+        "id": "g0000001-0010-4000-8000-000000000010",
+        "label": "Fortified Enclosures",
+        "order": 9
+      },
+      {
+        "id": "g0000001-0011-4000-8000-000000000011",
+        "label": "Commanderies",
+        "order": 10
+      },
+      {
+        "id": "g0000001-0012-4000-8000-000000000012",
+        "label": "Gallo-Roman Agglomerations",
+        "order": 11
+      }
+    ],
+    "legendEntries": [
+      {
+        "id": "a1b2c3d4-0001-4000-8000-000000000001",
+        "label": "Prehistoric & Megalithic (Neolithic / Bronze Age)",
+        "order": 0,
+        "featureType": "point",
+        "color": "#8B6914",
+        "opacity": 1,
+        "size": 1.2,
+        "shape": "diamond",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0002-4000-8000-000000000002",
+        "label": "Iron Age / Oppida",
+        "order": 1,
+        "featureType": "point",
+        "color": "#B8390E",
+        "opacity": 1,
+        "size": 1.3,
+        "icon": "GiRomanShield",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0003-4000-8000-000000000003",
+        "label": "Gallo-Roman (1st–4th century AD)",
+        "order": 2,
+        "featureType": "point",
+        "color": "#C41E3A",
+        "opacity": 1,
+        "size": 1.1,
+        "icon": "GiGreekTemple",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0004-4000-8000-000000000004",
+        "label": "Early Middle Ages (Merovingian / Carolingian)",
+        "order": 3,
+        "featureType": "point",
+        "color": "#4A6741",
+        "opacity": 1,
+        "size": 1.1,
+        "icon": "FaCross",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0005-4000-8000-000000000005",
+        "label": "Medieval (Fortresses & Towers)",
+        "order": 4,
+        "featureType": "point",
+        "color": "#4A2C6A",
+        "opacity": 1,
+        "size": 1.3,
+        "icon": "GiCastle",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0006-4000-8000-000000000006",
+        "label": "Museums",
+        "order": 5,
+        "featureType": "point",
+        "color": "#2563EB",
+        "opacity": 1,
+        "size": 1.2,
+        "icon": "FaLandmark",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0007-4000-8000-000000000007",
+        "label": "Paleolithic / Bronze Age",
+        "order": 7,
+        "featureType": "point",
+        "color": "#6B4226",
+        "opacity": 1,
+        "size": 1.0,
+        "shape": "triangle",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0008-4000-8000-000000000008",
+        "label": "Dolmen",
+        "order": 8,
+        "featureType": "point",
+        "color": "#8B6914",
+        "opacity": 1,
+        "size": 0.9,
+        "shape": "diamond",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0009-4000-8000-000000000009",
+        "label": "Menhir",
+        "order": 9,
+        "featureType": "point",
+        "color": "#A0892C",
+        "opacity": 1,
+        "size": 0.9,
+        "shape": "pentagon",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0010-4000-8000-000000000010",
+        "label": "Fortified Enclosure (Protohistoric)",
+        "order": 10,
+        "featureType": "point",
+        "color": "#8B4513",
+        "opacity": 1,
+        "size": 1.0,
+        "shape": "hexagon",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      },
+      {
+        "id": "a1b2c3d4-0011-4000-8000-000000000011",
+        "label": "Templar / Hospitaller Commandery",
+        "order": 11,
+        "featureType": "point",
+        "color": "#8B0000",
+        "opacity": 1,
+        "size": 1.1,
+        "icon": "FaCross",
+        "borderColor": "#ffffff",
+        "borderWidth": 6
+      }
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1924,
+          45.8768
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Cabane de César",
+        "mapmaker:description": "Neolithic passage grave dolmen located in Felletin (also known as Dolmen de la Croix Blanche), dating to approximately 2750 BC. Built of grey granite with six supporting stones, the remaining capstone measures 3.25 m by 2 m, sheltering a rectangular chamber 2.10 m wide by 2.60 m long. Excavated and restored between 1987 and 1989, it is one of the rare corridor-type dolmens in the Creuse department.",
+        "mapmaker:order": 0,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.6548,
+          46.2904
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Pierre Cuberte",
+        "mapmaker:description": "Exceptionally large Neolithic dolmen on the border between Naillat and Dun-le-Palestel, also known as Pierre Euberte or Pierre Tubeste. Its massive capstone rests on several impressive upright stones forming a burial chamber of remarkable proportions. Classified as a Monument Historique since 1889, it is one of the best-preserved megalithic monuments in the Creuse department.",
+        "mapmaker:order": 1,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.573,
+          45.929
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Table des Chasseurs",
+        "mapmaker:description": "Neolithic dolmen also called Pierre Levade or Dolmen de Marlhac, situated by the roadside near the hamlet of Marlhac in Saint-Martin-Sainte-Catherine. Its large flat capstone resting on orthostats gives it the appearance of a giant table. Local legend holds that hunters once rested their game on this stone, hence the name 'Table of the Hunters'.",
+        "mapmaker:order": 2,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.5801,
+          46.1223
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Megalithic Necropolis of Marsac",
+        "mapmaker:description": "The only identified megalithic necropolis in the Creuse department, originally comprising an ensemble of 9 dolmens (of which only 3 survive, the other 6 having been destroyed). The complex dates from the Middle Neolithic (3500–2500 BC) and forms the core of one of the two major megalithic distribution zones in the department, along the Gartempe river.",
+        "mapmaker:order": 3,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.5724,
+          46.119
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmens des Quatre Routes & Bois-Neuf III",
+        "mapmaker:description": "Two distinct dolmens within the Marsac necropolis, approximately 700 m apart. The Dolmen des Quatre Routes retains its four supporting pillars but lost its capstone, which was cut up in 1860. Bois-Neuf III was thoroughly excavated around 1997 and reconstructed in its original state, with a capstone measuring 2.9 m by 2 m supported by six pillars — one of the best-documented megaliths in the Creuse.",
+        "mapmaker:order": 4,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.5399,
+          46.2063
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Pierre Folle & Menhir de la Rebeyrolle",
+        "mapmaker:description": "A Middle Neolithic dolmen and a standing stone in Saint-Priest-la-Feuille, both classified as Monuments Historiques. The Pierre Folle has an almost circular capstone measuring 3.40 m in diameter and 1.20 m thick, resting on 8 vertical stones. Local legend says the stone dances on Christmas Eve at midnight. The nearby Menhir de la Rebeyrolle (also called Pierre Debout) stands 2.40 m high and 1.70 m wide.",
+        "mapmaker:order": 5,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.119,
+          46.309
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Les Tailles du Clou",
+        "mapmaker:description": "Major multi-period open-air prehistoric site discovered in 2003, spanning approximately 1 hectare on a plateau above the Petite Creuse valley at Clugnat. Over 15,000 lithic pieces have been recovered, representing successive occupations from the Middle Paleolithic through the Final Neolithic, with a particularly significant Gravettian (Upper Paleolithic) component. Finds are displayed at the nearby Musée archéologique Michel Gallemard.",
+        "mapmaker:order": 6,
+        "mapmaker:legendEntryId": "a1b2c3d4-0001-4000-8000-000000000001",
+        "mapmaker:groupId": "g0000001-0001-4000-8000-000000000001"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.886,
+          46.1447
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Oppidum du Puy de Gaudy",
+        "mapmaker:description": "The largest Iron Age oppidum (fortified hilltop settlement) in the Creuse department, at Sainte-Feyre. Classified as a Monument Historique, it dates from the La Tène period and preserves traces of ramparts and a defensive ditch system enclosing a vast hilltop. A modern orientation table at the summit offers panoramic views across the department.",
+        "mapmaker:order": 7,
+        "mapmaker:legendEntryId": "a1b2c3d4-0002-4000-8000-000000000002",
+        "mapmaker:groupId": "g0000001-0002-4000-8000-000000000002"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2144,
+          46.2856
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Toulx-Sainte-Croix",
+        "mapmaker:description": "Hilltop commune whose name derives from the Gaulish word 'Tullum' meaning 'the height.' A Gallo-Roman settlement is well attested by objects discovered on site, succeeding earlier Iron Age occupations. The nearby Pierres Jaumatres — about 40 gigantic granite boulders perched in improbable equilibrium at 591 m altitude on Mont Barlot — have been a classified natural site since 1927.",
+        "mapmaker:order": 8,
+        "mapmaker:legendEntryId": "a1b2c3d4-0002-4000-8000-000000000002",
+        "mapmaker:groupId": "g0000001-0002-4000-8000-000000000002"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.5187,
+          46.2414
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Bridiers Roman Town",
+        "mapmaker:description": "Major Gallo-Roman agglomeration of the Lemovices people, established at a crossroads of several Roman roads leading to Limoges, Poitiers, and Lyon. Excavations have uncovered thermal baths, sanctuaries, necropolises, water infrastructure, painted frescoes, and evidence of ceramic and metallurgical craftsmanship. The site predates the founding of La Souterraine by roughly a thousand years and is considered comparable in importance to Argentomagus.",
+        "mapmaker:order": 9,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.4869,
+          46.1758
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Roman Baths of Évaux-les-Bains (Ivaonum)",
+        "mapmaker:description": "Roman thermal baths built in the late 1st to 2nd century AD over natural hot springs in a narrow valley 600 meters north of the town (ancient Ivaonum). The nearly square bath complex was accessed via a monumental covered gallery over 700 meters long — unique in Roman Gaul. Classified as a Monument Historique since 1840, the site was exploited until around the 4th century AD.",
+        "mapmaker:order": 10,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1218,
+          45.8234
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Villa of Maisonnières",
+        "mapmaker:description": "Gallo-Roman villa dating from the 1st century AD at Gioux, revealing the workings of an ancient farm that, while built in stone in the Roman manner, retains the characteristics of earlier Gallic agricultural establishments. Classified as a Monument Historique by decree of June 27, 1991, it is freely accessible year-round with educational panels and a trail through the surrounding forest.",
+        "mapmaker:order": 11,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.5095,
+          46.0402
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Villa of Coux",
+        "mapmaker:description": "Gallo-Roman settlement occupied from the first half of the 1st century AD until the 3rd century, in the valley of a small tributary of the Cher river north of Auzances. Partial excavations in 1987–1988 revealed a thermal complex with rooms and pools heated by hypocausts, and a residential area arranged around a courtyard. Registered as a Monument Historique in 1991.",
+        "mapmaker:order": 12,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.3831,
+          45.7775
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Villa of Couliniège",
+        "mapmaker:description": "Gallo-Roman agricultural establishment with an associated necropolis at the hamlet of Couliniège in Flayat, identified during archaeological surveys in 1996. The site also yielded Neolithic stone tools including a polished diorite axe, indicating much earlier occupation. Located in the southeast of the Creuse near the Puy-de-Dôme border, it demonstrates Roman agricultural colonization of the Millevaches plateau highlands.",
+        "mapmaker:order": 13,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.8698,
+          45.9299
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Sanctuary of Puy-Lautard",
+        "mapmaker:description": "Gallo-Roman sanctuary (fanum) at 775 meters altitude on the heights of Puy-Lautard at Saint-Pierre-Bellevue, dating from the last quarter of the 1st century AD. Excavations uncovered a temple with two cellas, a gallery, and an enclosure, along with four limestone relief panels depicting Neptune, Fortuna, Apollo, and other deities. Classified as a Monument Historique in 1990, it is the only discovered and accessible Gallo-Roman sanctuary in the Creuse.",
+        "mapmaker:order": 14,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.5681,
+          46.0338
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Monuments of Puy-de-Jouer",
+        "mapmaker:description": "The Puy-de-Jouer (687 m altitude) at Saint-Goussaud was a strategic observation post and the site of the Gallo-Roman settlement of Praetorium, reportedly destroyed by the Saracens in 732 AD. Archaeological remains include funerary monuments and temple foundations distributed across the lieux-dits 'La Léger' and 'Le Bois'. Inscribed and classified as a Monument Historique by decree in 1984.",
+        "mapmaker:order": 15,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0936,
+          46.0504
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Column",
+        "mapmaker:description": "Fragment of a Gallo-Roman column at Saint-Martial-le-Mont: an 85 cm tall granite drum of unknown provenance, decorated with a pattern of overlapping leaves. Located on the Place de l'Église in the village. Classified as a Monument Historique by decree of July 27, 1938.",
+        "mapmaker:order": 16,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0119,
+          46.0537
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "La Pierre du Marteau (Roman Milestone)",
+        "mapmaker:description": "A 2.2-meter-tall Gallo-Roman leugaire milestone carved from granite, originally placed along the Roman road from Ahun to Pontarion at Le Donzeil. Its inscription — 'IMPP. VALERIANO ET GALLIENO AVGG CLL XXXI' — dates it to the reign of co-emperors Valerian and Gallienus (253–259 AD). Discovered in 1880 planted upside-down in the ground (hence the name 'Hammer Stone'), classified as a Monument Historique in 1929.",
+        "mapmaker:order": 17,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1427,
+          46.0605
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Cippus (Issoudun-Létrieix)",
+        "mapmaker:description": "Gallo-Roman cippus (small pillar-like funerary monument) at the Place du Cippe Gallo-Romain in Issoudun-Létrieix. Later 'Christianized' with a statue of the Virgin and Child placed on top; a Gallo-Roman sarcophagus is visible on the wall opposite. Classified as a Monument Historique by decree of January 5, 1971.",
+        "mapmaker:order": 18,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.9666,
+          46.2886
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Cippus (Roches)",
+        "mapmaker:description": "Gallo-Roman cippus standing beneath a large linden tree in the hamlet of Les Razets in the commune of Roches. These small stone monuments originally served as boundary markers indicating the route of a Roman aqueduct, bearing the name of the engineer responsible, or as property boundary stones. Classified as a Monument Historique by decree of July 12, 1979.",
+        "mapmaker:order": 19,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.8506,
+          45.9883
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Necropolis of Pontarion",
+        "mapmaker:description": "Necropolis at lieu-dit 'Les Sagnes' near Pontarion, in use for about 150 years from approximately 150 AD to around 300 AD. All 296 excavated burials were cremation tombs, discovered when a fallow field was returned to cultivation. Excavated between 1986 and 1990, the site provides a remarkably complete picture of Gallo-Roman funerary practices in the rural Limousin.",
+        "mapmaker:order": 20,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.7778,
+          46.4164
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Necropolis of Lavaud",
+        "mapmaker:description": "Gallo-Roman necropolis at Lavaud near Méasnes, first explored in the mid-19th century and re-inventoried by archaeologist Jacques Roger 140 years later. A tomb exhumed in 1989 contained a glass urn and miniaturized metal funeral objects placed in a stone chest. The site attests to rural Gallo-Roman burial traditions in the northern Creuse.",
+        "mapmaker:order": 21,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.4892,
+          45.9175
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Gallo-Roman Burials of Mérinchal",
+        "mapmaker:description": "Gallo-Roman burials at Mérinchal studied by Ganne and Tournadre, documented in the Mémoires of the Société des sciences naturelles, archéologiques et historiques de la Creuse. A notable find is a rediscovered coffin lid with three different hollowed-out compartments, characteristic of the distinctive Limousin funerary chest tradition. Representative of rural Gallo-Roman funerary practices in the eastern Creuse near the Auvergne border.",
+        "mapmaker:order": 22,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.141,
+          46.344
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Roman Millstone Workshop of Malleret-Boussac",
+        "mapmaker:description": "Gallo-Roman quarry and workshop at Malleret-Boussac specialized in the production of rotary millstones for domestic grain grinding. Such millstone production sites are rare and significant for understanding the Roman rural economy and trade networks in central Gaul. Located in the northeastern Creuse, near the medieval fortress town of Boussac.",
+        "mapmaker:order": 23,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1978,
+          45.9175
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Moutier-Rozeille / Saint-Hilaire",
+        "mapmaker:description": "The Saint-Hilaire site contains 2,500 years of continuous human occupation, including a Gallo-Roman mausoleum later transformed into a Merovingian then medieval church. Thirteen years of excavation (2007–2019) led by Jacques Roger uncovered nearly 400 skeletons, sarcophagi, and temple foundations. A 1.5 km archaeological trail and interpretation center are now open to the public.",
+        "mapmaker:order": 24,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0003-4000-8000-000000000003"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.712,
+          46.029
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Fortified Site of Murat",
+        "mapmaker:description": "Carolingian fortified site on a rocky promontory at the confluence of the Taurion and Leyrenne rivers, about 20 meters above the water at Saint-Dizier-Leyrenne. Radiocarbon dating confirmed the fortification was built in the second half of the 8th century and definitively abandoned during the 10th century. The barred spur covers approximately 1.5 hectares with a crescent-shaped earthwork preceded by a defensive ditch.",
+        "mapmaker:order": 25,
+        "mapmaker:legendEntryId": "a1b2c3d4-0004-4000-8000-000000000004",
+        "mapmaker:groupId": "g0000001-0004-4000-8000-000000000004"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.866,
+          46.165
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Metalworking Site of Cherdon-Pisseratte",
+        "mapmaker:description": "Early medieval metalworking site at the southern exit of Guéret, excavated over approximately 20 hectares in 2010. The site yielded several tons of metallurgical waste and evidence of a complete iron production chain, from ore reduction to finished objects, along with traces of copper work. Pottery and radiocarbon dating place the activity in the 8th–10th centuries.",
+        "mapmaker:order": 26,
+        "mapmaker:legendEntryId": "a1b2c3d4-0004-4000-8000-000000000004",
+        "mapmaker:groupId": "g0000001-0004-4000-8000-000000000004"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.4862,
+          46.2374
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Crypt of Notre-Dame Church",
+        "mapmaker:description": "The crypt beneath the Church of Notre-Dame in La Souterraine, whose construction began around 1017 and lasted five years, predating the upper church built from the mid-12th to mid-13th century. It extends under the choir with a main chapel connected to two side chapels (Sainte-Anne and Saint-Martial) via barrel-vaulted passages. The church sits on the pilgrimage route to Santiago de Compostela and blends late Romanesque and early Gothic styles.",
+        "mapmaker:order": 27,
+        "mapmaker:legendEntryId": "a1b2c3d4-0004-4000-8000-000000000004",
+        "mapmaker:groupId": "g0000001-0004-4000-8000-000000000004"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.6216,
+          46.3919
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Fortress of Crozant",
+        "mapmaker:description": "Imposing medieval fortress ruins perched on a rocky promontory at the confluence of the Creuse and Sédelle rivers. First built between 997 and 1018, the main castle was constructed in the 13th century by Hugues X de Lusignan and Isabella of Angoulême, then remodeled in the 15th century. One of the largest medieval fortified complexes in central France, it became a celebrated subject for Impressionist painters.",
+        "mapmaker:order": 28,
+        "mapmaker:legendEntryId": "a1b2c3d4-0005-4000-8000-000000000005",
+        "mapmaker:groupId": "g0000001-0005-4000-8000-000000000005"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.5153,
+          46.2416
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Tower of Bridiers",
+        "mapmaker:description": "Classified medieval tower, the main surviving element of the former Château de Bridiers, built from the late 12th century by the viscounts of Aubusson. The pentagonal enclosure is reinforced with three corner towers and a strong circular keep, representing a notable example of 13th-century military architecture. The tower stands on a promontory with steep slopes surrounded by marshy lands east of La Souterraine.",
+        "mapmaker:order": 29,
+        "mapmaker:legendEntryId": "a1b2c3d4-0005-4000-8000-000000000005",
+        "mapmaker:groupId": "g0000001-0005-4000-8000-000000000005"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.02,
+          45.883
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Castle of Brudieu",
+        "mapmaker:description": "Medieval castle and seigneurial estate located at the hamlet of Le Brudieu in Saint-Yrieix-la-Montagne, in the southern Creuse highlands. Associated with the feudal lordships of the Haute-Marche region, it served as the seat of a local lordship controlling the surrounding mountain territory. Its remote location in the Millevaches plateau illustrates the feudal fragmentation of power across the Creuse during the Middle Ages.",
+        "mapmaker:order": 30,
+        "mapmaker:legendEntryId": "a1b2c3d4-0005-4000-8000-000000000005",
+        "mapmaker:groupId": "g0000001-0005-4000-8000-000000000005"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.87,
+          46.172
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Museum of Art and Archaeology of Guéret",
+        "mapmaker:description": "Housed in the Hôtel de la Sénatorerie, a late 18th-century building in Guéret, this municipal museum has held collections since 1905. It features significant Gallo-Roman archaeological collections including jewelry, funerary glassware, ceramics, and sculptural fragments, alongside a notable Egyptian antiquities collection. A key cultural institution for the Creuse department's capital city.",
+        "mapmaker:order": 31,
+        "mapmaker:legendEntryId": "a1b2c3d4-0006-4000-8000-000000000006",
+        "mapmaker:groupId": "g0000001-0006-4000-8000-000000000006"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.197,
+          45.916
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Heritage Center of Moutier-Rozeille",
+        "mapmaker:description": "Free-admission heritage interpretation center near the town hall of Moutier-Rozeille, opened in July 2024 after 13 years of excavations at the nearby Saint-Hilaire archaeological site. The center recounts the territory's history from the Neolithic to the present, with models, photographs, and films, complemented by a 1.5-kilometer archaeological trail. The Saint-Hilaire site itself spans 2,500 years, from an ancient funerary monument to a rural church.",
+        "mapmaker:order": 32,
+        "mapmaker:legendEntryId": "a1b2c3d4-0006-4000-8000-000000000006",
+        "mapmaker:groupId": "g0000001-0006-4000-8000-000000000006"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.55,
+          46.38
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Péchadoire",
+        "mapmaker:description": "Lower Paleolithic open-air flint-knapping site in the Creuse river valley, with evidence of human occupation since the Acheulean period. Stone bifaces and flakes found here represent some of the earliest evidence of human presence in the Creuse department, dating back hundreds of thousands of years.",
+        "mapmaker:order": 33,
+        "mapmaker:legendEntryId": "a1b2c3d4-0007-4000-8000-000000000007",
+        "mapmaker:groupId": "g0000001-0007-4000-8000-000000000007"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.217,
+          46.483
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Fressignes",
+        "mapmaker:description": "Late Upper Paleolithic (Magdalenian) site dated to approximately 17,000 BC, when the Creuse river valley served as a refuge during the extreme cold of the Würm glaciation. The site has yielded flint tools and faunal remains revealing the subsistence strategies of ice-age hunter-gatherers in central France.",
+        "mapmaker:order": 34,
+        "mapmaker:legendEntryId": "a1b2c3d4-0007-4000-8000-000000000007",
+        "mapmaker:groupId": "g0000001-0007-4000-8000-000000000007"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.116,
+          46.218
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Tin Deposit of Montebras",
+        "mapmaker:description": "Significant tin deposit at the hamlet of Montebras near Soumans, exploited since the Bronze Age. One of the rare tin sources in continental France, it was instrumental in local bronze production and linked to cultural influences from western France. The site was also mined industrially in the 19th century.",
+        "mapmaker:order": 35,
+        "mapmaker:legendEntryId": "a1b2c3d4-0007-4000-8000-000000000007",
+        "mapmaker:groupId": "g0000001-0007-4000-8000-000000000007"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.066,
+          45.917
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen de la Pierre Sous Pesé",
+        "mapmaker:description": "Neolithic dolmen at La Serre-Bussière-Vieille. The name 'Pierre Sous Pesé' (weighed-down stone) refers to the massive capstone resting on its supports. Classified as a Monument Historique, it is one of the well-preserved megalithic tombs of the southern Creuse.",
+        "mapmaker:order": 36,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.117,
+          45.9
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen de la Peyre Fade (Pierre de la Fée)",
+        "mapmaker:description": "Dolmen at Blessac also known as the 'Fairy Stone.' The name 'Peyre Fade' derives from Occitan and reflects local fairy folklore surrounding megaliths. A simple dolmen consisting of a capstone on upright slabs, typical of Neolithic funerary architecture in the Limousin.",
+        "mapmaker:order": 37,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.633,
+          46.1
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen de l'Antre des Fades",
+        "mapmaker:description": "The 'Cave of the Fairies' at Mourioux-Vieilleville, a passage-type dolmen classified as a Monument Historique. The name reflects the widespread folk association of megalithic tombs with fairies ('fades') in Occitan-speaking areas. One of the more architecturally complex dolmens in the department.",
+        "mapmaker:order": 38,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.367,
+          45.867
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen du Bois d'Urbe",
+        "mapmaker:description": "Neolithic dolmen in a wooded area near Crocq in the eastern Creuse highlands. The monument consists of a capstone resting on supporting orthostats and is listed as a Monument Historique. Part of the eastern megalithic cluster extending toward the Puy-de-Dôme.",
+        "mapmaker:order": 39,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.683,
+          46.267
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen de Saint-Hilaire",
+        "mapmaker:description": "Simple Neolithic dolmen at Saint-Priest-la-Plaine in the western Creuse, used as a collective burial chamber. Classified as a Monument Historique, it is part of the western megalithic distribution zone along the Gartempe river valley.",
+        "mapmaker:order": 40,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.05,
+          45.95
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen de la Peyrelevade",
+        "mapmaker:description": "Neolithic dolmen near Saint-Martin-Sainte-Catherine. The name 'Peyrelevade' means 'raised stone' in Occitan, a common toponym for dolmens across southern France. A relatively modest monument typical of the Massif Central megalithic tradition.",
+        "mapmaker:order": 41,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.517,
+          46.233
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen du Grand Malibard",
+        "mapmaker:description": "Also called Dolmen de la Bachellerie, located at Saint-Maurice-la-Souterraine near La Souterraine. One of the larger megalithic tombs in the northwestern Creuse, classified as a Monument Historique and dating to the Neolithic period.",
+        "mapmaker:order": 42,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.333,
+          45.883
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen des Fades de Montrabas",
+        "mapmaker:description": "Neolithic burial monument at Saint-Maurice-près-Crocq. The name 'Fades' references fairies in Occitan folklore, reflecting popular legends associated with megaliths across the Limousin. Listed as a Monument Historique.",
+        "mapmaker:order": 43,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.577,
+          46.12
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmens de Bois-Neuf I & II",
+        "mapmaker:description": "A pair of dolmens near Marsac, complementing the better-known Bois-Neuf III dolmen already documented in the megalithic necropolis. The presence of multiple dolmens in close proximity confirms this area as a major Neolithic funerary complex along the Gartempe.",
+        "mapmaker:order": 44,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.05,
+          46.183
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Dolmen & Menhir de Ménardeix",
+        "mapmaker:description": "A dolmen and associated menhir at Pionnat. The co-occurrence of both megalithic types at the same site is relatively uncommon and suggests sustained ritual use during the Neolithic. Both monuments are classified as Monuments Historiques.",
+        "mapmaker:order": 45,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.55,
+          46.15
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Écuelle du Curé",
+        "mapmaker:description": "Dolmen at Fursac whose name translates to 'the Priest's Bowl,' likely referring to a basin-shaped depression (cupmark) in the capstone. Such cupmarks are common on megalithic monuments and were often attributed to saints in folk tradition. A Neolithic funerary monument.",
+        "mapmaker:order": 46,
+        "mapmaker:legendEntryId": "a1b2c3d4-0008-4000-8000-000000000008",
+        "mapmaker:groupId": "g0000001-0008-4000-8000-000000000008"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.083,
+          46.083
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Menhir de la Pierre Femme",
+        "mapmaker:description": "Standing stone at Champagnat. The name 'Pierre Femme' (Woman Stone) may reflect folk beliefs associating the menhir with fertility. A Neolithic monument classified as a historic site.",
+        "mapmaker:order": 47,
+        "mapmaker:legendEntryId": "a1b2c3d4-0009-4000-8000-000000000009",
+        "mapmaker:groupId": "g0000001-0009-4000-8000-000000000009"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1,
+          45.817
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Menhir de la Pierre Pointe",
+        "mapmaker:description": "Pointed standing stone at Gioux near the Plateau de Millevaches. The name 'Pierre Pointe' describes its tapering shape. A Neolithic menhir listed as a Monument Historique.",
+        "mapmaker:order": 48,
+        "mapmaker:legendEntryId": "a1b2c3d4-0009-4000-8000-000000000009",
+        "mapmaker:groupId": "g0000001-0009-4000-8000-000000000009"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.45,
+          46.317
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Menhir de la Pierre Berce",
+        "mapmaker:description": "Standing stone at Naillat in the northwestern Creuse. One of several isolated Neolithic menhirs in the western part of the department, part of the Gartempe valley megalithic distribution zone.",
+        "mapmaker:order": 49,
+        "mapmaker:legendEntryId": "a1b2c3d4-0009-4000-8000-000000000009",
+        "mapmaker:groupId": "g0000001-0009-4000-8000-000000000009"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.983,
+          45.783
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Menhir de la Femme Morte",
+        "mapmaker:description": "Standing stone at Gentioux-Pigerolles on the Plateau de Millevaches. The name 'Dead Woman' reflects a local legend associated with the stone, common in Limousin folklore where menhirs are tied to tragic tales. Classified as a Monument Historique.",
+        "mapmaker:order": 50,
+        "mapmaker:legendEntryId": "a1b2c3d4-0009-4000-8000-000000000009",
+        "mapmaker:groupId": "g0000001-0009-4000-8000-000000000009"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.133,
+          45.75
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Menhir Pierre Fritte",
+        "mapmaker:description": "Standing stone at Saint-Quentin-la-Chabanne in the far southeast of the Creuse. The name likely derives from Latin 'petra ficta' (fixed/planted stone), a very common etymology for menhir place names across France. A Neolithic monument.",
+        "mapmaker:order": 51,
+        "mapmaker:legendEntryId": "a1b2c3d4-0009-4000-8000-000000000009",
+        "mapmaker:groupId": "g0000001-0009-4000-8000-000000000009"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.17,
+          45.96
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp des Chastres",
+        "mapmaker:description": "Promontory-type oppidum of 15 hectares at Aubusson, on the spur between the Creuse and Beauze rivers. Second-largest oppidum of the Lemovices after Villejoubert, with a rampart approximately 450 m long isolating it from the plateau. The site has yielded over 200 sherds of Hallstattian graphite-painted pottery and culminates at 557 m.",
+        "mapmaker:order": 52,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.225,
+          46.355
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp de Montmoulard",
+        "mapmaker:description": "Slightly trapezoidal enclosure on a plateau northeast of Montmoulard wood at Boussac-Bourg, at approximately 410 m altitude. The longest axis runs 150 m north-south with an earthen embankment less than 1 m high and 5–6 m wide. A cannonball and medieval iron helmet found on site suggest reoccupation in the 16th century.",
+        "mapmaker:order": 53,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.455,
+          46.21
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Promontories of Saint-Marlen & Sainte-Radegonde",
+        "mapmaker:description": "Two fortified promontory sites at Budelière, near the confluence of the Tardes and Cher rivers. The Châtelet d'Entraigues was a naturally defended oppidum of about 5 hectares occupied from the Neolithic through the Gallo-Roman period. The chapel of Sainte-Radegonde (11th–12th century) sits on a granite promontory above the Cher–Tardes confluence.",
+        "mapmaker:order": 54,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.135,
+          46.403
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Terrier de l'Ennemi",
+        "mapmaker:description": "Nearly square rectangular enclosure approximately 82 m on each side, about 700 m from Bussière-Saint-Georges. Features an earthwork with a single entrance 6 m wide, raised higher at the corners, dominating the ditch bottom by about 2 m. The original ditches were about 8 m wide.",
+        "mapmaker:order": 55,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.77,
+          46.311
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp des Anglais",
+        "mapmaker:description": "Prehistoric fortified enclosure at La Celle-Dunoise, classified as a protected archaeological site. Despite its name ('English Camp') referencing the Hundred Years' War, the earthworks are protohistoric in origin. The area lies along an ancient road from Aigurande through Cella toward Limoges.",
+        "mapmaker:order": 56,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.62,
+          46.285
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Butte de la Cazine",
+        "mapmaker:description": "Fortified plateau above the right bank of the Cazine stream, at the boundary of Colondannes and Saint-Léger-le-Guérétois. Features multiple dry stone walls across a 300 m diameter zone, with a principal ditch 40 m long and 8 m deep cut into rock. Both protohistoric and Gallo-Roman material found, along with Neolithic polished axes.",
+        "mapmaker:order": 57,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.644,
+          46.16
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp de César",
+        "mapmaker:description": "Fortified enclosure on a plateau at Le Grand-Bourg at approximately 330 m altitude. In 1859 the enclosure was defined by a rampart averaging 2.5 m in height, bordered by a partly filled ditch still 8 m wide. Gallo-Roman material has been reported but the site has not been formally excavated.",
+        "mapmaker:order": 58,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.613,
+          46.335
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp de La Ligne",
+        "mapmaker:description": "Well-defined quadrilateral enclosure of approximately 2 hectares on a plateau at Lafat. Deep ditches remain visible at the northwest corner while southern ditches have been filled. The quadrilateral form is characteristic of Gallo-Roman camps, though a protohistoric origin has also been suggested.",
+        "mapmaker:order": 59,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.822,
+          46.41
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp de César à Lignaud",
+        "mapmaker:description": "Fortified camp at Lourdoueix-Saint-Pierre whose cadastral parcels preserve the characteristic layout of a Roman camp. The site lies along ancient Roman roads and is today a hiking circuit of approximately 4.5 km through meadows and woods, where the geometric cadastral pattern remains clearly visible.",
+        "mapmaker:order": 60,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.054,
+          46.192
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Châteauvieux / Ville de Ribandelle",
+        "mapmaker:description": "Irregularly pentagonal oppidum on a granite summit at 581 m altitude between the Creuse and Petite Creuse rivers, classified as a Monument Historique since 1984. Fortified at three angles by natural rock masses with an interior wall delimiting a raised esplanade. Excavations revealed a wall in lime mortar (1.9 m wide) incorporated into an earthwork rampart with vitrified blocks.",
+        "mapmaker:order": 61,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.263,
+          45.839
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Camp des Muraux",
+        "mapmaker:description": "Promontory-type oppidum composed of granite blocks near the hamlet of La Clidelle at Saint-Georges-Nigremont. Archaeological surveys indicate occupation during the period of Celtic invasions (ca. 1400–700 BC). Largely overgrown by woodland, with degraded traces of the enclosure and possible vitrified stone.",
+        "mapmaker:order": 62,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.621,
+          46.394
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Crozant (Protohistoric Phase)",
+        "mapmaker:description": "The rocky promontory at the Creuse–Sédelle confluence was occupied from the Bronze Age through the Iron Age. Twenty years of surveys (1964–1974) revealed Ancient, Middle, and Final Bronze Age material plus Iron Age finds including two fibulae and graphite-painted ceramics dated to ca. 650–600 BC. The site was abandoned in Antiquity before the medieval fortress was erected between 997 and 1018.",
+        "mapmaker:order": 63,
+        "mapmaker:legendEntryId": "a1b2c3d4-0010-4000-8000-000000000010",
+        "mapmaker:groupId": "g0000001-0010-4000-8000-000000000010"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.8506,
+          45.9983
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Vicus of Pontarion",
+        "mapmaker:description": "Gallo-Roman secondary agglomeration (vicus) at the crossroads of several Roman roads in the Creuse valley. Excavations uncovered a necropolis at Les Sagnes, along with structures indicating a significant roadside settlement of the Lemovices people.",
+        "mapmaker:order": 64,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0012-4000-8000-000000000012"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0458,
+          46.0872
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Acitodunum (Ahun)",
+        "mapmaker:description": "Major Gallo-Roman road junction of the Lemovices, listed on the Peutinger Table as Acitodunum. It sat at the convergence of the Via Agrippa (Lyon–Saintes) and the Limoges–Nevers road, making it one of the most important Roman crossroads in the Limousin. The town preserves traces of its Roman heritage including bridge foundations.",
+        "mapmaker:order": 65,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0012-4000-8000-000000000012"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.3875,
+          46.0533
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Mainsat",
+        "mapmaker:description": "Secondary Gallo-Roman agglomeration along an ancient route in the eastern Creuse. The commune preserves archaeological evidence of Roman-era settlement in a strategic position linking the Combraille region to the Marche.",
+        "mapmaker:order": 66,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0012-4000-8000-000000000012"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.4862,
+          46.2374
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "La Souterraine (Gallo-Roman Vestiges)",
+        "mapmaker:description": "Recently discovered Gallo-Roman vestiges (2nd–4th century AD) at La Souterraine, complementing the known Bridiers site nearby. Excavations revealed building foundations, coins, and a silver ring, demonstrating Roman-era settlement extended beyond the Bridiers agglomeration.",
+        "mapmaker:order": 67,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0012-4000-8000-000000000012"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0408,
+          45.6333
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Sanctuary of Saint-Merd-les-Oussines",
+        "mapmaker:description": "Ancient Gallo-Roman sanctuary of the Lemovices on the Millevaches plateau, near the Creuse–Corrèze border. The site includes remains of a fanum and cult structures in a high-altitude setting, testifying to religious practices of the Lemovices in a remote upland environment.",
+        "mapmaker:order": 68,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0012-4000-8000-000000000012"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.4261,
+          45.4508
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Sanctuary of Margerides / Pradines",
+        "mapmaker:description": "Major Gallo-Roman sanctuary complex at Pièces-Grandes in Margerides, classified as a Monument Historique since 1984. The site comprises three square fana (Romano-Celtic temples) within an enclosure, with two annexe buildings, active from the late 1st through the early 5th century AD.",
+        "mapmaker:order": 69,
+        "mapmaker:legendEntryId": "a1b2c3d4-0003-4000-8000-000000000003",
+        "mapmaker:groupId": "g0000001-0012-4000-8000-000000000012"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2722,
+          46.3214
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Lavaufranche",
+        "mapmaker:description": "One of the best-preserved Hospitaller commanderies in central France, founded around 1180 and classified as a Monument Historique since 1963. Features a square keep and a chapel decorated with remarkable medieval frescoes. The commune is named after the commandery's 'free valley' privilege.",
+        "mapmaker:order": 70,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0837,
+          46.2293
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Blaudeix",
+        "mapmaker:description": "Former Temple house with a 13th-century Gothic church at Blaudeix. After the suppression of the Templars in 1312, the commandery passed to the Knights Hospitaller. The Gothic church remains as the principal architectural witness of the commandery.",
+        "mapmaker:order": 71,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.0464,
+          46.05
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Chamberaud",
+        "mapmaker:description": "Former Templar and then Hospitaller commandery at Chamberaud, between Ahun and Pontarion. Documented as a Templar site that passed to the Order of Saint John of Jerusalem after 1312. Part of the dense network of military-religious establishments in the Creuse.",
+        "mapmaker:order": 72,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.2761,
+          46.0503
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of La Croix-au-Bost",
+        "mapmaker:description": "Hospitaller commandery at Saint-Domet with a chapel featuring remarkable frescoes from around 1250 depicting the apostles, a 17th-century Baroque altarpiece, and a tombstone with a Maltese cross. A round tower with machicolations once served as the commander's residence.",
+        "mapmaker:order": 73,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.7564,
+          45.9542
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Bourganeuf",
+        "mapmaker:description": "Seat of the Grand Priory of Auvergne of the Order of Saint John of Jerusalem. Famous for the Tour Zizim, built in the late 15th century to house the Ottoman prince Djem (Zizim), brother of Sultan Bayezid II, held captive by the Hospitallers.",
+        "mapmaker:order": 74,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.4037,
+          46.0074
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Blavepeyre",
+        "mapmaker:description": "Former commandery attested from around 1288 at Bussière-Nouvelle, a dependency of the Sainte-Anne commandery of Eymoutiers within the Order of Malta. The hamlet was once a separate commune before merging with Bussière-Nouvelle in 1842; a chapel associated with the commandery survives.",
+        "mapmaker:order": 75,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.8997,
+          46.0636
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Maisonnisses",
+        "mapmaker:description": "Ancient commandery of the Order of Saint John of Jerusalem, part of the Grand Priory of Auvergne, verified since 1468 though the Hospitallers held the parish since 1288. The 13th-century church is built over a crypt containing a fine stone recumbent statue of a knight, both registered as Monuments Historiques.",
+        "mapmaker:order": 76,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          2.1263,
+          45.7496
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Féniers",
+        "mapmaker:description": "Former Templar and Hospitaller commandery at Féniers, on the Millevaches plateau at 650 m altitude. The town hall sits on 'Allée de la Commanderie,' preserving the memory of the medieval establishment. The remote upland location is characteristic of Templar agricultural exploitation of marginal lands.",
+        "mapmaker:order": 77,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          1.509,
+          46.1189
+        ]
+      },
+      "properties": {
+        "mapmaker:type": "point",
+        "mapmaker:layerId": "default",
+        "mapmaker:label": "Commandery of Paulhac",
+        "mapmaker:description": "One of the earliest Templar foundations in the Creuse, at the hamlet of Paulhac in Saint-Étienne-de-Fursac. The site includes the Chapelle Saint-Fiacre and remnants of the commandery complex. Regularly featured during the Journées du Patrimoine as an important example of Templar heritage in the Limousin.",
+        "mapmaker:order": 78,
+        "mapmaker:legendEntryId": "a1b2c3d4-0011-4000-8000-000000000011",
+        "mapmaker:groupId": "g0000001-0011-4000-8000-000000000011"
+      }
+    }
+  ]
+}

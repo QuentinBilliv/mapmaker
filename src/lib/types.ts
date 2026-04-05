@@ -79,9 +79,14 @@ export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] =
   { value: "mono", label: "Monospace", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
 ];
 
+export interface ChoroplethEntry {
+  color: string;
+  name: string;
+}
+
 export interface ChoroplethData {
   enabled: boolean;
-  entries: Record<string, string>;
+  entries: Record<string, ChoroplethEntry>;
   opacity: number;
 }
 

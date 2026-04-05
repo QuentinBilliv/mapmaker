@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData } from "./types";
+import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData, ChoroplethEntry } from "./types";
 import { DEFAULT_CHOROPLETH } from "./types";
 import { findBaseMap } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
@@ -136,7 +136,7 @@ const mapmakerMeta = z.object({
   baseMap: z.string().max(100).default("osm"),
   choropleth: z.object({
     enabled: z.boolean().default(false),
-    entries: z.record(z.string(), z.string().max(30)).default({}),
+    entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).default({}),
     opacity: z.number().min(0).max(1).default(0.7),
   }).default({ enabled: false, entries: {}, opacity: 0.7 }),
   layers: z.array(layerSchema).min(1).max(100),

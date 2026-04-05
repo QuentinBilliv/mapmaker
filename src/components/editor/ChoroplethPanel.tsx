@@ -4,7 +4,7 @@ import { useState, useMemo, useCallback, useEffect } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
 import { FaXmark, FaChevronDown, FaChevronRight, FaEarthAmericas } from "react-icons/fa6";
-import { loadCountriesGeoJSON, getCountryNames } from "@/lib/choropleth";
+import { loadCountriesGeoJSON, getCountryList, type CountryInfo } from "@/lib/choropleth";
 
 export default function ChoroplethPanel() {
   const { choropleth } = useEditorData();
@@ -12,29 +12,29 @@ export default function ChoroplethPanel() {
   const [expanded, setExpanded] = useState(true);
   const [search, setSearch] = useState("");
   const [activeColor, setActiveColor] = useState("#3b82f6");
-  const [countryNames, setCountryNames] = useState<string[]>([]);
+  const [countries, setCountries] = useState<CountryInfo[]>([]);
 
   useEffect(() => {
     if (!choropleth.enabled) return;
     let dead = false;
     loadCountriesGeoJSON().then((geojson) => {
       if (dead) return;
-      setCountryNames(getCountryNames(geojson));
+      setCountries(getCountryList(geojson));
     });
     return () => { dead = true; };
   }, [choropleth.enabled]);
 
-  const paintedCountries = useMemo(
-    () => Object.entries(choropleth.entries).sort(([a], [b]) => a.localeCompare(b)),
+  const paintedEntries = useMemo(
+    () => Object.entries(choropleth.entries).sort(([, a], [, b]) => a.name.localeCompare(b.name)),
     [choropleth.entries],
   );
 
-  const filteredNames = useMemo(
+  const filtered = useMemo(
     () =>
       search.trim()
-        ? countryNames.filter((n) => n.toLowerCase().includes(search.toLowerCase()))
+        ? countries.filter((c) => c.name.toLowerCase().includes(search.toLowerCase()) || c.iso.toLowerCase().includes(search.toLowerCase()))
         : [],
-    [countryNames, search],
+    [countries, search],
   );
 
   const handleToggle = useCallback(() => {
@@ -42,8 +42,8 @@ export default function ChoroplethPanel() {
   }, [setChoropleth, choropleth.enabled]);
 
   const handleCountrySelect = useCallback(
-    (name: string) => {
-      setChoroplethColor(name, activeColor);
+    (country: CountryInfo) => {
+      setChoroplethColor(country.iso, activeColor, country.name);
       setSearch("");
     },
     [setChoroplethColor, activeColor],
@@ -88,19 +88,20 @@ export default function ChoroplethPanel() {
               className="flex-1 h-7 rounded-md border border-input bg-transparent px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
-          {filteredNames.length > 0 && (
+          {filtered.length > 0 && (
             <div className="border rounded-md max-h-32 overflow-y-auto">
-              {filteredNames.slice(0, 20).map((name) => (
+              {filtered.slice(0, 20).map((c) => (
                 <button
-                  key={name}
+                  key={c.iso}
                   className="w-full text-left px-2 py-1 text-xs hover:bg-accent flex items-center gap-2"
-                  onClick={() => handleCountrySelect(name)}
+                  onClick={() => handleCountrySelect(c)}
                 >
                   <span
                     className="w-3 h-3 rounded-sm shrink-0 border border-input"
-                    style={{ backgroundColor: choropleth.entries[name] ?? activeColor }}
+                    style={{ backgroundColor: choropleth.entries[c.iso]?.color ?? activeColor }}
                   />
-                  {name}
+                  <span className="flex-1">{c.name}</span>
+                  <span className="text-muted-foreground">{c.iso}</span>
                 </button>
               ))}
             </div>
@@ -120,23 +121,24 @@ export default function ChoroplethPanel() {
               className="w-full h-1.5 accent-primary"
             />
           </div>
-          {paintedCountries.length > 0 && (
+          {paintedEntries.length > 0 && (
             <div className="space-y-0.5">
-              <span className="text-xs text-muted-foreground">{paintedCountries.length} countries</span>
-              {paintedCountries.map(([name, color]) => (
-                <div key={name} className="flex items-center gap-2 group">
+              <span className="text-xs text-muted-foreground">{paintedEntries.length} countries</span>
+              {paintedEntries.map(([iso, entry]) => (
+                <div key={iso} className="flex items-center gap-2 group">
                   <input
                     type="color"
-                    value={color}
-                    onChange={(e) => setChoroplethColor(name, e.target.value)}
+                    value={entry.color}
+                    onChange={(e) => setChoroplethColor(iso, e.target.value, entry.name)}
                     className="w-4 h-4 rounded cursor-pointer border border-input shrink-0"
                   />
-                  <span className="text-xs flex-1 truncate">{name}</span>
+                  <span className="text-xs flex-1 truncate">{entry.name}</span>
+                  <span className="text-xs text-muted-foreground">{iso}</span>
                   <Button
                     variant="ghost"
                     size="icon-xs"
                     className="opacity-0 group-hover:opacity-100"
-                    onClick={() => removeChoroplethEntry(name)}
+                    onClick={() => removeChoroplethEntry(iso)}
                   >
                     <FaXmark className="w-3 h-3" />
                   </Button>
@@ -144,7 +146,7 @@ export default function ChoroplethPanel() {
               ))}
             </div>
           )}
-          {paintedCountries.length > 0 && (
+          {paintedEntries.length > 0 && (
             <Button
               variant="ghost"
               size="sm"
