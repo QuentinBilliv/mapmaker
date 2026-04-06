@@ -1,4 +1,4 @@
-import type { MapData, FeatureData, GroupData, LegendEntry } from "./types";
+import type { MapData, FeatureData, GroupData, LegendEntry, ChoroplethData } from "./types";
 import type { BaseMap } from "./map-style";
 import { findBaseMap } from "./map-style";
 import { DEFAULT_MAP } from "./defaults";
@@ -23,6 +23,7 @@ interface StoredState {
   groups: GroupData[];
   legendEntries: LegendEntry[];
   baseMapId: string;
+  choropleth?: ChoroplethData;
 }
 
 export function saveToLocalStorage(
@@ -31,9 +32,10 @@ export function saveToLocalStorage(
   groups: GroupData[],
   legendEntries: LegendEntry[],
   baseMapId: string,
+  choropleth?: ChoroplethData,
 ): void {
   try {
-    const state: StoredState = { version: VERSION, map, features, groups, legendEntries, baseMapId };
+    const state: StoredState = { version: VERSION, map, features, groups, legendEntries, baseMapId, choropleth };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     const type = e instanceof DOMException && e.name === "QuotaExceededError"
@@ -49,6 +51,7 @@ export function loadFromLocalStorage(): {
   groups: GroupData[];
   legendEntries: LegendEntry[];
   baseMap: BaseMap;
+  choropleth?: ChoroplethData;
 } | null {
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
@@ -68,6 +71,7 @@ export function loadFromLocalStorage(): {
       groups: state.groups ?? [],
       legendEntries: state.legendEntries ?? [],
       baseMap,
+      choropleth: state.choropleth,
     };
   } catch {
     onStorageError?.("load_corrupted");

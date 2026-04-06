@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import MapCanvas from "./MapCanvas";
 import MapCanvasErrorBoundary from "./MapCanvasErrorBoundary";
 import DrawingToolbar from "./DrawingToolbar";
@@ -12,14 +12,28 @@ import Legend from "./Legend";
 import FeaturePanel from "./FeaturePanel";
 import LegendPanel from "./LegendPanel";
 import ChoroplethPanel from "./ChoroplethPanel";
+import ChoroplethDialog from "./ChoroplethDialog";
 import ExportImportButtons from "./ExportImportButtons";
 
+import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
 import TutorialWelcome from "./TutorialWelcome";
 import { FaLayerGroup, FaXmark } from "react-icons/fa6";
 
 export default function EditorShell() {
+  const { choroplethMode } = useEditorData();
+  const { setChoroplethMode, selectFeature } = useEditorActions();
   const [showSidebar, setShowSidebar] = useState(false);
+
+  const handleOpenChoropleth = useCallback(() => {
+    setShowSidebar(false);
+    setChoroplethMode(true);
+    selectFeature(null);
+  }, [setChoroplethMode, selectFeature]);
+
+  const handleCloseChoropleth = useCallback(() => {
+    setChoroplethMode(false);
+  }, [setChoroplethMode]);
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -27,10 +41,9 @@ export default function EditorShell() {
         <MapCanvasErrorBoundary>
           <MapCanvas />
         </MapCanvasErrorBoundary>
-        <DrawingToolbar />
-
+        {!choroplethMode && <DrawingToolbar />}
         <MapMetadata />
-        <FeatureForm />
+        {!choroplethMode && <FeatureForm />}
         <BaseMapSelector />
         <Legend />
         <TutorialWelcome />
@@ -71,10 +84,13 @@ export default function EditorShell() {
             <FaXmark className="w-4 h-4" />
           </Button>
         </div>
-        <FeaturePanel />
-        <LegendPanel />
-        <ChoroplethPanel />
+        <div className={choroplethMode ? "opacity-40 pointer-events-none" : ""}>
+          <FeaturePanel />
+          <LegendPanel />
+        </div>
+        <ChoroplethPanel onOpenDialog={handleOpenChoropleth} />
       </aside>
+      <ChoroplethDialog open={choroplethMode} onClose={handleCloseChoropleth} />
     </div>
   );
 }

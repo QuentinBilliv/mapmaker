@@ -30,6 +30,7 @@ export default defineSchema({
     features: v.optional(v.any()),
     groups: v.optional(v.any()),
     legendEntries: v.optional(v.any()),
+    choropleth: v.optional(v.any()),
     dataFileId: v.optional(v.id("_storage")),
     dataFileSize: v.optional(v.number()),
     isPublic: v.optional(v.boolean()),

@@ -51,6 +51,7 @@ interface EditorDataState {
   featureLimitReached: boolean;
   featureLimit: number;
   choropleth: ChoroplethData;
+  choroplethMode: boolean;
   canUndo: boolean;
   canRedo: boolean;
 }
@@ -106,9 +107,14 @@ interface EditorActions {
   deduceLegendEntryFromFeature: (featureId: string, label: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
   setChoropleth: (updates: Partial<ChoroplethData>) => void;
-  setChoroplethColor: (iso: string, color: string, name: string) => void;
-  removeChoroplethEntry: (country: string) => void;
+  addChoroplethCategory: (color: string, label: string) => string;
+  updateChoroplethCategory: (id: string, updates: Partial<{ color: string; label: string }>) => void;
+  deleteChoroplethCategory: (id: string) => void;
+  assignCountryToCategory: (iso: string, name: string) => void;
+  unassignCountry: (iso: string) => void;
+  importChoroplethData: (categories: { label: string; color: string; countries: string[] }[]) => void;
   updateMap: (updates: Partial<MapData>) => void;
+  setChoroplethMode: (active: boolean) => void;
   importMapData: (data: DeserializedMap) => void;
   finishDrawing: () => void;
   cancelDrawing: () => void;
@@ -188,6 +194,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const [legendEntries, setLegendEntries] = useState<LegendEntry[]>(initialData?.legendEntries ?? []);
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
   const [choropleth, setChoroplethState] = useState<ChoroplethData>(initialData?.choropleth ?? DEFAULT_CHOROPLETH);
+  const [choroplethMode, setChoroplethMode] = useState(false);
 
   const initialBaseMap = initialData?.baseMapId
     ? findBaseMap(initialData.baseMapId)
@@ -217,6 +224,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setFeatures(saved.features);
     setGroups(saved.groups);
     setLegendEntries(saved.legendEntries);
+    if (saved.choropleth) setChoroplethState(saved.choropleth);
     dispatchDrawing({ type: "SET", payload: { activeBaseMap: saved.baseMap } });
   }, []);
 
@@ -233,7 +241,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       if (onSaveRef.current) {
         onSaveRef.current(state);
       } else {
-        saveToLocalStorage(map, features, groups, legendEntries, drawing.activeBaseMap.id);
+        saveToLocalStorage(map, features, groups, legendEntries, drawing.activeBaseMap.id, choropleth);
       }
     }, 500);
     return () => clearTimeout(saveTimerRef.current);
@@ -405,18 +413,70 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setChoroplethState((prev) => ({ ...prev, ...updates }));
   }, []);
 
-  const setChoroplethColor = useCallback((iso: string, color: string, name: string) => {
+  const addChoroplethCategory = useCallback((color: string, label: string): string => {
+    const id = uuid();
+    setChoroplethState((prev) => {
+      const maxOrder = prev.categories.reduce((m, c) => Math.max(m, c.order), -1);
+      return {
+        ...prev,
+        categories: [...prev.categories, { id, color, label, order: maxOrder + 1 }],
+        activeCategoryId: id,
+      };
+    });
+    return id;
+  }, []);
+
+  const updateChoroplethCategory = useCallback((id: string, updates: Partial<{ color: string; label: string }>) => {
     setChoroplethState((prev) => ({
       ...prev,
-      entries: { ...prev.entries, [iso]: { color, name } },
+      categories: prev.categories.map((c) => c.id === id ? { ...c, ...updates } : c),
     }));
   }, []);
 
-  const removeChoroplethEntry = useCallback((country: string) => {
+  const deleteChoroplethCategory = useCallback((id: string) => {
     setChoroplethState((prev) => {
-      const next = { ...prev.entries };
-      delete next[country];
-      return { ...prev, entries: next };
+      const assignments = { ...prev.assignments };
+      for (const iso of Object.keys(assignments)) {
+        if (assignments[iso] === id) delete assignments[iso];
+      }
+      return {
+        ...prev,
+        categories: prev.categories.filter((c) => c.id !== id),
+        assignments,
+        activeCategoryId: prev.activeCategoryId === id ? null : prev.activeCategoryId,
+      };
+    });
+  }, []);
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const assignCountryToCategory = useCallback((iso: string, _name: string) => {
+    setChoroplethState((prev) => {
+      if (!prev.activeCategoryId) return prev;
+      return { ...prev, assignments: { ...prev.assignments, [iso]: prev.activeCategoryId } };
+    });
+  }, []);
+
+  const unassignCountry = useCallback((iso: string) => {
+    setChoroplethState((prev) => {
+      const assignments = { ...prev.assignments };
+      delete assignments[iso];
+      return { ...prev, assignments };
+    });
+  }, []);
+
+  const importChoroplethData = useCallback((data: { label: string; color: string; countries: string[] }[]) => {
+    setChoroplethState((prev) => {
+      const newCategories = [...prev.categories];
+      const newAssignments = { ...prev.assignments };
+      let maxOrder = newCategories.reduce((m, c) => Math.max(m, c.order), -1);
+      for (const item of data) {
+        const id = uuid();
+        newCategories.push({ id, color: item.color, label: item.label, order: ++maxOrder });
+        for (const iso of item.countries) {
+          newAssignments[iso] = id;
+        }
+      }
+      return { ...prev, categories: newCategories, assignments: newAssignments, enabled: true };
     });
   }, []);
 
@@ -461,8 +521,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   // Context values
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, canUndo, canRedo }),
-    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, canUndo, canRedo]
+    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, choroplethMode, canUndo, canRedo }),
+    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, choroplethMode, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(
@@ -485,8 +545,10 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       moveGroup, rotateGroup,
       addLegendEntry, updateLegendEntry, deleteLegendEntry,
       assignLegendEntry, deduceLegendEntryFromFeature,
-      setActiveBaseMap, setChoropleth, setChoroplethColor, removeChoroplethEntry,
-      updateMap, importMapData,
+      setActiveBaseMap, setChoropleth,
+      addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
+      assignCountryToCategory, unassignCountry, importChoroplethData,
+      setChoroplethMode, updateMap, importMapData,
       finishDrawing, cancelDrawing, registerDrawingControls,
       recordSnapshot, undo, redo,
     }),
@@ -509,8 +571,10 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       moveGroup, rotateGroup,
       addLegendEntry, updateLegendEntry, deleteLegendEntry,
       assignLegendEntry, deduceLegendEntryFromFeature,
-      setActiveBaseMap, setChoropleth, setChoroplethColor, removeChoroplethEntry,
-      updateMap, importMapData,
+      setActiveBaseMap, setChoropleth,
+      addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
+      assignCountryToCategory, unassignCountry, importChoroplethData,
+      setChoroplethMode, updateMap, importMapData,
       finishDrawing, cancelDrawing, registerDrawingControls,
       recordSnapshot, undo, redo,
     ]

@@ -1,4 +1,4 @@
-import type { ChoroplethEntry } from "./types";
+import type { ChoroplethCategory } from "./types";
 
 let cache: GeoJSON.FeatureCollection | null = null;
 
@@ -33,22 +33,28 @@ export function getCountryList(geojson: GeoJSON.FeatureCollection): CountryInfo[
 
 export function buildChoroplethGeoJSON(
   countries: GeoJSON.FeatureCollection,
-  entries: Record<string, ChoroplethEntry>,
+  categories: ChoroplethCategory[],
+  assignments: Record<string, string>,
 ): GeoJSON.FeatureCollection {
+  const catMap = new Map(categories.map((c) => [c.id, c]));
   return {
     type: "FeatureCollection",
     features: countries.features
       .filter((f) => {
         const iso = f.properties?.iso_a3 as string;
-        return iso && entries[iso];
+        return iso && assignments[iso] && catMap.has(assignments[iso]);
       })
-      .map((f) => ({
-        ...f,
-        properties: {
-          ...f.properties,
-          _color: entries[f.properties!.iso_a3 as string].color,
-        },
-      })),
+      .map((f) => {
+        const iso = f.properties!.iso_a3 as string;
+        const cat = catMap.get(assignments[iso])!;
+        return {
+          ...f,
+          properties: {
+            ...f.properties,
+            _color: cat.color,
+          },
+        };
+      }),
   };
 }
 

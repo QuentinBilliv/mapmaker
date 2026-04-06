@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData, ChoroplethEntry } from "./types";
+import type { MapData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData, ChoroplethCategory } from "./types";
 import { DEFAULT_CHOROPLETH } from "./types";
 import { findBaseMap } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
@@ -136,10 +136,18 @@ const mapmakerMeta = z.object({
   baseMap: z.string().max(100).default("osm"),
   choropleth: z.object({
     enabled: z.boolean().default(false),
-    entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).default({}),
+    mode: z.enum(["discrete", "gradient"]).default("discrete"),
+    categories: z.array(z.object({
+      id: z.string().max(100),
+      color: z.string().max(30),
+      label: z.string().max(200),
+      order: z.number().int().min(0).max(1000),
+    })).default([]),
+    assignments: z.record(z.string(), z.string()).default({}),
     opacity: z.number().min(0).max(1).default(0.7),
-    activeColor: z.string().max(30).default("#3b82f6"),
-  }).default({ enabled: false, entries: {}, opacity: 0.7, activeColor: "#3b82f6" }),
+    entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).optional(),
+    activeColor: z.string().max(30).optional(),
+  }).default({ enabled: false, mode: "discrete", categories: [], assignments: {}, opacity: 0.7 }),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
   legendEntries: z.array(legendEntrySchema).max(1000).default([]),
@@ -174,9 +182,10 @@ export function serialize(
       baseMap: baseMapId,
       choropleth: {
         enabled: choropleth.enabled,
-        entries: choropleth.entries,
+        mode: choropleth.mode,
+        categories: choropleth.categories.map(({ id, color, label, order }) => ({ id, color, label, order })),
+        assignments: choropleth.assignments,
         opacity: choropleth.opacity,
-        activeColor: choropleth.activeColor,
       },
       layers: [{ id: "default", name: "Main layer", visible: true, order: 0 }],
       groups: groups.map(({ id, label, order }) => ({ id, label, order })),
@@ -313,6 +322,30 @@ export function deserialize(raw: string): DeserializedMap {
     }
   });
 
+  const rawChoropleth = result.mapmaker.choropleth;
+  let choropleth: ChoroplethData;
+  if (rawChoropleth.categories && rawChoropleth.categories.length > 0) {
+    choropleth = {
+      enabled: rawChoropleth.enabled,
+      mode: rawChoropleth.mode ?? "discrete",
+      categories: rawChoropleth.categories as ChoroplethCategory[],
+      assignments: rawChoropleth.assignments ?? {},
+      opacity: rawChoropleth.opacity,
+      activeCategoryId: null,
+    };
+  } else if (rawChoropleth.entries && Object.keys(rawChoropleth.entries).length > 0) {
+    choropleth = migrateLegacyChoropleth(rawChoropleth);
+  } else {
+    choropleth = {
+      enabled: rawChoropleth.enabled,
+      mode: "discrete",
+      categories: [],
+      assignments: {},
+      opacity: rawChoropleth.opacity,
+      activeCategoryId: null,
+    };
+  }
+
   return {
     map: {
       title: result.mapmaker.map.title,
@@ -323,11 +356,37 @@ export function deserialize(raw: string): DeserializedMap {
       zoom: result.mapmaker.map.zoom,
     },
     baseMapId: knownBaseMap.id,
-    choropleth: result.mapmaker.choropleth as ChoroplethData,
+    choropleth,
     features,
     groups: result.mapmaker.groups,
     legendEntries: (result.mapmaker.legendEntries ?? []) as LegendEntry[],
     pendingIconMigrations,
+  };
+}
+
+function migrateLegacyChoropleth(raw: { enabled: boolean; entries?: Record<string, { color: string; name: string }>; opacity: number }): ChoroplethData {
+  const entries = raw.entries ?? {};
+  const byColor = new Map<string, string[]>();
+  for (const [iso, entry] of Object.entries(entries)) {
+    if (!byColor.has(entry.color)) byColor.set(entry.color, []);
+    byColor.get(entry.color)!.push(iso);
+  }
+  const categories: ChoroplethCategory[] = [];
+  const assignments: Record<string, string> = {};
+  let order = 0;
+  byColor.forEach((isos, color) => {
+    const id = `migrated-${order}`;
+    categories.push({ id, color, label: `Category ${order + 1}`, order });
+    for (const iso of isos) assignments[iso] = id;
+    order++;
+  });
+  return {
+    enabled: raw.enabled,
+    mode: "discrete",
+    categories,
+    assignments,
+    opacity: raw.opacity,
+    activeCategoryId: null,
   };
 }
 

@@ -10,8 +10,8 @@ export function useChoropleth(
   mapRef: React.RefObject<maplibregl.Map | null>,
   choropleth: ChoroplethData,
   styleVersion: number,
-  setChoroplethColor: (iso: string, color: string, name: string) => void,
-  removeChoroplethEntry: (iso: string) => void,
+  assignCountry: (iso: string, name: string) => void,
+  unassignCountry: (iso: string) => void,
   drawMode: string,
 ): React.RefObject<boolean> {
   const countriesRef = useRef<GeoJSON.FeatureCollection | null>(null);
@@ -30,7 +30,7 @@ export function useChoropleth(
       const map = mapRef.current;
       if (!map) return;
       const source = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
-      if (source) source.setData(buildChoroplethGeoJSON(geojson, choropleth.entries));
+      if (source) source.setData(buildChoroplethGeoJSON(geojson, choropleth.categories, choropleth.assignments));
     });
     return () => { dead = true; };
   }, [choropleth.enabled, mapRef]);
@@ -41,7 +41,7 @@ export function useChoropleth(
     const source = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
     if (!source) return;
     if (choropleth.enabled && countriesRef.current) {
-      source.setData(buildChoroplethGeoJSON(countriesRef.current, choropleth.entries));
+      source.setData(buildChoroplethGeoJSON(countriesRef.current, choropleth.categories, choropleth.assignments));
       if (map.getLayer(CHOROPLETH_FILL)) {
         map.setPaintProperty(CHOROPLETH_FILL, "fill-opacity", choropleth.opacity);
       }
@@ -58,7 +58,7 @@ export function useChoropleth(
 
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     const choro = choroplethRef.current;
-    if (!choro.enabled || drawModeRef.current !== "select") return;
+    if (!choro.enabled || !choro.activeCategoryId || drawModeRef.current !== "select") return;
     const countries = countriesRef.current;
     if (!countries) return;
     const country = findCountryAtPoint(countries, e.lngLat.lng, e.lngLat.lat);
@@ -66,12 +66,12 @@ export function useChoropleth(
     e.preventDefault();
     interactingRef.current = true;
     requestAnimationFrame(() => { interactingRef.current = false; });
-    if (choro.entries[country.iso]) {
-      removeChoroplethEntry(country.iso);
+    if (choro.assignments[country.iso] === choro.activeCategoryId) {
+      unassignCountry(country.iso);
     } else {
-      setChoroplethColor(country.iso, choro.activeColor, country.name);
+      assignCountry(country.iso, country.name);
     }
-  }, [setChoroplethColor, removeChoroplethEntry]);
+  }, [assignCountry, unassignCountry]);
 
   useEffect(() => {
     const map = mapRef.current;

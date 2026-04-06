@@ -29,6 +29,7 @@ import type {
   LineDecoration,
   FillPattern,
   TextFont,
+  ChoroplethCategory,
 } from "@/lib/types";
 import {
   POINT_SHAPES,
@@ -51,12 +52,14 @@ import {
 interface LegendDisplayProps {
   features: FeatureData[];
   legendEntries?: LegendEntry[];
+  choroplethCategories?: ChoroplethCategory[];
   onAdd?: (entry: NewLegendEntry) => void;
   alwaysShow?: boolean;
 }
 
 export function LegendDisplay({
   legendEntries = [],
+  choroplethCategories = [],
   onAdd,
   alwaysShow,
 }: LegendDisplayProps) {
@@ -74,7 +77,8 @@ export function LegendDisplay({
   }, [setHoveredLegendEntryId]);
 
   const sortedEntries = [...legendEntries].sort((a, b) => a.order - b.order);
-  const hasItems = sortedEntries.length > 0;
+  const sortedChoropleth = [...choroplethCategories].sort((a, b) => a.order - b.order);
+  const hasItems = sortedEntries.length > 0 || sortedChoropleth.length > 0;
 
   if (!hasItems && !alwaysShow) return null;
 
@@ -104,7 +108,7 @@ export function LegendDisplay({
               </button>
             </div>
           </div>
-          {hasItems ? (
+          {sortedEntries.length > 0 && (
             <div className="grid grid-cols-3" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
               {sortedEntries.map((entry) => {
                 const synthetic = legendEntryToSyntheticFeature(entry);
@@ -124,7 +128,23 @@ export function LegendDisplay({
                 );
               })}
             </div>
-          ) : (
+          )}
+          {sortedChoropleth.length > 0 && (
+            <>
+              {sortedEntries.length > 0 && <div className="border-t my-1" />}
+              <div className="grid grid-cols-3">
+                {sortedChoropleth.map((cat) => (
+                  <div key={cat.id} className="flex flex-col items-center gap-0.5 px-2 py-1.5">
+                    <div className="w-5 h-4 rounded-sm border border-black/10" style={{ backgroundColor: cat.color }} />
+                    <span className="text-[10px] text-foreground text-center leading-tight break-words max-w-20">
+                      {cat.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {!hasItems && (
             <p className="text-[10px] text-muted-foreground text-center py-2">
               No legend entries yet. Click + to add one.
             </p>

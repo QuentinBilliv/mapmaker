@@ -72,23 +72,31 @@ export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] =
   { value: "mono", label: "Monospace", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
 ];
 
-export interface ChoroplethEntry {
+export interface ChoroplethCategory {
+  id: string;
   color: string;
-  name: string;
+  label: string;
+  order: number;
 }
+
+export type ChoroplethMode = "discrete" | "gradient";
 
 export interface ChoroplethData {
   enabled: boolean;
-  entries: Record<string, ChoroplethEntry>;
+  mode: ChoroplethMode;
+  categories: ChoroplethCategory[];
+  assignments: Record<string, string>;
   opacity: number;
-  activeColor: string;
+  activeCategoryId: string | null;
 }
 
 export const DEFAULT_CHOROPLETH: ChoroplethData = {
   enabled: false,
-  entries: {},
+  mode: "discrete",
+  categories: [],
+  assignments: {},
   opacity: 0.7,
-  activeColor: "#3b82f6",
+  activeCategoryId: null,
 };
 
 export interface GroupData {
