@@ -16,9 +16,9 @@ import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 
 export default function MapCanvas() {
-  const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature, choropleth } = useEditorData();
+  const { map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, choropleth } = useEditorData();
   const { drawMode, activeBaseMap } = useDrawingState();
-  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
+  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup, setChoroplethColor, removeChoroplethEntry } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDefaultView = map.center[0] === DEFAULT_CENTER[0] && map.center[1] === DEFAULT_CENTER[1] && map.zoom === DEFAULT_ZOOM;
@@ -52,8 +52,8 @@ export default function MapCanvas() {
     [selectFeature, selectFeatures]
   );
 
-  useFeatureRendering(mapRef, features, layers, groups, styleVersion, legendEntries);
-  useChoropleth(mapRef, choropleth, styleVersion);
+  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries);
+  const choroplethInteractingRef = useChoropleth(mapRef, choropleth, styleVersion, setChoroplethColor, removeChoroplethEntry, drawMode);
 
   const selectedGroupId = useMemo(() => {
     if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;
@@ -73,9 +73,9 @@ export default function MapCanvas() {
   const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
   const groupInteractingRef = useGroupEditing(mapRef, selectedGroupId, groupMembers, moveGroup, rotateGroup, recordSnapshot, styleVersion);
   const combinedRef = useMemo(() => ({
-    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current); },
+    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current || choroplethInteractingRef.current); },
     set current(_v: boolean) {},
-  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef]);
+  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef, choroplethInteractingRef]);
   const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useSaveViewListener(mapRef, updateMap);

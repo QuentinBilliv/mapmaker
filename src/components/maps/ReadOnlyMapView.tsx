@@ -14,11 +14,10 @@ import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { MapData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface ReadOnlyMapViewProps {
   map: MapData;
-  layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
   legendEntries?: LegendEntry[];
@@ -36,7 +35,6 @@ export default function ReadOnlyMapView(props: ReadOnlyMapViewProps) {
 
 function ReadOnlyMapViewInner({
   map: mapData,
-  layers,
   features,
   groups,
   legendEntries = [],
@@ -72,7 +70,7 @@ function ReadOnlyMapViewInner({
     };
   }, [baseMap.style]);
 
-  useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
+  useFeatureRendering(mapRef, features, groups, 0, legendEntries);
   useFeatureTooltip(mapRef, "select", 0);
   useLegendHighlight(mapRef, 0);
 

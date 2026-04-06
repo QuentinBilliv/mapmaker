@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData, PolygonFeature, PolylineFeature, LayerData, GroupData, LegendEntry, PointShape } from "@/lib/types";
+import type { FeatureData, PolygonFeature, PolylineFeature, GroupData, LegendEntry, PointShape } from "@/lib/types";
 import { resolveAllFeatures } from "@/lib/resolve-style";
 import {
   ensureShapeIcon,
@@ -97,7 +97,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     source: CHOROPLETH_SOURCE,
     paint: {
       "fill-color": ["get", "_color"],
-      "fill-opacity": ["*", ["get", "_painted"], 0.7],
+      "fill-opacity": 0.7,
     },
   });
 
@@ -353,7 +353,7 @@ interface BuildResult {
   pendingSvgs: Promise<string>[];
 }
 
-function visibleSorted(features: FeatureData[], _layers: LayerData[], groups: GroupData[] = []): FeatureData[] {
+function visibleSorted(features: FeatureData[], groups: GroupData[] = []): FeatureData[] {
   if (groups.length === 0) {
     return [...features].sort((a, b) => a.order - b.order);
   }
@@ -420,7 +420,6 @@ function buildGeoJSONSorted(
             order: f.order,
             featureType: "text",
             legendEntryId: f.legendEntryId ?? "",
-            layerId: f.layerId,
             rotation: f.rotation ?? 0,
             textContent: f.textContent ?? "Text",
             fontSize: f.fontSize ?? 24,
@@ -494,7 +493,6 @@ function buildGeoJSONSorted(
         rotation: f.rotation ?? 0,
         featureType: f.type,
         legendEntryId: f.legendEntryId ?? "",
-        layerId: f.layerId,
         iconId,
         patternId,
         strokeWidth: hasStroke ? f.strokeWidth : 0,
@@ -525,10 +523,9 @@ function buildGeoJSONSorted(
 function setSourceData(
   map: maplibregl.Map,
   features: FeatureData[],
-  layers: LayerData[],
   groups: GroupData[] = []
 ): Promise<string>[] {
-  return setSourceDataSorted(map, visibleSorted(features, layers, groups));
+  return setSourceDataSorted(map, visibleSorted(features, groups));
 }
 
 function setSourceDataSorted(
@@ -560,19 +557,18 @@ function syncDecoSpacing(map: maplibregl.Map, features: FeatureData[]) {
 function fullUpdate(
   map: maplibregl.Map,
   features: FeatureData[],
-  layers: LayerData[],
   groups: GroupData[],
   cancelled: () => boolean
 ) {
   ensureSourceAndLayers(map);
-  const sorted = visibleSorted(features, layers, groups);
+  const sorted = visibleSorted(features, groups);
   const pending = setSourceDataSorted(map, sorted);
   syncPerFeatureLayersSorted(map, sorted);
   syncDecoSpacing(map, features);
   if (pending.length > 0) {
     Promise.all(pending).then(() => {
       if (cancelled()) return;
-      setSourceData(map, features, layers, groups);
+      setSourceData(map, features, groups);
     });
   }
 }
@@ -594,7 +590,6 @@ function structuralKey(sorted: FeatureData[]): string {
 export function useFeatureRendering(
   mapRef: React.RefObject<maplibregl.Map | null>,
   features: FeatureData[],
-  layers: LayerData[],
   groups: GroupData[],
   styleVersion: number,
   legendEntries: LegendEntry[] = [],
@@ -609,7 +604,7 @@ export function useFeatureRendering(
     const isCancelled = () => dead;
 
     if (map.getSource(FEATURES_SOURCE)) {
-      const sorted = visibleSorted(resolved, layers, groups);
+      const sorted = visibleSorted(resolved, groups);
       const pending = setSourceDataSorted(map, sorted);
       const key = structuralKey(sorted);
       if (key !== lastKeyRef.current) {
@@ -626,8 +621,8 @@ export function useFeatureRendering(
     } else {
       const applyFeatures = () => {
         if (dead) return;
-        lastKeyRef.current = structuralKey(visibleSorted(resolved, layers, groups));
-        fullUpdate(map, resolved, layers, groups, isCancelled);
+        lastKeyRef.current = structuralKey(visibleSorted(resolved, groups));
+        fullUpdate(map, resolved, groups, isCancelled);
       };
       if (map.isStyleLoaded()) {
         applyFeatures();
@@ -637,7 +632,7 @@ export function useFeatureRendering(
     }
 
     return () => { dead = true; };
-  }, [mapRef, resolved, layers, groups, styleVersion]);
+  }, [mapRef, resolved, groups, styleVersion]);
 }
 
 export { FEATURES_SOURCE, ZF, CHOROPLETH_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER };

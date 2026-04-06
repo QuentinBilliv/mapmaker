@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData, ChoroplethEntry } from "./types";
+import type { MapData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData, ChoroplethEntry } from "./types";
 import { DEFAULT_CHOROPLETH } from "./types";
 import { findBaseMap } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
@@ -138,7 +138,8 @@ const mapmakerMeta = z.object({
     enabled: z.boolean().default(false),
     entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).default({}),
     opacity: z.number().min(0).max(1).default(0.7),
-  }).default({ enabled: false, entries: {}, opacity: 0.7 }),
+    activeColor: z.string().max(30).default("#3b82f6"),
+  }).default({ enabled: false, entries: {}, opacity: 0.7, activeColor: "#3b82f6" }),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
   legendEntries: z.array(legendEntrySchema).max(1000).default([]),
@@ -152,7 +153,6 @@ const documentSchema = z.object({
 
 export function serialize(
   map: MapData,
-  layers: LayerData[],
   features: FeatureData[],
   baseMapId: string,
   groups: GroupData[] = [],
@@ -176,8 +176,9 @@ export function serialize(
         enabled: choropleth.enabled,
         entries: choropleth.entries,
         opacity: choropleth.opacity,
+        activeColor: choropleth.activeColor,
       },
-      layers: layers.map(({ id, name, visible, order }) => ({ id, name, visible, order })),
+      layers: [{ id: "default", name: "Main layer", visible: true, order: 0 }],
       groups: groups.map(({ id, label, order }) => ({ id, label, order })),
       legendEntries: legendEntries.map((e) => ({ ...e })),
     },
@@ -185,7 +186,7 @@ export function serialize(
       const hasEntry = !!f.legendEntryId;
       const props: Record<string, unknown> = {
         "mapmaker:type": f.type,
-        "mapmaker:layerId": f.layerId,
+        "mapmaker:layerId": "default",
         "mapmaker:label": f.label,
         "mapmaker:description": f.description,
         "mapmaker:order": f.order,
@@ -250,7 +251,6 @@ export interface DeserializedMap {
   map: Omit<MapData, "id">;
   baseMapId: string;
   choropleth: ChoroplethData;
-  layers: LayerData[];
   features: FeatureWithoutId[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
@@ -267,7 +267,6 @@ export function deserialize(raw: string): DeserializedMap {
 
   const result = documentSchema.parse(parsed);
 
-  const validLayerIds = new Set(result.mapmaker.layers.map((l) => l.id));
   const knownBaseMap = findBaseMap(result.mapmaker.baseMap);
 
   const pendingIconMigrations: { featureIndex: number; iconId: string }[] = [];
@@ -278,7 +277,6 @@ export function deserialize(raw: string): DeserializedMap {
     const geoType = geometryTypeToFeatureType(f.geometry.type);
     const typeMatches = declaredType === "text" ? geoType === "point" : geoType === declaredType;
     if (!typeMatches) return [];
-    if (!validLayerIds.has(p["mapmaker:layerId"])) return [];
 
     let customSvg = p["mapmaker:customSvg"];
     if (customSvg) {
@@ -290,7 +288,6 @@ export function deserialize(raw: string): DeserializedMap {
     }
 
     const base = {
-      layerId: p["mapmaker:layerId"],
       label: p["mapmaker:label"],
       description: p["mapmaker:description"] ?? "",
       color: p["mapmaker:color"],
@@ -327,7 +324,6 @@ export function deserialize(raw: string): DeserializedMap {
     },
     baseMapId: knownBaseMap.id,
     choropleth: result.mapmaker.choropleth as ChoroplethData,
-    layers: result.mapmaker.layers,
     features,
     groups: result.mapmaker.groups,
     legendEntries: (result.mapmaker.legendEntries ?? []) as LegendEntry[],

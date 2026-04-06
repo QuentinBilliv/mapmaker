@@ -8,13 +8,6 @@ export interface MapData {
   zoom: number;
 }
 
-export interface LayerData {
-  id: string;
-  name: string;
-  visible: boolean;
-  order: number;
-}
-
 export type PointShape = "circle" | "triangle" | "square" | "diamond" | "star" | "cross" | "pentagon" | "hexagon";
 
 export const POINT_SHAPES: { value: PointShape; label: string }[] = [
@@ -88,12 +81,14 @@ export interface ChoroplethData {
   enabled: boolean;
   entries: Record<string, ChoroplethEntry>;
   opacity: number;
+  activeColor: string;
 }
 
 export const DEFAULT_CHOROPLETH: ChoroplethData = {
   enabled: false,
   entries: {},
   opacity: 0.7,
+  activeColor: "#3b82f6",
 };
 
 export interface GroupData {
@@ -157,7 +152,6 @@ export type NewLegendEntry = Omit<PointLegendEntry, "id" | "order"> | Omit<Polyl
 
 interface FeatureBase {
   id: string;
-  layerId: string;
   label: string;
   description: string;
   color: string;

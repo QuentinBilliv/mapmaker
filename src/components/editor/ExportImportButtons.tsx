@@ -17,14 +17,14 @@ function sanitizeLabel(raw: unknown): string {
 }
 
 export default function ExportImportButtons() {
-  const { map, layers, features, groups, legendEntries, choropleth, featureLimit } = useEditorData();
+  const { map, features, groups, legendEntries, choropleth, featureLimit } = useEditorData();
   const { activeBaseMap } = useDrawingState();
   const { importMapData, addBankFeature, clearAllFeatures } = useEditorActions();
   const [status, setStatus] = useState<{ message: string; error: boolean } | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
   const handleExport = useCallback(() => {
-    const json = serialize(map, layers, features, activeBaseMap.id, groups, legendEntries, choropleth);
+    const json = serialize(map, features, activeBaseMap.id, groups, legendEntries, choropleth);
     const blob = new Blob([json], { type: "application/json" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -32,7 +32,7 @@ export default function ExportImportButtons() {
     a.download = `${(map.title || "map").replace(/[^a-zA-Z0-9_-]/g, "_")}.mapmaker`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [map, layers, features, activeBaseMap, groups, legendEntries]);
+  }, [map, features, activeBaseMap, groups, legendEntries]);
 
   const handleImport = useCallback(async (content: string, isMapmaker: boolean, mode: "replace" | "add") => {
     if (isMapmaker) {

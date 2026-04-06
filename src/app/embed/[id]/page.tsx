@@ -15,7 +15,7 @@ import { LegendDisplay } from "@/components/ui/legend-display";
 import { toMapData } from "@/lib/convex-mapdata";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
-import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const map = useQuery(api.maps.getMap, {
@@ -26,7 +26,6 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   const hasInlineData = map && "features" in map && map.features != null;
 
   const [fileData, setFileData] = useState<{
-    layers: LayerData[];
     features: FeatureData[];
     groups: GroupData[];
     legendEntries?: LegendEntry[];
@@ -51,7 +50,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   }
 
   const data = hasInlineData
-    ? { layers: map.layers!, features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
+    ? { features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
     : fileData;
 
   if (!data) {
@@ -62,7 +61,6 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     <HighlightProvider>
       <EmbedMapView
         mapData={toMapData(map)}
-        layers={data.layers}
         features={data.features}
         groups={data.groups}
         legendEntries={data.legendEntries ?? []}
@@ -75,7 +73,6 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
 
 function EmbedMapView({
   mapData,
-  layers,
   features,
   groups,
   legendEntries,
@@ -83,7 +80,6 @@ function EmbedMapView({
   mapId,
 }: {
   mapData: ReturnType<typeof toMapData>;
-  layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
@@ -118,7 +114,7 @@ function EmbedMapView({
     };
   }, [baseMap.style]);
 
-  useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
+  useFeatureRendering(mapRef, features, groups, 0, legendEntries);
   useFeatureTooltip(mapRef, "select", 0);
   useLegendHighlight(mapRef, 0);
 

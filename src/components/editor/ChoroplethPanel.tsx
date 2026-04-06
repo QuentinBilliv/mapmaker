@@ -3,16 +3,18 @@
 import { useState, useMemo, useCallback, useEffect } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
-import { FaXmark, FaChevronDown, FaChevronRight, FaEarthAmericas } from "react-icons/fa6";
+import { FaXmark, FaChevronDown, FaChevronRight, FaEarthAmericas, FaFileImport } from "react-icons/fa6";
 import { loadCountriesGeoJSON, getCountryList, type CountryInfo } from "@/lib/choropleth";
+import toast from "react-hot-toast";
 
 export default function ChoroplethPanel() {
   const { choropleth } = useEditorData();
   const { setChoropleth, setChoroplethColor, removeChoroplethEntry } = useEditorActions();
   const [expanded, setExpanded] = useState(true);
   const [search, setSearch] = useState("");
-  const [activeColor, setActiveColor] = useState("#3b82f6");
   const [countries, setCountries] = useState<CountryInfo[]>([]);
+  const [showImport, setShowImport] = useState(false);
+  const [importJson, setImportJson] = useState("");
 
   useEffect(() => {
     if (!choropleth.enabled) return;
@@ -29,6 +31,11 @@ export default function ChoroplethPanel() {
     [choropleth.entries],
   );
 
+  const countriesByIso = useMemo(
+    () => new Map(countries.map((c) => [c.iso, c])),
+    [countries],
+  );
+
   const filtered = useMemo(
     () =>
       search.trim()
@@ -43,11 +50,39 @@ export default function ChoroplethPanel() {
 
   const handleCountrySelect = useCallback(
     (country: CountryInfo) => {
-      setChoroplethColor(country.iso, activeColor, country.name);
+      setChoroplethColor(country.iso, choropleth.activeColor, country.name);
       setSearch("");
     },
-    [setChoroplethColor, activeColor],
+    [setChoroplethColor, choropleth.activeColor],
   );
+
+  const handleImport = useCallback(() => {
+    try {
+      const parsed = JSON.parse(importJson);
+      if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
+        toast.error("Expected a JSON object like { \"FRA\": \"#3b82f6\" }");
+        return;
+      }
+      let count = 0;
+      for (const [iso, color] of Object.entries(parsed)) {
+        if (typeof color !== "string") continue;
+        const country = countriesByIso.get(iso.toUpperCase());
+        if (country) {
+          setChoroplethColor(country.iso, color, country.name);
+          count++;
+        }
+      }
+      if (count === 0) {
+        toast.error("No valid country codes found");
+      } else {
+        toast.success(`Imported ${count} ${count === 1 ? "country" : "countries"}`);
+        setImportJson("");
+        setShowImport(false);
+      }
+    } catch {
+      toast.error("Invalid JSON");
+    }
+  }, [importJson, countriesByIso, setChoroplethColor]);
 
   return (
     <div className="border-t flex flex-col">
@@ -75,8 +110,8 @@ export default function ChoroplethPanel() {
           <div className="flex items-center gap-2">
             <input
               type="color"
-              value={activeColor}
-              onChange={(e) => setActiveColor(e.target.value)}
+              value={choropleth.activeColor}
+              onChange={(e) => setChoropleth({ activeColor: e.target.value })}
               className="w-7 h-7 rounded cursor-pointer border border-input"
               title="Paint color"
             />
@@ -87,6 +122,14 @@ export default function ChoroplethPanel() {
               placeholder="Search country..."
               className="flex-1 h-7 rounded-md border border-input bg-transparent px-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
             />
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              title="Import JSON"
+              onClick={() => setShowImport((v) => !v)}
+            >
+              <FaFileImport className="w-3.5 h-3.5" />
+            </Button>
           </div>
           {filtered.length > 0 && (
             <div className="border rounded-md max-h-32 overflow-y-auto">
@@ -98,12 +141,32 @@ export default function ChoroplethPanel() {
                 >
                   <span
                     className="w-3 h-3 rounded-sm shrink-0 border border-input"
-                    style={{ backgroundColor: choropleth.entries[c.iso]?.color ?? activeColor }}
+                    style={{ backgroundColor: choropleth.entries[c.iso]?.color ?? choropleth.activeColor }}
                   />
                   <span className="flex-1">{c.name}</span>
                   <span className="text-muted-foreground">{c.iso}</span>
                 </button>
               ))}
+            </div>
+          )}
+          {showImport && (
+            <div className="space-y-1.5">
+              <span className="text-xs text-muted-foreground">Paste JSON: {"{ \"FRA\": \"#3b82f6\", \"DEU\": \"#ef4444\" }"}</span>
+              <textarea
+                value={importJson}
+                onChange={(e) => setImportJson(e.target.value)}
+                rows={4}
+                className="w-full rounded-md border border-input bg-transparent px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-ring resize-none"
+                placeholder='{ "FRA": "#3b82f6", "DEU": "#ef4444" }'
+              />
+              <div className="flex gap-1.5">
+                <Button size="sm" className="flex-1 text-xs" onClick={handleImport}>
+                  Import
+                </Button>
+                <Button variant="ghost" size="sm" className="text-xs" onClick={() => { setShowImport(false); setImportJson(""); }}>
+                  Cancel
+                </Button>
+              </div>
             </div>
           )}
           <div className="space-y-1">
@@ -121,6 +184,7 @@ export default function ChoroplethPanel() {
               className="w-full h-1.5 accent-primary"
             />
           </div>
+          <p className="text-xs text-muted-foreground italic">Click a country on the map to paint it with the active color. Click again to remove.</p>
           {paintedEntries.length > 0 && (
             <div className="space-y-0.5">
               <span className="text-xs text-muted-foreground">{paintedEntries.length} countries</span>

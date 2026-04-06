@@ -10,7 +10,7 @@ import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { HighlightProvider } from "@/lib/highlight-context";
 import { findBaseMap } from "@/lib/map-style";
 import { toMapData } from "@/lib/convex-mapdata";
-import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { FeatureData, GroupData, LegendEntry } from "@/lib/types";
 
 interface PreviewMapProps {
   mapId: Id<"maps">;
@@ -23,7 +23,6 @@ export default function PreviewMap({ mapId, active }: PreviewMapProps) {
   const hasInlineData = map && "features" in map && map.features != null;
 
   const [fileData, setFileData] = useState<{
-    layers: LayerData[];
     features: FeatureData[];
     groups: GroupData[];
     legendEntries?: LegendEntry[];
@@ -42,7 +41,7 @@ export default function PreviewMap({ mapId, active }: PreviewMapProps) {
   if (!map) return <div className="w-full h-full bg-[#1a1a1a]" />;
 
   const data = hasInlineData
-    ? { layers: map.layers!, features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
+    ? { features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
     : fileData;
 
   if (!data) return <div className="w-full h-full bg-[#1a1a1a]" />;
@@ -51,7 +50,6 @@ export default function PreviewMap({ mapId, active }: PreviewMapProps) {
     <HighlightProvider>
       <PreviewMapInner
         mapData={toMapData(map)}
-        layers={data.layers}
         features={data.features}
         groups={data.groups}
         legendEntries={data.legendEntries ?? []}
@@ -64,7 +62,6 @@ export default function PreviewMap({ mapId, active }: PreviewMapProps) {
 
 function PreviewMapInner({
   mapData,
-  layers,
   features,
   groups,
   legendEntries,
@@ -72,7 +69,6 @@ function PreviewMapInner({
   active,
 }: {
   mapData: ReturnType<typeof toMapData>;
-  layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
@@ -104,7 +100,7 @@ function PreviewMapInner({
     };
   }, [active, baseMap.style, mapData.center, mapData.zoom]);
 
-  useFeatureRendering(mapRef, active ? features : [], layers, groups, 0, legendEntries);
+  useFeatureRendering(mapRef, active ? features : [], groups, 0, legendEntries);
 
   return (
     <div className="w-full h-full relative">

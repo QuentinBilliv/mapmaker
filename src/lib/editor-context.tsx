@@ -12,13 +12,12 @@ import {
 } from "react";
 import { v4 as uuid } from "uuid";
 import type { DrawMode } from "./draw-engine";
-import { DEFAULT_LAYER, DEFAULT_MAP, FEATURE_LIMIT } from "./defaults";
+import { DEFAULT_MAP, FEATURE_LIMIT } from "./defaults";
 import toast from "react-hot-toast";
 import { saveToLocalStorage, loadFromLocalStorage, setStorageErrorHandler, type StorageError } from "./local-storage";
 import { BASE_MAPS, findBaseMap, type BaseMap } from "./map-style";
 import type {
   MapData,
-  LayerData,
   FeatureData,
   FeatureUpdate,
   GroupData,
@@ -44,7 +43,6 @@ import { useKeyboardShortcuts } from "./hooks/use-keyboard-shortcuts";
 
 interface EditorDataState {
   map: MapData;
-  layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
@@ -153,7 +151,6 @@ export function useEditor() {
 
 export interface StoredMapState {
   map: MapData;
-  layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
@@ -186,7 +183,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   }, []);
 
   const [map, setMap] = useState<MapData>(initialData?.map ?? DEFAULT_MAP);
-  const [layers, setLayers] = useState<LayerData[]>(initialData?.layers ?? [DEFAULT_LAYER]);
   const [features, setFeatures] = useState<FeatureData[]>(initialData?.features ?? []);
   const [groups, setGroups] = useState<GroupData[]>(initialData?.groups ?? []);
   const [legendEntries, setLegendEntries] = useState<LegendEntry[]>(initialData?.legendEntries ?? []);
@@ -218,7 +214,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     const saved = loadFromLocalStorage();
     if (!saved) return;
     setMap(saved.map);
-    setLayers(saved.layers);
     setFeatures(saved.features);
     setGroups(saved.groups);
     setLegendEntries(saved.legendEntries);
@@ -231,18 +226,18 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     clearTimeout(saveTimerRef.current);
     saveTimerRef.current = setTimeout(() => {
       const state: StoredMapState = {
-        map, layers, features, groups, legendEntries,
+        map, features, groups, legendEntries,
         baseMapId: drawing.activeBaseMap.id,
         choropleth,
       };
       if (onSaveRef.current) {
         onSaveRef.current(state);
       } else {
-        saveToLocalStorage(map, layers, features, groups, legendEntries, drawing.activeBaseMap.id);
+        saveToLocalStorage(map, features, groups, legendEntries, drawing.activeBaseMap.id);
       }
     }, 500);
     return () => clearTimeout(saveTimerRef.current);
-  }, [map, layers, features, groups, legendEntries, drawing.activeBaseMap, choropleth]);
+  }, [map, features, groups, legendEntries, drawing.activeBaseMap, choropleth]);
 
   const drawModeRef = useRef(drawing.drawMode);
   drawModeRef.current = drawing.drawMode;
@@ -250,8 +245,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   drawingRef.current = drawing;
   const featuresRef = useRef(features);
   featuresRef.current = features;
-  const layersRef = useRef(layers);
-  layersRef.current = layers;
   const groupsRef = useRef(groups);
   groupsRef.current = groups;
   const legendEntriesRef = useRef(legendEntries);
@@ -268,8 +261,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   });
 
   const { canUndo, canRedo, recordSnapshot, undo, redo } = useUndoRedo(
-    featuresRef, layersRef, groupsRef, legendEntriesRef,
-    setFeatures, setLayers, setGroups, setLegendEntries, setSelectedFeatureIds,
+    featuresRef, groupsRef, legendEntriesRef,
+    setFeatures, setGroups, setLegendEntries, setSelectedFeatureIds,
   );
 
   // Drawing state setters
@@ -434,7 +427,6 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const importMapData = useCallback((data: DeserializedMap) => {
     recordSnapshot();
     setMap((prev) => ({ ...prev, ...data.map }));
-    setLayers(data.layers);
     const importedFeatures = (featureLimit === Infinity ? data.features : data.features.slice(0, featureLimit))
       .map((f) => ({ ...f, id: uuid() }) as FeatureData);
     setFeatures(importedFeatures);
@@ -469,8 +461,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   // Context values
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, layers, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, canUndo, canRedo }),
-    [map, layers, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, canUndo, canRedo]
+    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, canUndo, canRedo }),
+    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(

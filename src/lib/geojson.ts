@@ -3,8 +3,6 @@ export interface MapFeatureProperties {
   label: string;
   color: string;
   opacity: number;
-  layerId: string;
-  layerName: string;
   featureType: "polygon" | "polyline" | "point" | "text";
 }
 

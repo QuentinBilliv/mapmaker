@@ -1,4 +1,4 @@
-import type { MapData, LayerData } from "./types";
+import type { MapData } from "./types";
 
 export const LICENSES = ["CC BY", "CC BY-SA", "CC BY-NC", "Public domain"] as const;
 
@@ -24,11 +24,4 @@ export const DEFAULT_MAP: MapData = {
   license: "CC BY",
   center: DEFAULT_CENTER,
   zoom: DEFAULT_ZOOM,
-};
-
-export const DEFAULT_LAYER: LayerData = {
-  id: "default",
-  name: "Main layer",
-  visible: true,
-  order: 0,
 };
