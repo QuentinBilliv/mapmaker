@@ -719,24 +719,26 @@ function ImportDialog({
     processText(text);
   }, [text, processText]);
 
+  const validateFile = useCallback((file: File): boolean => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return false; }
+    if (!file.name.endsWith(".json") && file.type !== "application/json" && !file.name.endsWith(".txt") && file.type !== "text/plain") { toast.error("Drop a .json or .txt file"); return false; }
+    return true;
+  }, []);
+
+  const readAndProcess = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => { const c = reader.result as string; setText(c); processText(c); };
+    reader.onerror = () => toast.error("Failed to read file");
+    reader.readAsText(file);
+  }, [processText]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (!file) return;
-    if (!file.name.endsWith(".json") && file.type !== "application/json" && !file.name.endsWith(".txt") && file.type !== "text/plain") {
-      toast.error("Drop a .json or .txt file");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const content = reader.result as string;
-      setText(content);
-      processText(content);
-    };
-    reader.onerror = () => toast.error("Failed to read file");
-    reader.readAsText(file);
-  }, [processText]);
+    if (!file || !validateFile(file)) return;
+    readAndProcess(file);
+  }, [validateFile, readAndProcess]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -752,16 +754,9 @@ function ImportDialog({
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const content = reader.result as string;
-      setText(content);
-      processText(content);
-    };
-    reader.onerror = () => toast.error("Failed to read file");
-    reader.readAsText(file);
-  }, [processText]);
+    if (!file || !validateFile(file)) return;
+    readAndProcess(file);
+  }, [validateFile, readAndProcess]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -865,24 +860,26 @@ function GradientImportDialog({
     processText(text);
   }, [text, processText]);
 
+  const validateFile = useCallback((file: File): boolean => {
+    if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return false; }
+    if (!file.name.endsWith(".json") && file.type !== "application/json" && !file.name.endsWith(".txt") && file.type !== "text/plain") { toast.error("Drop a .json or .txt file"); return false; }
+    return true;
+  }, []);
+
+  const readAndProcess = useCallback((file: File) => {
+    const reader = new FileReader();
+    reader.onload = () => { const c = reader.result as string; setText(c); processText(c); };
+    reader.onerror = () => toast.error("Failed to read file");
+    reader.readAsText(file);
+  }, [processText]);
+
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (!file) return;
-    if (!file.name.endsWith(".json") && file.type !== "application/json" && !file.name.endsWith(".txt") && file.type !== "text/plain") {
-      toast.error("Drop a .json or .txt file");
-      return;
-    }
-    const reader = new FileReader();
-    reader.onload = () => {
-      const content = reader.result as string;
-      setText(content);
-      processText(content);
-    };
-    reader.onerror = () => toast.error("Failed to read file");
-    reader.readAsText(file);
-  }, [processText]);
+    if (!file || !validateFile(file)) return;
+    readAndProcess(file);
+  }, [validateFile, readAndProcess]);
 
   const handleDragOver = useCallback((e: React.DragEvent) => {
     e.preventDefault();
@@ -898,16 +895,9 @@ function GradientImportDialog({
 
   const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const content = reader.result as string;
-      setText(content);
-      processText(content);
-    };
-    reader.onerror = () => toast.error("Failed to read file");
-    reader.readAsText(file);
-  }, [processText]);
+    if (!file || !validateFile(file)) return;
+    readAndProcess(file);
+  }, [validateFile, readAndProcess]);
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">

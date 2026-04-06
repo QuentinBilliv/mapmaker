@@ -32,7 +32,7 @@ export default function ExportImportButtons() {
     a.download = `${(map.title || "map").replace(/[^a-zA-Z0-9_-]/g, "_")}.mapmaker`;
     a.click();
     URL.revokeObjectURL(url);
-  }, [map, features, activeBaseMap, groups, legendEntries]);
+  }, [map, features, activeBaseMap, groups, legendEntries, choropleth]);
 
   const handleImport = useCallback(async (content: string, isMapmaker: boolean, mode: "replace" | "add") => {
     if (isMapmaker) {
