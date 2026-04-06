@@ -4,7 +4,7 @@ import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
 import { getTileLayerConfig } from "@/lib/choropleth";
-import { CHOROPLETH_FILL } from "./use-feature-rendering";
+import { CHOROPLETH_FILL, CHOROPLETH_HIT } from "./use-feature-rendering";
 import { useChoroplethDisplay } from "./use-choropleth-display";
 
 export function useChoropleth(
@@ -27,7 +27,7 @@ export function useChoropleth(
     const choro = choroplethRef.current;
     if (!map || !choro.enabled || drawModeRef.current !== "select") return;
     const config = getTileLayerConfig(choro.tileLayer);
-    const features = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL] });
+    const features = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL, CHOROPLETH_HIT] });
     if (!features.length) return;
     const f = features[0];
     const id = f.properties?.[config.idProp] as string;
