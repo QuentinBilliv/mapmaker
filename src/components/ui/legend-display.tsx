@@ -49,17 +49,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface ChoroplethGradientInfo {
+  colors: [string, string];
+  label: string;
+  min: number;
+  max: number;
+}
+
 interface LegendDisplayProps {
   features: FeatureData[];
   legendEntries?: LegendEntry[];
   choroplethCategories?: ChoroplethCategory[];
+  choroplethGradient?: ChoroplethGradientInfo;
   onAdd?: (entry: NewLegendEntry) => void;
   alwaysShow?: boolean;
+}
+
+function formatGradientValue(v: number): string {
+  if (Number.isInteger(v)) return v.toString();
+  return v.toFixed(v < 10 ? 2 : 1);
 }
 
 export function LegendDisplay({
   legendEntries = [],
   choroplethCategories = [],
+  choroplethGradient,
   onAdd,
   alwaysShow,
 }: LegendDisplayProps) {
@@ -78,7 +92,7 @@ export function LegendDisplay({
 
   const sortedEntries = [...legendEntries].sort((a, b) => a.order - b.order);
   const sortedChoropleth = [...choroplethCategories].sort((a, b) => a.order - b.order);
-  const hasItems = sortedEntries.length > 0 || sortedChoropleth.length > 0;
+  const hasItems = sortedEntries.length > 0 || sortedChoropleth.length > 0 || !!choroplethGradient;
 
   if (!hasItems && !alwaysShow) return null;
 
@@ -141,6 +155,24 @@ export function LegendDisplay({
                     </span>
                   </div>
                 ))}
+              </div>
+            </>
+          )}
+          {choroplethGradient && (
+            <>
+              {(sortedEntries.length > 0 || sortedChoropleth.length > 0) && <div className="border-t my-1" />}
+              <div className="px-1 py-1">
+                {choroplethGradient.label && (
+                  <span className="text-[10px] text-foreground block mb-0.5">{choroplethGradient.label}</span>
+                )}
+                <div
+                  className="h-3 rounded-sm border border-black/10"
+                  style={{ background: `linear-gradient(to right, ${choroplethGradient.colors[0]}, ${choroplethGradient.colors[1]})` }}
+                />
+                <div className="flex justify-between mt-0.5">
+                  <span className="text-[9px] text-muted-foreground">{formatGradientValue(choroplethGradient.min)}</span>
+                  <span className="text-[9px] text-muted-foreground">{formatGradientValue(choroplethGradient.max)}</span>
+                </div>
               </div>
             </>
           )}

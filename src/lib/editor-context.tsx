@@ -113,6 +113,9 @@ interface EditorActions {
   assignCountryToCategory: (iso: string, name: string) => void;
   unassignCountry: (iso: string) => void;
   importChoroplethData: (categories: { label: string; color: string; countries: string[] }[]) => void;
+  setGradientValue: (iso: string, value: number) => void;
+  removeGradientValue: (iso: string) => void;
+  importGradientData: (data: Record<string, number>) => void;
   updateMap: (updates: Partial<MapData>) => void;
   setChoroplethMode: (active: boolean) => void;
   importMapData: (data: DeserializedMap) => void;
@@ -480,6 +483,30 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     });
   }, []);
 
+  const setGradientValue = useCallback((iso: string, value: number) => {
+    setChoroplethState((prev) => ({
+      ...prev,
+      values: { ...prev.values, [iso]: value },
+    }));
+  }, []);
+
+  const removeGradientValue = useCallback((iso: string) => {
+    setChoroplethState((prev) => {
+      const values = { ...prev.values };
+      delete values[iso];
+      return { ...prev, values };
+    });
+  }, []);
+
+  const importGradientData = useCallback((data: Record<string, number>) => {
+    setChoroplethState((prev) => ({
+      ...prev,
+      values: { ...prev.values, ...data },
+      enabled: true,
+      mode: "gradient",
+    }));
+  }, []);
+
   const updateMap = useCallback((updates: Partial<MapData>) => {
     setMap((prev) => ({ ...prev, ...updates }));
   }, []);
@@ -548,6 +575,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       setActiveBaseMap, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
       assignCountryToCategory, unassignCountry, importChoroplethData,
+      setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
       finishDrawing, cancelDrawing, registerDrawingControls,
       recordSnapshot, undo, redo,
@@ -574,6 +602,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       setActiveBaseMap, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
       assignCountryToCategory, unassignCountry, importChoroplethData,
+      setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
       finishDrawing, cancelDrawing, registerDrawingControls,
       recordSnapshot, undo, redo,

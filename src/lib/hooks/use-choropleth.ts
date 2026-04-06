@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
-import { loadCountriesGeoJSON, buildChoroplethGeoJSON, findCountryAtPoint } from "@/lib/choropleth";
+import { loadCountriesGeoJSON, buildChoroplethGeoJSONFromData, findCountryAtPoint } from "@/lib/choropleth";
 import { CHOROPLETH_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER } from "./use-feature-rendering";
 
 export function useChoropleth(
@@ -30,7 +30,7 @@ export function useChoropleth(
       const map = mapRef.current;
       if (!map) return;
       const source = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
-      if (source) source.setData(buildChoroplethGeoJSON(geojson, choropleth.categories, choropleth.assignments));
+      if (source) source.setData(buildChoroplethGeoJSONFromData(geojson, choropleth));
     });
     return () => { dead = true; };
   }, [choropleth.enabled, mapRef]);
@@ -41,7 +41,7 @@ export function useChoropleth(
     const source = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
     if (!source) return;
     if (choropleth.enabled && countriesRef.current) {
-      source.setData(buildChoroplethGeoJSON(countriesRef.current, choropleth.categories, choropleth.assignments));
+      source.setData(buildChoroplethGeoJSONFromData(countriesRef.current, choropleth));
       if (map.getLayer(CHOROPLETH_FILL)) {
         map.setPaintProperty(CHOROPLETH_FILL, "fill-opacity", choropleth.opacity);
       }
@@ -58,7 +58,7 @@ export function useChoropleth(
 
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     const choro = choroplethRef.current;
-    if (!choro.enabled || !choro.activeCategoryId || drawModeRef.current !== "select") return;
+    if (!choro.enabled || drawModeRef.current !== "select") return;
     const countries = countriesRef.current;
     if (!countries) return;
     const country = findCountryAtPoint(countries, e.lngLat.lng, e.lngLat.lat);
@@ -66,6 +66,11 @@ export function useChoropleth(
     e.preventDefault();
     interactingRef.current = true;
     requestAnimationFrame(() => { interactingRef.current = false; });
+    if (choro.mode === "gradient") {
+      window.dispatchEvent(new CustomEvent("mapmaker:country-clicked", { detail: country }));
+      return;
+    }
+    if (!choro.activeCategoryId) return;
     if (choro.assignments[country.iso] === choro.activeCategoryId) {
       unassignCountry(country.iso);
     } else {

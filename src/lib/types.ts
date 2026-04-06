@@ -86,6 +86,9 @@ export interface ChoroplethData {
   mode: ChoroplethMode;
   categories: ChoroplethCategory[];
   assignments: Record<string, string>;
+  gradientColors: [string, string];
+  gradientLabel: string;
+  values: Record<string, number>;
   opacity: number;
   activeCategoryId: string | null;
 }
@@ -95,6 +98,9 @@ export const DEFAULT_CHOROPLETH: ChoroplethData = {
   mode: "discrete",
   categories: [],
   assignments: {},
+  gradientColors: ["#22c55e", "#3b82f6"],
+  gradientLabel: "",
+  values: {},
   opacity: 0.7,
   activeCategoryId: null,
 };

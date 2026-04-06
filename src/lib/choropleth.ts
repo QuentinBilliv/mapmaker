@@ -1,4 +1,4 @@
-import type { ChoroplethCategory } from "./types";
+import type { ChoroplethCategory, ChoroplethData } from "./types";
 
 let cache: GeoJSON.FeatureCollection | null = null;
 
@@ -27,7 +27,7 @@ export function getCountryList(geojson: GeoJSON.FeatureCollection): CountryInfo[
       iso: f.properties?.iso_a3 as string,
       name: f.properties?.name as string,
     }))
-    .filter((c) => c.iso && c.name)
+    .filter((c) => c.iso && c.name && /^[A-Z]{3}$/.test(c.iso))
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
@@ -52,10 +52,93 @@ export function buildChoroplethGeoJSON(
           properties: {
             ...f.properties,
             _color: cat.color,
+            _tooltip_title: f.properties?.name ?? iso,
+            _tooltip_desc: cat.label,
           },
         };
       }),
   };
+}
+
+export function buildGradientChoroplethGeoJSON(
+  countries: GeoJSON.FeatureCollection,
+  gradientColors: [string, string],
+  values: Record<string, number>,
+): GeoJSON.FeatureCollection {
+  const isos = Object.keys(values);
+  if (isos.length === 0) return { type: "FeatureCollection", features: [] };
+  const nums = Object.values(values);
+  const min = Math.min(...nums);
+  const max = Math.max(...nums);
+  const range = max - min || 1;
+  const [startR, startG, startB] = hexToRgb(gradientColors[0]);
+  const [endR, endG, endB] = hexToRgb(gradientColors[1]);
+  return {
+    type: "FeatureCollection",
+    features: countries.features
+      .filter((f) => {
+        const iso = f.properties?.iso_a3 as string;
+        return iso && iso in values;
+      })
+      .map((f) => {
+        const iso = f.properties!.iso_a3 as string;
+        const t = (values[iso] - min) / range;
+        const r = Math.round(startR + t * (endR - startR));
+        const g = Math.round(startG + t * (endG - startG));
+        const b = Math.round(startB + t * (endB - startB));
+        return {
+          ...f,
+          properties: {
+            ...f.properties,
+            _color: rgbToHex(r, g, b),
+            _tooltip_title: f.properties?.name ?? iso,
+            _tooltip_desc: String(values[iso]),
+          },
+        };
+      }),
+  };
+}
+
+export function buildChoroplethGeoJSONFromData(
+  countries: GeoJSON.FeatureCollection,
+  choropleth: ChoroplethData,
+): GeoJSON.FeatureCollection {
+  if (choropleth.mode === "gradient") {
+    return buildGradientChoroplethGeoJSON(
+      countries,
+      choropleth.gradientColors ?? ["#22c55e", "#3b82f6"],
+      choropleth.values ?? {},
+    );
+  }
+  return buildChoroplethGeoJSON(countries, choropleth.categories ?? [], choropleth.assignments ?? {});
+}
+
+function hexToRgb(hex: string): [number, number, number] {
+  const h = hex.replace("#", "");
+  const full = h.length === 3
+    ? h.split("").map((c) => c + c).join("")
+    : h;
+  return [
+    parseInt(full.slice(0, 2), 16),
+    parseInt(full.slice(2, 4), 16),
+    parseInt(full.slice(4, 6), 16),
+  ];
+}
+
+function rgbToHex(r: number, g: number, b: number): string {
+  return `#${[r, g, b].map((c) => c.toString(16).padStart(2, "0")).join("")}`;
+}
+
+export function interpolateGradientColor(
+  gradientColors: [string, string],
+  t: number,
+): string {
+  const [startR, startG, startB] = hexToRgb(gradientColors[0]);
+  const [endR, endG, endB] = hexToRgb(gradientColors[1]);
+  const r = Math.round(startR + t * (endR - startR));
+  const g = Math.round(startG + t * (endG - startG));
+  const b = Math.round(startB + t * (endB - startB));
+  return rgbToHex(r, g, b);
 }
 
 export function findCountryAtPoint(

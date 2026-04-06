@@ -13,7 +13,9 @@ export default function ChoroplethPanel({ onOpenDialog }: ChoroplethPanelProps) 
   const { choropleth } = useEditorData();
   const { setChoropleth } = useEditorActions();
   const [expanded, setExpanded] = useState(true);
-  const assignmentCount = Object.keys(choropleth.assignments).length;
+  const assignmentCount = choropleth.mode === "gradient"
+    ? Object.keys(choropleth.values ?? {}).length
+    : Object.keys(choropleth.assignments ?? {}).length;
 
   return (
     <div className="border-t flex flex-col">
@@ -47,7 +49,10 @@ export default function ChoroplethPanel({ onOpenDialog }: ChoroplethPanelProps) 
           </Button>
           {assignmentCount > 0 && (
             <p className="text-xs text-muted-foreground text-center">
-              {choropleth.categories.length} {choropleth.categories.length === 1 ? "category" : "categories"} · {assignmentCount} {assignmentCount === 1 ? "country" : "countries"}
+              {choropleth.mode === "gradient"
+                ? `${assignmentCount} ${assignmentCount === 1 ? "country" : "countries"}`
+                : `${choropleth.categories.length} ${choropleth.categories.length === 1 ? "category" : "categories"} · ${assignmentCount} ${assignmentCount === 1 ? "country" : "countries"}`
+              }
             </p>
           )}
         </div>
