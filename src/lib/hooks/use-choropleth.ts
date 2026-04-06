@@ -3,7 +3,8 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
-import { findRegionAtPoint, getTileLayerConfig } from "@/lib/choropleth";
+import { getTileLayerConfig } from "@/lib/choropleth";
+import { CHOROPLETH_FILL } from "./use-feature-rendering";
 import { useChoroplethDisplay } from "./use-choropleth-display";
 
 export function useChoropleth(
@@ -14,7 +15,7 @@ export function useChoropleth(
   unassignCountry: (iso: string) => void,
   drawMode: string,
 ): React.RefObject<boolean> {
-  const countriesRef = useChoroplethDisplay(mapRef, choropleth, styleVersion);
+  useChoroplethDisplay(mapRef, choropleth, styleVersion);
   const interactingRef = useRef(false);
   const choroplethRef = useRef(choropleth);
   choroplethRef.current = choropleth;
@@ -22,27 +23,30 @@ export function useChoropleth(
   drawModeRef.current = drawMode;
 
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
+    const map = mapRef.current;
     const choro = choroplethRef.current;
-    if (!choro.enabled || drawModeRef.current !== "select") return;
-    const regions = countriesRef.current;
-    if (!regions) return;
+    if (!map || !choro.enabled || drawModeRef.current !== "select") return;
     const config = getTileLayerConfig(choro.tileLayer);
-    const region = findRegionAtPoint(regions, e.lngLat.lng, e.lngLat.lat, config);
-    if (!region) return;
+    const features = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL] });
+    if (!features.length) return;
+    const f = features[0];
+    const id = f.properties?.[config.idProp] as string;
+    const name = f.properties?.[config.nameProp] as string;
+    if (!id || !name) return;
     e.preventDefault();
     interactingRef.current = true;
     requestAnimationFrame(() => { interactingRef.current = false; });
     if (choro.mode === "gradient") {
-      window.dispatchEvent(new CustomEvent("mapmaker:country-clicked", { detail: { iso: region.id, name: region.name } }));
+      window.dispatchEvent(new CustomEvent("mapmaker:country-clicked", { detail: { iso: id, name } }));
       return;
     }
     if (!choro.activeCategoryId) return;
-    if (choro.assignments[region.id] === choro.activeCategoryId) {
-      unassignCountry(region.id);
+    if (choro.assignments[id] === choro.activeCategoryId) {
+      unassignCountry(id);
     } else {
-      assignCountry(region.id, region.name);
+      assignCountry(id, name);
     }
-  }, [assignCountry, unassignCountry, countriesRef]);
+  }, [mapRef, assignCountry, unassignCountry]);
 
   useEffect(() => {
     const map = mapRef.current;

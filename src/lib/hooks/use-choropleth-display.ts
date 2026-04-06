@@ -12,7 +12,7 @@ export function useChoroplethDisplay(
   mapRef: React.RefObject<maplibregl.Map | null>,
   choropleth: ChoroplethData,
   styleVersion: number,
-): React.MutableRefObject<GeoJSON.FeatureCollection | null> {
+): void {
   const regionsRef = useRef<GeoJSON.FeatureCollection | null>(null);
 
   useEffect(() => {
@@ -27,6 +27,8 @@ export function useChoroplethDisplay(
       if (outlineSrc) outlineSrc.setData(geojson);
       const src = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
       if (src) src.setData(buildChoroplethGeoJSONFromData(geojson, choropleth));
+    }).catch((err) => {
+      console.error("Failed to load tile layer:", err);
     });
     return () => { dead = true; };
   }, [choropleth.enabled, choropleth.tileLayer, mapRef]);
@@ -61,5 +63,4 @@ export function useChoroplethDisplay(
     }
   }, [mapRef, choropleth, styleVersion]);
 
-  return regionsRef;
 }

@@ -111,13 +111,28 @@ export function getTileLayerConfig(id: TileLayerId): TileLayerConfig {
   return TILE_LAYERS.find((l) => l.id === id) ?? TILE_LAYERS[0];
 }
 
+const MAX_CACHE_SIZE = 3;
 const cache = new Map<TileLayerId, GeoJSON.FeatureCollection>();
+
+function cacheSet(key: TileLayerId, value: GeoJSON.FeatureCollection) {
+  cache.delete(key);
+  if (cache.size >= MAX_CACHE_SIZE) {
+    const oldest = cache.keys().next().value;
+    if (oldest !== undefined) cache.delete(oldest);
+  }
+  cache.set(key, value);
+}
 
 export async function loadTileLayerGeoJSON(layerId: TileLayerId): Promise<GeoJSON.FeatureCollection> {
   const cached = cache.get(layerId);
-  if (cached) return cached;
+  if (cached) {
+    cache.delete(layerId);
+    cache.set(layerId, cached);
+    return cached;
+  }
   const config = getTileLayerConfig(layerId);
   const res = await fetch(config.file);
+  if (!res.ok) throw new Error(`Failed to load ${config.file} (${res.status})`);
   const raw: GeoJSON.FeatureCollection = await res.json();
   const result: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
@@ -129,7 +144,7 @@ export async function loadTileLayerGeoJSON(layerId: TileLayerId): Promise<GeoJSO
       return feature;
     }),
   };
-  cache.set(layerId, result);
+  cacheSet(layerId, result);
   return result;
 }
 
