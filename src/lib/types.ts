@@ -81,7 +81,7 @@ export interface ChoroplethCategory {
 
 export type ChoroplethMode = "discrete" | "gradient";
 
-export type TileLayerId = "countries" | "us-states";
+export type TileLayerId = "countries" | "us-states" | "canada-provinces" | "france-departements" | "eu-nuts2" | "china-provinces" | "india-states" | "russia-regions";
 
 export interface ChoroplethData {
   enabled: boolean;

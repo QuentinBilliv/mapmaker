@@ -50,8 +50,8 @@ export default function ChoroplethPanel({ onOpenDialog }: ChoroplethPanelProps) 
           {assignmentCount > 0 && (
             <p className="text-xs text-muted-foreground text-center">
               {choropleth.mode === "gradient"
-                ? `${assignmentCount} ${assignmentCount === 1 ? "country" : "countries"}`
-                : `${choropleth.categories.length} ${choropleth.categories.length === 1 ? "category" : "categories"} · ${assignmentCount} ${assignmentCount === 1 ? "country" : "countries"}`
+                ? `${assignmentCount} ${assignmentCount === 1 ? "region" : "regions"}`
+                : `${choropleth.categories.length} ${choropleth.categories.length === 1 ? "category" : "categories"} · ${assignmentCount} ${assignmentCount === 1 ? "region" : "regions"}`
               }
             </p>
           )}

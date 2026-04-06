@@ -136,7 +136,7 @@ const mapmakerMeta = z.object({
   baseMap: z.string().max(100).default("osm"),
   choropleth: z.object({
     enabled: z.boolean().default(false),
-    tileLayer: z.enum(["countries", "us-states"]).default("countries"),
+    tileLayer: z.enum(["countries", "us-states", "canada-provinces", "france-departements", "eu-nuts2", "china-provinces", "india-states", "russia-regions"]).default("countries"),
     mode: z.enum(["discrete", "gradient"]).default("discrete"),
     categories: z.array(z.object({
       id: z.string().max(100),

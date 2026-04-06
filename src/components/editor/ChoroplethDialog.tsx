@@ -224,12 +224,12 @@ function DiscreteContent({
       )}
       {sortedCategories.length === 0 && (
         <p className="text-xs text-muted-foreground text-center py-4">
-          Add a category, then click countries on the map to assign them.
+          Add a category, then click regions on the map to assign them.
         </p>
       )}
       {choropleth.activeCategoryId && (
         <p className="text-xs text-muted-foreground italic text-center">
-          Click countries on the map to assign them to the selected category. Click again to remove.
+          Click regions on the map to assign them to the selected category. Click again to remove.
         </p>
       )}
       {sortedCategories.length > 0 && (
@@ -376,7 +376,7 @@ function GradientContent({
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            placeholder="Search a country..."
+            placeholder="Search a region..."
             className="w-full h-7 rounded-md border border-input bg-transparent pl-7 pr-2 text-xs focus:outline-none focus:ring-1 focus:ring-ring"
           />
         </div>
@@ -417,7 +417,7 @@ function GradientContent({
         ))}
         {countriesWithValues.length === 0 && searchResults.length === 0 && !focusedCountry && (
           <p className="text-xs text-muted-foreground text-center py-4">
-            Click a country on the map or search above to add values.
+            Click a region on the map or search above to add values.
           </p>
         )}
       </div>
@@ -588,9 +588,19 @@ function CategoryRow({
   );
 }
 
+function normalizeKey(s: string): string {
+  return s.toLowerCase().replace(/[\u2010-\u2015\u2212\uFE58\uFE63\uFF0D]/g, "-");
+}
+
+function buildIdLookup(validIds: Set<string>): (key: string) => string | null {
+  const byNorm = new Map<string, string>();
+  Array.from(validIds).forEach((id) => byNorm.set(normalizeKey(id), id));
+  return (key: string) => validIds.has(key) ? key : (byNorm.get(normalizeKey(key)) ?? null);
+}
+
 function parseImportData(
   raw: string,
-  validIsos: Set<string>,
+  validIds: Set<string>,
 ): { ok: true; data: { label: string; color: string; countries: string[] }[]; message: string } | { ok: false; error: string } {
   let parsed: unknown;
   try {
@@ -598,13 +608,14 @@ function parseImportData(
   } catch {
     return { ok: false, error: "Invalid JSON" };
   }
+  const resolve = buildIdLookup(validIds);
   if (Array.isArray(parsed)) {
     const result: { label: string; color: string; countries: string[] }[] = [];
     for (const item of parsed) {
       if (!item.label || !item.color || !Array.isArray(item.countries)) {
         return { ok: false, error: "Each item needs label, color, and countries array" };
       }
-      const valid = item.countries.filter((iso: string) => validIsos.has(iso.toUpperCase())).map((iso: string) => iso.toUpperCase());
+      const valid = item.countries.map((id: string) => resolve(id)).filter(Boolean) as string[];
       if (valid.length > 0) result.push({ label: item.label, color: item.color, countries: valid });
     }
     if (result.length === 0) return { ok: false, error: "No valid categories found" };
@@ -613,28 +624,28 @@ function parseImportData(
   if (typeof parsed === "object" && parsed !== null) {
     const byColor = new Map<string, string[]>();
     let count = 0;
-    for (const [iso, color] of Object.entries(parsed)) {
+    for (const [key, color] of Object.entries(parsed)) {
       if (typeof color !== "string") continue;
-      const upper = iso.toUpperCase();
-      if (!validIsos.has(upper)) continue;
+      const id = resolve(key);
+      if (!id) continue;
       if (!byColor.has(color)) byColor.set(color, []);
-      byColor.get(color)!.push(upper);
+      byColor.get(color)!.push(id);
       count++;
     }
-    if (count === 0) return { ok: false, error: "No valid country codes found" };
+    if (count === 0) return { ok: false, error: "No valid region IDs found" };
     const result: { label: string; color: string; countries: string[] }[] = [];
     let idx = 1;
-    byColor.forEach((isos, color) => {
-      result.push({ label: `Category ${idx++}`, color, countries: isos });
+    byColor.forEach((ids, color) => {
+      result.push({ label: `Category ${idx++}`, color, countries: ids });
     });
-    return { ok: true, data: result, message: `Imported ${count} ${count === 1 ? "country" : "countries"} in ${result.length} ${result.length === 1 ? "category" : "categories"}` };
+    return { ok: true, data: result, message: `Imported ${count} ${count === 1 ? "region" : "regions"} in ${result.length} ${result.length === 1 ? "category" : "categories"}` };
   }
   return { ok: false, error: "Expected a JSON array or object" };
 }
 
 function parseGradientImportData(
   raw: string,
-  validIsos: Set<string>,
+  validIds: Set<string>,
 ): { ok: true; data: Record<string, number>; message: string } | { ok: false; error: string } {
   let parsed: unknown;
   try {
@@ -643,20 +654,32 @@ function parseGradientImportData(
     return { ok: false, error: "Invalid JSON" };
   }
   if (typeof parsed !== "object" || parsed === null || Array.isArray(parsed)) {
-    return { ok: false, error: "Expected a JSON object mapping ISO codes to numbers" };
+    return { ok: false, error: "Expected a JSON object mapping region IDs to numbers" };
   }
+  const resolve = buildIdLookup(validIds);
   const result: Record<string, number> = {};
   let count = 0;
-  for (const [iso, value] of Object.entries(parsed)) {
+  for (const [key, value] of Object.entries(parsed)) {
     if (typeof value !== "number" || isNaN(value)) continue;
-    const upper = iso.toUpperCase();
-    if (!validIsos.has(upper)) continue;
-    result[upper] = value;
+    const id = resolve(key);
+    if (!id) continue;
+    result[id] = value;
     count++;
   }
-  if (count === 0) return { ok: false, error: "No valid country codes with numeric values found" };
-  return { ok: true, data: result, message: `Imported ${count} ${count === 1 ? "country" : "countries"}` };
+  if (count === 0) return { ok: false, error: "No valid region IDs with numeric values found" };
+  return { ok: true, data: result, message: `Imported ${count} ${count === 1 ? "region" : "regions"}` };
 }
+
+const SAMPLE_IDS: Record<TileLayerId, [string, string]> = {
+  countries: ["FRA", "DEU"],
+  "us-states": ["CA", "NY"],
+  "canada-provinces": ["QC", "ON"],
+  "france-departements": ["75", "13"],
+  "eu-nuts2": ["FR10", "DE30"],
+  "china-provinces": ["Beijing", "Shanghai"],
+  "india-states": ["Maharashtra", "Kerala"],
+  "russia-regions": ["Moscow Oblast", "Republic of Tatarstan"],
+};
 
 function ImportDialog({
   tileLayer,
@@ -679,6 +702,7 @@ function ImportDialog({
   }, [tileLayer, config]);
 
   const validIsos = useMemo(() => new Set(countries.map((c) => c.id)), [countries]);
+  const samples = SAMPLE_IDS[tileLayer] ?? SAMPLE_IDS.countries;
 
   const processText = useCallback((raw: string) => {
     const result = parseImportData(raw, validIsos);
@@ -754,14 +778,14 @@ function ImportDialog({
           <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
 {`[
   { "label": "Group A", "color": "#3b82f6",
-    "countries": ["FRA", "DEU"] },
+    "countries": ["${samples[0]}", "${samples[1]}"] },
   { "label": "Group B", "color": "#ef4444",
-    "countries": ["USA", "CAN"] }
+    "countries": ["..."] }
 ]`}
           </pre>
           <p>Or flat format (auto-groups by color):</p>
           <pre className="bg-muted p-2 rounded text-[10px]">
-{`{ "FRA": "#3b82f6", "DEU": "#3b82f6" }`}
+{`{ "${samples[0]}": "#3b82f6", "${samples[1]}": "#3b82f6" }`}
           </pre>
         </div>
         <div
@@ -824,6 +848,7 @@ function GradientImportDialog({
   }, [tileLayer, config]);
 
   const validIsos = useMemo(() => new Set(countries.map((c) => c.id)), [countries]);
+  const samples = SAMPLE_IDS[tileLayer] ?? SAMPLE_IDS.countries;
 
   const processText = useCallback((raw: string) => {
     const result = parseGradientImportData(raw, validIsos);
@@ -895,14 +920,12 @@ function GradientImportDialog({
           </Button>
         </div>
         <div className="text-xs text-muted-foreground space-y-1.5">
-          <p>Map ISO-3 country codes to numeric values:</p>
+          <p>Map region IDs to numeric values:</p>
           <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
 {`{
-  "FRA": 0.9764,
-  "USA": 0.2264,
-  "GBR": 0.14,
-  "ESP": 0.94,
-  "JPN": 0.333
+  "${samples[0]}": 0.9764,
+  "${samples[1]}": 0.2264,
+  "...": 0.333
 }`}
           </pre>
         </div>

@@ -10,6 +10,13 @@ export interface TileLayerConfig {
   enrichFeature?: (f: GeoJSON.Feature) => GeoJSON.Feature;
 }
 
+const CA_PROVINCE_ABBR: Record<string, string> = {
+  Alberta: "AB", "British Columbia": "BC", Manitoba: "MB", "New Brunswick": "NB",
+  "Newfoundland and Labrador": "NL", "Northwest Territories": "NT", "Nova Scotia": "NS",
+  Nunavut: "NU", Ontario: "ON", "Prince Edward Island": "PE", Quebec: "QC",
+  Saskatchewan: "SK", "Yukon Territory": "YT",
+};
+
 const US_STATE_ABBR: Record<string, string> = {
   Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
   Colorado: "CO", Connecticut: "CT", Delaware: "DE", "District of Columbia": "DC",
@@ -47,6 +54,56 @@ export const TILE_LAYERS: TileLayerConfig[] = [
         abbr: US_STATE_ABBR[f.properties?.name as string] ?? "",
       },
     }),
+  },
+  {
+    id: "canada-provinces",
+    label: "Canadian Provinces",
+    file: "/geo/canada-provinces.geojson",
+    idProp: "abbr",
+    nameProp: "name",
+    enrichFeature: (f) => ({
+      ...f,
+      properties: {
+        ...f.properties,
+        abbr: CA_PROVINCE_ABBR[f.properties?.name as string] ?? "",
+      },
+    }),
+  },
+  {
+    id: "france-departements",
+    label: "French Départements",
+    file: "/geo/france-departements.geojson",
+    idProp: "code",
+    nameProp: "nom",
+  },
+  {
+    id: "eu-nuts2",
+    label: "EU NUTS 2 Regions",
+    file: "/geo/eu-nuts2.geojson",
+    idProp: "NUTS_ID",
+    nameProp: "NAME_LATN",
+  },
+  {
+    id: "china-provinces",
+    label: "Chinese Provinces",
+    file: "/geo/china-provinces.geojson",
+    idProp: "name",
+    nameProp: "name",
+  },
+  {
+    id: "india-states",
+    label: "Indian States",
+    file: "/geo/india-states.geojson",
+    idProp: "name",
+    nameProp: "name",
+  },
+  {
+    id: "russia-regions",
+    label: "Russian Regions",
+    file: "/geo/russia-regions.geojson",
+    idProp: "name_latin",
+    nameProp: "name_latin",
+    fixAntimeridian: true,
   },
 ];
 
