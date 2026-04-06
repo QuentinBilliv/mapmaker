@@ -19,8 +19,10 @@ import { smoothGeometry } from "@/lib/smooth-geometry";
 const FEATURES_SOURCE = "map-features";
 const ARROW_SOURCE = "arrow-heads";
 const CHOROPLETH_SOURCE = "choropleth-countries";
+const CHOROPLETH_OUTLINE_SOURCE = "choropleth-outlines";
 const CHOROPLETH_FILL = "choropleth-fill";
 const CHOROPLETH_BORDER = "choropleth-border";
+const CHOROPLETH_OUTLINE = "choropleth-outline";
 const ARROW_ICON_ID = "arrowhead";
 const ARROW_SIZE = 48;
 const ZF = "zf-";
@@ -86,9 +88,25 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     data: { type: "FeatureCollection", features: [] },
   });
 
+  map.addSource(CHOROPLETH_OUTLINE_SOURCE, {
+    type: "geojson",
+    data: { type: "FeatureCollection", features: [] },
+  });
+
   map.addSource(CHOROPLETH_SOURCE, {
     type: "geojson",
     data: { type: "FeatureCollection", features: [] },
+  });
+
+  map.addLayer({
+    id: CHOROPLETH_OUTLINE,
+    type: "line",
+    source: CHOROPLETH_OUTLINE_SOURCE,
+    paint: {
+      "line-color": "#888888",
+      "line-width": 0.5,
+      "line-opacity": 0,
+    },
   });
 
   map.addLayer({
@@ -635,4 +653,4 @@ export function useFeatureRendering(
   }, [mapRef, resolved, groups, styleVersion]);
 }
 
-export { FEATURES_SOURCE, ZF, CHOROPLETH_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER };
+export { FEATURES_SOURCE, ZF, CHOROPLETH_SOURCE, CHOROPLETH_OUTLINE_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER, CHOROPLETH_OUTLINE };

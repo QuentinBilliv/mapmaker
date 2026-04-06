@@ -5,7 +5,8 @@ import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaXmark, FaPlus, FaFileImport, FaTrash, FaCheck, FaArrowUpFromBracket, FaMagnifyingGlass, FaRotateLeft, FaRotateRight } from "react-icons/fa6";
-import { loadCountriesGeoJSON, getCountryList, type CountryInfo } from "@/lib/choropleth";
+import { loadTileLayerGeoJSON, getRegionList, getTileLayerConfig, TILE_LAYERS, type RegionInfo } from "@/lib/choropleth";
+import type { TileLayerId } from "@/lib/types";
 import toast from "react-hot-toast";
 
 const CATEGORY_COLORS = [
@@ -58,6 +59,10 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
     setChoropleth({ mode });
   }, [setChoropleth]);
 
+  const handleTileLayerChange = useCallback((layerId: TileLayerId) => {
+    setChoropleth({ tileLayer: layerId, categories: [], assignments: {}, values: {}, activeCategoryId: null });
+  }, [setChoropleth]);
+
   if (!open) return null;
 
   return (
@@ -83,6 +88,15 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="px-4 py-3 space-y-3">
+            <select
+              value={choropleth.tileLayer}
+              onChange={(e) => handleTileLayerChange(e.target.value as TileLayerId)}
+              className="w-full rounded-md border bg-transparent px-2 py-1.5 text-xs"
+            >
+              {TILE_LAYERS.map((layer) => (
+                <option key={layer.id} value={layer.id}>{layer.label}</option>
+              ))}
+            </select>
             <div className="flex gap-1">
               <Button
                 size="sm"
@@ -144,11 +158,13 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
       {showImport && (
         choropleth.mode === "discrete" ? (
           <ImportDialog
+            tileLayer={choropleth.tileLayer}
             onClose={() => setShowImport(false)}
             onImport={importChoroplethData}
           />
         ) : (
           <GradientImportDialog
+            tileLayer={choropleth.tileLayer}
             onClose={() => setShowImport(false)}
             onImport={importGradientData}
           />
@@ -233,7 +249,7 @@ function GradientContent({
   onImport,
   onClearAll,
 }: {
-  choropleth: { gradientColors?: [string, string]; gradientLabel?: string; values?: Record<string, number> };
+  choropleth: { tileLayer: TileLayerId; gradientColors?: [string, string]; gradientLabel?: string; values?: Record<string, number> };
   setChoropleth: (updates: Record<string, unknown>) => void;
   onSetValue: (iso: string, value: number) => void;
   onRemoveValue: (iso: string) => void;
@@ -244,16 +260,17 @@ function GradientContent({
   const colors = choropleth.gradientColors ?? ["#22c55e", "#3b82f6"] as [string, string];
   const valueCount = Object.keys(safeValues).length;
 
-  const [allCountries, setAllCountries] = useState<CountryInfo[]>([]);
+  const [allCountries, setAllCountries] = useState<RegionInfo[]>([]);
   const [search, setSearch] = useState("");
   const [focusedIso, setFocusedIso] = useState<string | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
+  const config = getTileLayerConfig(choropleth.tileLayer);
   useEffect(() => {
-    loadCountriesGeoJSON().then((geojson) => {
-      setAllCountries(getCountryList(geojson));
+    loadTileLayerGeoJSON(choropleth.tileLayer).then((geojson) => {
+      setAllCountries(getRegionList(geojson, config));
     });
-  }, []);
+  }, [choropleth.tileLayer, config]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -274,15 +291,15 @@ function GradientContent({
   }, []);
 
   const countryMap = useMemo(() => {
-    const map = new Map<string, CountryInfo>();
-    allCountries.forEach((c) => map.set(c.iso, c));
+    const map = new Map<string, RegionInfo>();
+    allCountries.forEach((c) => map.set(c.id, c));
     return map;
   }, [allCountries]);
 
   const countriesWithValues = useMemo(() => {
     return Object.keys(safeValues)
       .map((iso) => countryMap.get(iso))
-      .filter((c): c is CountryInfo => !!c)
+      .filter((c): c is RegionInfo => !!c)
       .sort((a, b) => a.name.localeCompare(b.name));
   }, [safeValues, countryMap]);
 
@@ -291,15 +308,15 @@ function GradientContent({
     const q = search.toLowerCase();
     return allCountries
       .filter((c) =>
-        (c.name.toLowerCase().includes(q) || c.iso.toLowerCase().includes(q))
-        && !(c.iso in safeValues)
+        (c.name.toLowerCase().includes(q) || c.id.toLowerCase().includes(q))
+        && !(c.id in safeValues)
       )
       .slice(0, 5);
   }, [allCountries, search, safeValues]);
 
   const focusedCountry = useMemo(() => {
     if (!focusedIso || focusedIso in safeValues) return null;
-    if (searchResults.some((c) => c.iso === focusedIso)) return null;
+    if (searchResults.some((c) => c.id === focusedIso)) return null;
     return countryMap.get(focusedIso) ?? null;
   }, [focusedIso, safeValues, searchResults, countryMap]);
 
@@ -365,22 +382,22 @@ function GradientContent({
         </div>
         {focusedCountry && (
           <CountryValueRow
-            ref={(el) => { rowRefs.current[focusedCountry.iso] = el; }}
+            ref={(el) => { rowRefs.current[focusedCountry.id] = el; }}
             country={focusedCountry}
             value={undefined}
             autoFocus
-            onSetValue={(v) => handleSetValue(focusedCountry.iso, v)}
-            onRemoveValue={() => { onRemoveValue(focusedCountry.iso); setFocusedIso(null); }}
+            onSetValue={(v) => handleSetValue(focusedCountry.id, v)}
+            onRemoveValue={() => { onRemoveValue(focusedCountry.id); setFocusedIso(null); }}
           />
         )}
         {searchResults.map((c) => (
           <CountryValueRow
-            key={c.iso}
-            ref={(el) => { rowRefs.current[c.iso] = el; }}
+            key={c.id}
+            ref={(el) => { rowRefs.current[c.id] = el; }}
             country={c}
             value={undefined}
-            onSetValue={(v) => handleSetValue(c.iso, v)}
-            onRemoveValue={() => onRemoveValue(c.iso)}
+            onSetValue={(v) => handleSetValue(c.id, v)}
+            onRemoveValue={() => onRemoveValue(c.id)}
           />
         ))}
         {countriesWithValues.length > 0 && searchResults.length > 0 && (
@@ -390,12 +407,12 @@ function GradientContent({
         )}
         {countriesWithValues.map((c) => (
           <CountryValueRow
-            key={c.iso}
-            ref={(el) => { rowRefs.current[c.iso] = el; }}
+            key={c.id}
+            ref={(el) => { rowRefs.current[c.id] = el; }}
             country={c}
-            value={safeValues[c.iso]}
-            onSetValue={(v) => handleSetValue(c.iso, v)}
-            onRemoveValue={() => onRemoveValue(c.iso)}
+            value={safeValues[c.id]}
+            onSetValue={(v) => handleSetValue(c.id, v)}
+            onRemoveValue={() => onRemoveValue(c.id)}
           />
         ))}
         {countriesWithValues.length === 0 && searchResults.length === 0 && !focusedCountry && (
@@ -411,7 +428,7 @@ function GradientContent({
 const CountryValueRow = forwardRef<
   HTMLDivElement,
   {
-    country: CountryInfo;
+    country: RegionInfo;
     value: number | undefined;
     autoFocus?: boolean;
     onSetValue: (v: number) => void;
@@ -642,23 +659,26 @@ function parseGradientImportData(
 }
 
 function ImportDialog({
+  tileLayer,
   onClose,
   onImport,
 }: {
+  tileLayer: TileLayerId;
   onClose: () => void;
   onImport: (data: { label: string; color: string; countries: string[] }[]) => void;
 }) {
   const [text, setText] = useState("");
   const [dragging, setDragging] = useState(false);
-  const [countries, setCountries] = useState<CountryInfo[]>([]);
+  const [countries, setCountries] = useState<RegionInfo[]>([]);
+  const config = getTileLayerConfig(tileLayer);
 
   useEffect(() => {
-    loadCountriesGeoJSON().then((geojson) => {
-      setCountries(getCountryList(geojson));
+    loadTileLayerGeoJSON(tileLayer).then((geojson) => {
+      setCountries(getRegionList(geojson, config));
     });
-  }, []);
+  }, [tileLayer, config]);
 
-  const validIsos = useMemo(() => new Set(countries.map((c) => c.iso)), [countries]);
+  const validIsos = useMemo(() => new Set(countries.map((c) => c.id)), [countries]);
 
   const processText = useCallback((raw: string) => {
     const result = parseImportData(raw, validIsos);
@@ -784,23 +804,26 @@ function ImportDialog({
 }
 
 function GradientImportDialog({
+  tileLayer,
   onClose,
   onImport,
 }: {
+  tileLayer: TileLayerId;
   onClose: () => void;
   onImport: (data: Record<string, number>) => void;
 }) {
   const [text, setText] = useState("");
   const [dragging, setDragging] = useState(false);
-  const [countries, setCountries] = useState<CountryInfo[]>([]);
+  const [countries, setCountries] = useState<RegionInfo[]>([]);
+  const config = getTileLayerConfig(tileLayer);
 
   useEffect(() => {
-    loadCountriesGeoJSON().then((geojson) => {
-      setCountries(getCountryList(geojson));
+    loadTileLayerGeoJSON(tileLayer).then((geojson) => {
+      setCountries(getRegionList(geojson, config));
     });
-  }, []);
+  }, [tileLayer, config]);
 
-  const validIsos = useMemo(() => new Set(countries.map((c) => c.iso)), [countries]);
+  const validIsos = useMemo(() => new Set(countries.map((c) => c.id)), [countries]);
 
   const processText = useCallback((raw: string) => {
     const result = parseGradientImportData(raw, validIsos);

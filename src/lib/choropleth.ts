@@ -1,58 +1,129 @@
-import type { ChoroplethCategory, ChoroplethData } from "./types";
+import type { ChoroplethCategory, ChoroplethData, TileLayerId } from "./types";
 
-let cache: GeoJSON.FeatureCollection | null = null;
-
-export async function loadCountriesGeoJSON(): Promise<GeoJSON.FeatureCollection> {
-  if (cache) return cache;
-  const res = await fetch("/geo/countries-50m.geojson");
-  const raw: GeoJSON.FeatureCollection = await res.json();
-  cache = {
-    type: "FeatureCollection",
-    features: raw.features.map((f) => ({
-      ...f,
-      geometry: fixAntimeridian(f.geometry),
-    })),
-  };
-  return cache;
+export interface TileLayerConfig {
+  id: TileLayerId;
+  label: string;
+  file: string;
+  idProp: string;
+  nameProp: string;
+  fixAntimeridian?: boolean;
+  enrichFeature?: (f: GeoJSON.Feature) => GeoJSON.Feature;
 }
 
-export interface CountryInfo {
-  iso: string;
+const US_STATE_ABBR: Record<string, string> = {
+  Alabama: "AL", Alaska: "AK", Arizona: "AZ", Arkansas: "AR", California: "CA",
+  Colorado: "CO", Connecticut: "CT", Delaware: "DE", "District of Columbia": "DC",
+  Florida: "FL", Georgia: "GA", Hawaii: "HI", Idaho: "ID", Illinois: "IL",
+  Indiana: "IN", Iowa: "IA", Kansas: "KS", Kentucky: "KY", Louisiana: "LA",
+  Maine: "ME", Maryland: "MD", Massachusetts: "MA", Michigan: "MI", Minnesota: "MN",
+  Mississippi: "MS", Missouri: "MO", Montana: "MT", Nebraska: "NE", Nevada: "NV",
+  "New Hampshire": "NH", "New Jersey": "NJ", "New Mexico": "NM", "New York": "NY",
+  "North Carolina": "NC", "North Dakota": "ND", Ohio: "OH", Oklahoma: "OK",
+  Oregon: "OR", Pennsylvania: "PA", "Rhode Island": "RI", "South Carolina": "SC",
+  "South Dakota": "SD", Tennessee: "TN", Texas: "TX", Utah: "UT", Vermont: "VT",
+  Virginia: "VA", Washington: "WA", "West Virginia": "WV", Wisconsin: "WI",
+  Wyoming: "WY", "Puerto Rico": "PR",
+};
+
+export const TILE_LAYERS: TileLayerConfig[] = [
+  {
+    id: "countries",
+    label: "Countries",
+    file: "/geo/countries-50m.geojson",
+    idProp: "iso_a3",
+    nameProp: "name",
+    fixAntimeridian: true,
+  },
+  {
+    id: "us-states",
+    label: "US States",
+    file: "/geo/us-states.geojson",
+    idProp: "abbr",
+    nameProp: "name",
+    enrichFeature: (f) => ({
+      ...f,
+      properties: {
+        ...f.properties,
+        abbr: US_STATE_ABBR[f.properties?.name as string] ?? "",
+      },
+    }),
+  },
+];
+
+export function getTileLayerConfig(id: TileLayerId): TileLayerConfig {
+  return TILE_LAYERS.find((l) => l.id === id) ?? TILE_LAYERS[0];
+}
+
+const cache = new Map<TileLayerId, GeoJSON.FeatureCollection>();
+
+export async function loadTileLayerGeoJSON(layerId: TileLayerId): Promise<GeoJSON.FeatureCollection> {
+  const cached = cache.get(layerId);
+  if (cached) return cached;
+  const config = getTileLayerConfig(layerId);
+  const res = await fetch(config.file);
+  const raw: GeoJSON.FeatureCollection = await res.json();
+  const result: GeoJSON.FeatureCollection = {
+    type: "FeatureCollection",
+    features: raw.features.map((f) => {
+      let feature = config.enrichFeature ? config.enrichFeature(f) : f;
+      if (config.fixAntimeridian) {
+        feature = { ...feature, geometry: fixAntimeridian(feature.geometry) };
+      }
+      return feature;
+    }),
+  };
+  cache.set(layerId, result);
+  return result;
+}
+
+export async function loadCountriesGeoJSON(): Promise<GeoJSON.FeatureCollection> {
+  return loadTileLayerGeoJSON("countries");
+}
+
+export interface RegionInfo {
+  id: string;
   name: string;
 }
 
-export function getCountryList(geojson: GeoJSON.FeatureCollection): CountryInfo[] {
+export type CountryInfo = RegionInfo;
+
+export function getRegionList(geojson: GeoJSON.FeatureCollection, config: TileLayerConfig): RegionInfo[] {
   return geojson.features
     .map((f) => ({
-      iso: f.properties?.iso_a3 as string,
-      name: f.properties?.name as string,
+      id: f.properties?.[config.idProp] as string,
+      name: f.properties?.[config.nameProp] as string,
     }))
-    .filter((c) => c.iso && c.name && /^[A-Z]{3}$/.test(c.iso))
+    .filter((r) => r.id && r.name)
     .sort((a, b) => a.name.localeCompare(b.name));
 }
 
+export function getCountryList(geojson: GeoJSON.FeatureCollection): RegionInfo[] {
+  return getRegionList(geojson, getTileLayerConfig("countries"));
+}
+
 export function buildChoroplethGeoJSON(
-  countries: GeoJSON.FeatureCollection,
+  regions: GeoJSON.FeatureCollection,
   categories: ChoroplethCategory[],
   assignments: Record<string, string>,
+  config: TileLayerConfig,
 ): GeoJSON.FeatureCollection {
   const catMap = new Map(categories.map((c) => [c.id, c]));
   return {
     type: "FeatureCollection",
-    features: countries.features
+    features: regions.features
       .filter((f) => {
-        const iso = f.properties?.iso_a3 as string;
-        return iso && assignments[iso] && catMap.has(assignments[iso]);
+        const id = f.properties?.[config.idProp] as string;
+        return id && assignments[id] && catMap.has(assignments[id]);
       })
       .map((f) => {
-        const iso = f.properties!.iso_a3 as string;
-        const cat = catMap.get(assignments[iso])!;
+        const id = f.properties![config.idProp] as string;
+        const cat = catMap.get(assignments[id])!;
         return {
           ...f,
           properties: {
             ...f.properties,
             _color: cat.color,
-            _tooltip_title: f.properties?.name ?? iso,
+            _tooltip_title: f.properties?.[config.nameProp] ?? id,
             _tooltip_desc: cat.label,
           },
         };
@@ -61,12 +132,13 @@ export function buildChoroplethGeoJSON(
 }
 
 export function buildGradientChoroplethGeoJSON(
-  countries: GeoJSON.FeatureCollection,
+  regions: GeoJSON.FeatureCollection,
   gradientColors: [string, string],
   values: Record<string, number>,
+  config: TileLayerConfig,
 ): GeoJSON.FeatureCollection {
-  const isos = Object.keys(values);
-  if (isos.length === 0) return { type: "FeatureCollection", features: [] };
+  const ids = Object.keys(values);
+  if (ids.length === 0) return { type: "FeatureCollection", features: [] };
   const nums = Object.values(values);
   const min = Math.min(...nums);
   const max = Math.max(...nums);
@@ -75,14 +147,14 @@ export function buildGradientChoroplethGeoJSON(
   const [endR, endG, endB] = hexToRgb(gradientColors[1]);
   return {
     type: "FeatureCollection",
-    features: countries.features
+    features: regions.features
       .filter((f) => {
-        const iso = f.properties?.iso_a3 as string;
-        return iso && iso in values;
+        const id = f.properties?.[config.idProp] as string;
+        return id && id in values;
       })
       .map((f) => {
-        const iso = f.properties!.iso_a3 as string;
-        const t = (values[iso] - min) / range;
+        const id = f.properties![config.idProp] as string;
+        const t = (values[id] - min) / range;
         const r = Math.round(startR + t * (endR - startR));
         const g = Math.round(startG + t * (endG - startG));
         const b = Math.round(startB + t * (endB - startB));
@@ -91,8 +163,8 @@ export function buildGradientChoroplethGeoJSON(
           properties: {
             ...f.properties,
             _color: rgbToHex(r, g, b),
-            _tooltip_title: f.properties?.name ?? iso,
-            _tooltip_desc: String(values[iso]),
+            _tooltip_title: f.properties?.[config.nameProp] ?? id,
+            _tooltip_desc: String(values[id]),
           },
         };
       }),
@@ -100,17 +172,19 @@ export function buildGradientChoroplethGeoJSON(
 }
 
 export function buildChoroplethGeoJSONFromData(
-  countries: GeoJSON.FeatureCollection,
+  regions: GeoJSON.FeatureCollection,
   choropleth: ChoroplethData,
 ): GeoJSON.FeatureCollection {
+  const config = getTileLayerConfig(choropleth.tileLayer);
   if (choropleth.mode === "gradient") {
     return buildGradientChoroplethGeoJSON(
-      countries,
+      regions,
       choropleth.gradientColors ?? ["#22c55e", "#3b82f6"],
       choropleth.values ?? {},
+      config,
     );
   }
-  return buildChoroplethGeoJSON(countries, choropleth.categories ?? [], choropleth.assignments ?? {});
+  return buildChoroplethGeoJSON(regions, choropleth.categories ?? [], choropleth.assignments ?? {}, config);
 }
 
 function hexToRgb(hex: string): [number, number, number] {
@@ -141,20 +215,29 @@ export function interpolateGradientColor(
   return rgbToHex(r, g, b);
 }
 
+export function findRegionAtPoint(
+  geojson: GeoJSON.FeatureCollection,
+  lng: number,
+  lat: number,
+  config: TileLayerConfig,
+): RegionInfo | null {
+  for (const f of geojson.features) {
+    const id = f.properties?.[config.idProp] as string;
+    const name = f.properties?.[config.nameProp] as string;
+    if (!id || !name) continue;
+    if (pointInGeometry(lng, lat, f.geometry)) {
+      return { id, name };
+    }
+  }
+  return null;
+}
+
 export function findCountryAtPoint(
   geojson: GeoJSON.FeatureCollection,
   lng: number,
   lat: number,
-): CountryInfo | null {
-  for (const f of geojson.features) {
-    const iso = f.properties?.iso_a3 as string;
-    const name = f.properties?.name as string;
-    if (!iso || !name) continue;
-    if (pointInGeometry(lng, lat, f.geometry)) {
-      return { iso, name };
-    }
-  }
-  return null;
+): RegionInfo | null {
+  return findRegionAtPoint(geojson, lng, lat, getTileLayerConfig("countries"));
 }
 
 function pointInGeometry(lng: number, lat: number, geom: GeoJSON.Geometry): boolean {

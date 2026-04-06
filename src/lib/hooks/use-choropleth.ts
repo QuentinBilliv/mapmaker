@@ -3,7 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
-import { findCountryAtPoint } from "@/lib/choropleth";
+import { findRegionAtPoint, getTileLayerConfig } from "@/lib/choropleth";
 import { useChoroplethDisplay } from "./use-choropleth-display";
 
 export function useChoropleth(
@@ -24,22 +24,23 @@ export function useChoropleth(
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     const choro = choroplethRef.current;
     if (!choro.enabled || drawModeRef.current !== "select") return;
-    const countries = countriesRef.current;
-    if (!countries) return;
-    const country = findCountryAtPoint(countries, e.lngLat.lng, e.lngLat.lat);
-    if (!country) return;
+    const regions = countriesRef.current;
+    if (!regions) return;
+    const config = getTileLayerConfig(choro.tileLayer);
+    const region = findRegionAtPoint(regions, e.lngLat.lng, e.lngLat.lat, config);
+    if (!region) return;
     e.preventDefault();
     interactingRef.current = true;
     requestAnimationFrame(() => { interactingRef.current = false; });
     if (choro.mode === "gradient") {
-      window.dispatchEvent(new CustomEvent("mapmaker:country-clicked", { detail: country }));
+      window.dispatchEvent(new CustomEvent("mapmaker:country-clicked", { detail: { iso: region.id, name: region.name } }));
       return;
     }
     if (!choro.activeCategoryId) return;
-    if (choro.assignments[country.iso] === choro.activeCategoryId) {
-      unassignCountry(country.iso);
+    if (choro.assignments[region.id] === choro.activeCategoryId) {
+      unassignCountry(region.id);
     } else {
-      assignCountry(country.iso, country.name);
+      assignCountry(region.id, region.name);
     }
   }, [assignCountry, unassignCountry, countriesRef]);
 

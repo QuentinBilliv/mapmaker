@@ -136,6 +136,7 @@ const mapmakerMeta = z.object({
   baseMap: z.string().max(100).default("osm"),
   choropleth: z.object({
     enabled: z.boolean().default(false),
+    tileLayer: z.enum(["countries", "us-states"]).default("countries"),
     mode: z.enum(["discrete", "gradient"]).default("discrete"),
     categories: z.array(z.object({
       id: z.string().max(100),
@@ -150,7 +151,7 @@ const mapmakerMeta = z.object({
     opacity: z.number().min(0).max(1).default(0.7),
     entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).optional(),
     activeColor: z.string().max(30).optional(),
-  }).default({ enabled: false, mode: "discrete", categories: [], assignments: {}, gradientColors: ["#22c55e", "#3b82f6"], gradientLabel: "", values: {}, opacity: 0.7 }),
+  }).default({ enabled: false, tileLayer: "countries", mode: "discrete", categories: [], assignments: {}, gradientColors: ["#22c55e", "#3b82f6"], gradientLabel: "", values: {}, opacity: 0.7 }),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
   legendEntries: z.array(legendEntrySchema).max(1000).default([]),
@@ -185,6 +186,7 @@ export function serialize(
       baseMap: baseMapId,
       choropleth: {
         enabled: choropleth.enabled,
+        tileLayer: choropleth.tileLayer,
         mode: choropleth.mode,
         categories: choropleth.categories.map(({ id, color, label, order }) => ({ id, color, label, order })),
         assignments: choropleth.assignments,
@@ -330,9 +332,11 @@ export function deserialize(raw: string): DeserializedMap {
 
   const rawChoropleth = result.mapmaker.choropleth;
   let choropleth: ChoroplethData;
+  const tileLayer = (rawChoropleth.tileLayer ?? "countries") as ChoroplethData["tileLayer"];
   if (rawChoropleth.categories && rawChoropleth.categories.length > 0) {
     choropleth = {
       enabled: rawChoropleth.enabled,
+      tileLayer,
       mode: rawChoropleth.mode ?? "discrete",
       categories: rawChoropleth.categories as ChoroplethCategory[],
       assignments: rawChoropleth.assignments ?? {},
@@ -345,6 +349,7 @@ export function deserialize(raw: string): DeserializedMap {
   } else if (rawChoropleth.mode === "gradient" && rawChoropleth.values && Object.keys(rawChoropleth.values).length > 0) {
     choropleth = {
       enabled: rawChoropleth.enabled,
+      tileLayer,
       mode: "gradient",
       categories: [],
       assignments: {},
@@ -359,6 +364,7 @@ export function deserialize(raw: string): DeserializedMap {
   } else {
     choropleth = {
       enabled: rawChoropleth.enabled,
+      tileLayer,
       mode: rawChoropleth.mode ?? "discrete",
       categories: [],
       assignments: {},
@@ -406,6 +412,7 @@ function migrateLegacyChoropleth(raw: { enabled: boolean; entries?: Record<strin
   });
   return {
     enabled: raw.enabled,
+    tileLayer: "countries",
     mode: "discrete",
     categories,
     assignments,

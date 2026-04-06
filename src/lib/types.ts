@@ -81,8 +81,11 @@ export interface ChoroplethCategory {
 
 export type ChoroplethMode = "discrete" | "gradient";
 
+export type TileLayerId = "countries" | "us-states";
+
 export interface ChoroplethData {
   enabled: boolean;
+  tileLayer: TileLayerId;
   mode: ChoroplethMode;
   categories: ChoroplethCategory[];
   assignments: Record<string, string>;
@@ -95,6 +98,7 @@ export interface ChoroplethData {
 
 export const DEFAULT_CHOROPLETH: ChoroplethData = {
   enabled: false,
+  tileLayer: "countries",
   mode: "discrete",
   categories: [],
   assignments: {},
