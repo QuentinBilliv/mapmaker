@@ -14,13 +14,16 @@ import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
-import type { MapData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { MapData, FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
+import { DEFAULT_CHOROPLETH } from "@/lib/types";
+import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
 
 interface ReadOnlyMapViewProps {
   map: MapData;
   features: FeatureData[];
   groups: GroupData[];
   legendEntries?: LegendEntry[];
+  choropleth?: ChoroplethData;
   baseMapId: string;
   editHref?: string;
 }
@@ -38,6 +41,7 @@ function ReadOnlyMapViewInner({
   features,
   groups,
   legendEntries = [],
+  choropleth = DEFAULT_CHOROPLETH,
   baseMapId,
   editHref,
 }: ReadOnlyMapViewProps) {
@@ -71,6 +75,7 @@ function ReadOnlyMapViewInner({
   }, [baseMap.style]);
 
   useFeatureRendering(mapRef, features, groups, 0, legendEntries);
+  useChoroplethDisplay(mapRef, choropleth, 0);
   useFeatureTooltip(mapRef, "select", 0);
   useLegendHighlight(mapRef, 0);
 

@@ -15,7 +15,9 @@ import { LegendDisplay } from "@/components/ui/legend-display";
 import { toMapData } from "@/lib/convex-mapdata";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
-import type { FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
+import { DEFAULT_CHOROPLETH } from "@/lib/types";
+import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const map = useQuery(api.maps.getMap, {
@@ -29,6 +31,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     features: FeatureData[];
     groups: GroupData[];
     legendEntries?: LegendEntry[];
+    choropleth?: ChoroplethData;
   } | null>(null);
   const hasFetchedRef = useRef(false);
 
@@ -49,8 +52,9 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     return <div className="w-full h-full flex items-center justify-center"><p className="text-sm text-muted-foreground">Map not found</p></div>;
   }
 
+  const raw = map as Record<string, unknown>;
   const data = hasInlineData
-    ? { features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
+    ? { features: map.features!, groups: map.groups!, legendEntries: raw.legendEntries as LegendEntry[] ?? [], choropleth: raw.choropleth as ChoroplethData | undefined }
     : fileData;
 
   if (!data) {
@@ -64,6 +68,7 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
         features={data.features}
         groups={data.groups}
         legendEntries={data.legendEntries ?? []}
+        choropleth={data.choropleth ?? DEFAULT_CHOROPLETH}
         baseMapId={map.baseMapId}
         mapId={params.id}
       />
@@ -76,6 +81,7 @@ function EmbedMapView({
   features,
   groups,
   legendEntries,
+  choropleth,
   baseMapId,
   mapId,
 }: {
@@ -83,6 +89,7 @@ function EmbedMapView({
   features: FeatureData[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
+  choropleth: ChoroplethData;
   baseMapId: string;
   mapId: string;
 }) {
@@ -115,6 +122,7 @@ function EmbedMapView({
   }, [baseMap.style]);
 
   useFeatureRendering(mapRef, features, groups, 0, legendEntries);
+  useChoroplethDisplay(mapRef, choropleth, 0);
   useFeatureTooltip(mapRef, "select", 0);
   useLegendHighlight(mapRef, 0);
 
