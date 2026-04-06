@@ -260,6 +260,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   groupsRef.current = groups;
   const legendEntriesRef = useRef(legendEntries);
   legendEntriesRef.current = legendEntries;
+  const choroplethRef = useRef(choropleth);
+  choroplethRef.current = choropleth;
   const selectedIdsRef = useRef(selectedFeatureIds);
   selectedIdsRef.current = selectedFeatureIds;
 
@@ -272,8 +274,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   });
 
   const { canUndo, canRedo, recordSnapshot, undo, redo } = useUndoRedo(
-    featuresRef, groupsRef, legendEntriesRef,
-    setFeatures, setGroups, setLegendEntries, setSelectedFeatureIds,
+    featuresRef, groupsRef, legendEntriesRef, choroplethRef,
+    setFeatures, setGroups, setLegendEntries, setChoroplethState, setSelectedFeatureIds,
   );
 
   // Drawing state setters
@@ -413,10 +415,12 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   // Cross-cutting actions
 
   const setChoropleth = useCallback((updates: Partial<ChoroplethData>) => {
+    recordSnapshot();
     setChoroplethState((prev) => ({ ...prev, ...updates }));
-  }, []);
+  }, [recordSnapshot]);
 
   const addChoroplethCategory = useCallback((color: string, label: string): string => {
+    recordSnapshot();
     const id = uuid();
     setChoroplethState((prev) => {
       const maxOrder = prev.categories.reduce((m, c) => Math.max(m, c.order), -1);
@@ -427,16 +431,18 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       };
     });
     return id;
-  }, []);
+  }, [recordSnapshot]);
 
   const updateChoroplethCategory = useCallback((id: string, updates: Partial<{ color: string; label: string }>) => {
+    recordSnapshot();
     setChoroplethState((prev) => ({
       ...prev,
       categories: prev.categories.map((c) => c.id === id ? { ...c, ...updates } : c),
     }));
-  }, []);
+  }, [recordSnapshot]);
 
   const deleteChoroplethCategory = useCallback((id: string) => {
+    recordSnapshot();
     setChoroplethState((prev) => {
       const assignments = { ...prev.assignments };
       for (const iso of Object.keys(assignments)) {
@@ -449,25 +455,28 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
         activeCategoryId: prev.activeCategoryId === id ? null : prev.activeCategoryId,
       };
     });
-  }, []);
+  }, [recordSnapshot]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const assignCountryToCategory = useCallback((iso: string, _name: string) => {
+    recordSnapshot();
     setChoroplethState((prev) => {
       if (!prev.activeCategoryId) return prev;
       return { ...prev, assignments: { ...prev.assignments, [iso]: prev.activeCategoryId } };
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const unassignCountry = useCallback((iso: string) => {
+    recordSnapshot();
     setChoroplethState((prev) => {
       const assignments = { ...prev.assignments };
       delete assignments[iso];
       return { ...prev, assignments };
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const importChoroplethData = useCallback((data: { label: string; color: string; countries: string[] }[]) => {
+    recordSnapshot();
     setChoroplethState((prev) => {
       const newCategories = [...prev.categories];
       const newAssignments = { ...prev.assignments };
@@ -481,31 +490,34 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       }
       return { ...prev, categories: newCategories, assignments: newAssignments, enabled: true };
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const setGradientValue = useCallback((iso: string, value: number) => {
+    recordSnapshot();
     setChoroplethState((prev) => ({
       ...prev,
       values: { ...prev.values, [iso]: value },
     }));
-  }, []);
+  }, [recordSnapshot]);
 
   const removeGradientValue = useCallback((iso: string) => {
+    recordSnapshot();
     setChoroplethState((prev) => {
       const values = { ...prev.values };
       delete values[iso];
       return { ...prev, values };
     });
-  }, []);
+  }, [recordSnapshot]);
 
   const importGradientData = useCallback((data: Record<string, number>) => {
+    recordSnapshot();
     setChoroplethState((prev) => ({
       ...prev,
       values: { ...prev.values, ...data },
       enabled: true,
       mode: "gradient",
     }));
-  }, []);
+  }, [recordSnapshot]);
 
   const updateMap = useCallback((updates: Partial<MapData>) => {
     setMap((prev) => ({ ...prev, ...updates }));

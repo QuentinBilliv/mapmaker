@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect, useMemo, useRef, forwardRef } from "r
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaXmark, FaPlus, FaFileImport, FaTrash, FaCheck, FaArrowUpFromBracket, FaMagnifyingGlass } from "react-icons/fa6";
+import { FaXmark, FaPlus, FaFileImport, FaTrash, FaCheck, FaArrowUpFromBracket, FaMagnifyingGlass, FaRotateLeft, FaRotateRight } from "react-icons/fa6";
 import { loadCountriesGeoJSON, getCountryList, type CountryInfo } from "@/lib/choropleth";
 import toast from "react-hot-toast";
 
@@ -19,11 +19,12 @@ interface ChoroplethDialogProps {
 }
 
 export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProps) {
-  const { choropleth } = useEditorData();
+  const { choropleth, canUndo, canRedo } = useEditorData();
   const {
     setChoropleth, addChoroplethCategory, updateChoroplethCategory,
     deleteChoroplethCategory, importChoroplethData,
     setGradientValue, removeGradientValue, importGradientData,
+    undo, redo,
   } = useEditorActions();
   const [showImport, setShowImport] = useState(false);
 
@@ -68,9 +69,17 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
       <aside className="fixed right-0 top-0 bottom-0 z-40 w-80 max-w-[calc(100vw-3rem)] bg-popover flex flex-col border-l shadow-xl animate-in slide-in-from-right duration-200">
         <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
           <h2 className="text-sm font-semibold">Choropleth</h2>
-          <Button variant="ghost" size="icon-xs" onClick={onClose}>
-            <FaXmark className="w-4 h-4" />
-          </Button>
+          <div className="flex items-center gap-1">
+            <Button variant="ghost" size="icon-xs" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">
+              <FaRotateLeft />
+            </Button>
+            <Button variant="ghost" size="icon-xs" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Shift+Z)">
+              <FaRotateRight />
+            </Button>
+            <Button variant="ghost" size="icon-xs" onClick={onClose}>
+              <FaXmark className="w-4 h-4" />
+            </Button>
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="px-4 py-3 space-y-3">
