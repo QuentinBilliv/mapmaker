@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
 import { loadTileLayerGeoJSON, buildChoroplethGeoJSONFromData } from "@/lib/choropleth";
@@ -13,35 +13,33 @@ export function useChoroplethDisplay(
   choropleth: ChoroplethData,
   styleVersion: number,
 ): void {
-  const regionsRef = useRef<GeoJSON.FeatureCollection | null>(null);
+  const [regions, setRegions] = useState<GeoJSON.FeatureCollection | null>(null);
+  const tileLayerRef = useRef(choropleth.tileLayer);
 
   useEffect(() => {
-    if (!choropleth.enabled) return;
+    if (!choropleth.enabled) {
+      setRegions(null);
+      return;
+    }
+    tileLayerRef.current = choropleth.tileLayer;
     let dead = false;
     loadTileLayerGeoJSON(choropleth.tileLayer).then((geojson) => {
       if (dead) return;
-      regionsRef.current = geojson;
-      const map = mapRef.current;
-      if (!map) return;
-      const outlineSrc = map.getSource(CHOROPLETH_OUTLINE_SOURCE) as maplibregl.GeoJSONSource | undefined;
-      if (outlineSrc) outlineSrc.setData(geojson);
-      const src = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
-      if (src) src.setData(buildChoroplethGeoJSONFromData(geojson, choropleth));
+      setRegions(geojson);
     }).catch((err) => {
       console.error("Failed to load tile layer:", err);
     });
     return () => { dead = true; };
-  }, [choropleth.enabled, choropleth.tileLayer, mapRef]);
+  }, [choropleth.enabled, choropleth.tileLayer]);
 
   useEffect(() => {
     const map = mapRef.current;
-    if (!map) return;
-    const src = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
-    const outlineSrc = map.getSource(CHOROPLETH_OUTLINE_SOURCE) as maplibregl.GeoJSONSource | undefined;
-    if (!src) return;
-    if (choropleth.enabled && regionsRef.current) {
-      src.setData(buildChoroplethGeoJSONFromData(regionsRef.current, choropleth));
-      if (outlineSrc) outlineSrc.setData(regionsRef.current);
+    const src = map?.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
+    const outlineSrc = map?.getSource(CHOROPLETH_OUTLINE_SOURCE) as maplibregl.GeoJSONSource | undefined;
+    if (!map || !src) return;
+    if (choropleth.enabled && regions) {
+      src.setData(buildChoroplethGeoJSONFromData(regions, choropleth));
+      if (outlineSrc) outlineSrc.setData(regions);
       if (map.getLayer(CHOROPLETH_FILL)) {
         map.setPaintProperty(CHOROPLETH_FILL, "fill-opacity", choropleth.opacity);
       }
@@ -61,6 +59,5 @@ export function useChoroplethDisplay(
         map.setPaintProperty(CHOROPLETH_OUTLINE, "line-opacity", 0);
       }
     }
-  }, [mapRef, choropleth, styleVersion]);
-
+  }, [mapRef, choropleth, regions, styleVersion]);
 }

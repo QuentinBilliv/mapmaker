@@ -136,13 +136,15 @@ export async function loadTileLayerGeoJSON(layerId: TileLayerId): Promise<GeoJSO
   const raw: GeoJSON.FeatureCollection = await res.json();
   const result: GeoJSON.FeatureCollection = {
     type: "FeatureCollection",
-    features: raw.features.map((f) => {
-      let feature = config.enrichFeature ? config.enrichFeature(f) : f;
-      if (config.fixAntimeridian) {
-        feature = { ...feature, geometry: fixAntimeridian(feature.geometry) };
-      }
-      return feature;
-    }),
+    features: raw.features
+      .filter((f) => f.geometry != null)
+      .map((f) => {
+        let feature = config.enrichFeature ? config.enrichFeature(f) : f;
+        if (config.fixAntimeridian && feature.geometry) {
+          feature = { ...feature, geometry: fixAntimeridian(feature.geometry) };
+        }
+        return feature;
+      }),
   };
   cacheSet(layerId, result);
   return result;
