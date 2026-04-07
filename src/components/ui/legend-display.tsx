@@ -455,9 +455,9 @@ export function CreateEntryDialog({
                   <SliderField
                     value={size}
                     onChange={setSize}
-                    min={50}
+                    min={10}
                     max={300}
-                    step={25}
+                    step={5}
                     scale={100}
                   />
                 </Field>
@@ -691,7 +691,7 @@ export function EditEntryDialog({
                 <IconPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} selected={catalogIconId ?? undefined} onSelect={async (i) => { const svg = await resolveIconToSvg(i); if (svg) { onUpdate({ customSvg: svg, shape: "circle" }); setCatalogIconId(i); } }} />
               </Field>
               <Field label={`Size (${Math.round(entry.size * 100)}%)`}>
-                <SliderField value={entry.size} onChange={(v) => onUpdate({ size: v })} min={50} max={300} step={25} scale={100} />
+                <SliderField value={entry.size} onChange={(v) => onUpdate({ size: v })} min={10} max={300} step={5} scale={100} />
               </Field>
               {!entry.customSvg && (
                 <div className="flex gap-3">

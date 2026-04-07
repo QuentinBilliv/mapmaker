@@ -356,7 +356,7 @@ function PointFields() {
     <>
       <MarkerSelect />
       <Field label={`Size (${Math.round(size * 100)}%)`}>
-        <FormSlider name="size" min={50} max={300} step={25} scale={100} />
+        <FormSlider name="size" min={10} max={300} step={5} scale={100} />
       </Field>
       {!hasCustomIcon && (
         <div className="flex gap-3">
