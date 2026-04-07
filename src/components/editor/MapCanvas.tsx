@@ -86,7 +86,7 @@ export default function MapCanvas() {
   useFitBoundsListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
   useFeatureTooltip(mapRef, drawMode, styleVersion, selectedFeatureIds.length > 0);
-  useLegendHighlight(mapRef, styleVersion);
+  useLegendHighlight(mapRef, styleVersion, choropleth.opacity);
 
   return <div ref={containerRef} className="w-full h-full bg-black" />;
 }

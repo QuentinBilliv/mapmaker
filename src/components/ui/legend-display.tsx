@@ -146,9 +146,9 @@ export function LegendDisplay({
           {sortedChoropleth.length > 0 && (
             <>
               {sortedEntries.length > 0 && <div className="border-t my-1" />}
-              <div className="grid grid-cols-3">
+              <div className="grid grid-cols-3" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
                 {sortedChoropleth.map((cat) => (
-                  <div key={cat.id} className="flex flex-col items-center gap-0.5 px-2 py-1.5">
+                  <div key={cat.id} data-legend-id={cat.id} className="flex flex-col items-center gap-0.5 cursor-default rounded px-2 py-1.5 hover:ring-1 hover:ring-primary/40">
                     <div className="w-5 h-4 rounded-sm border border-black/10" style={{ backgroundColor: cat.color }} />
                     <span className="text-[10px] text-foreground text-center leading-tight break-words max-w-20">
                       {cat.label}
@@ -161,7 +161,12 @@ export function LegendDisplay({
           {choroplethGradient && (
             <>
               {(sortedEntries.length > 0 || sortedChoropleth.length > 0) && <div className="border-t my-1" />}
-              <div className="px-1 py-1">
+              <div
+                className="px-1 py-1 cursor-default rounded hover:ring-1 hover:ring-primary/40"
+                data-legend-id="__gradient__"
+                onMouseEnter={() => setHoveredLegendEntryId("__gradient__")}
+                onMouseLeave={() => setHoveredLegendEntryId(null)}
+              >
                 {choroplethGradient.label && (
                   <span className="text-[10px] text-foreground block mb-0.5">{choroplethGradient.label}</span>
                 )}

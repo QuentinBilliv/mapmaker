@@ -17,6 +17,7 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 import type { MapData, FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
 import { DEFAULT_CHOROPLETH } from "@/lib/types";
 import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
+import { choroplethLegendProps } from "@/lib/choropleth-legend";
 
 interface ReadOnlyMapViewProps {
   map: MapData;
@@ -77,7 +78,7 @@ function ReadOnlyMapViewInner({
   useFeatureRendering(mapRef, features, groups, 0, legendEntries);
   useChoroplethDisplay(mapRef, choropleth, 0);
   useFeatureTooltip(mapRef, "select", 0);
-  useLegendHighlight(mapRef, 0);
+  useLegendHighlight(mapRef, 0, choropleth.opacity);
 
   const [headerOpen, setHeaderOpen] = useState(false);
 
@@ -86,7 +87,7 @@ function ReadOnlyMapViewInner({
       <div ref={containerRef} className="flex-1" />
       <div className="absolute inset-0 pointer-events-none z-10">
         <div className="pointer-events-auto">
-          <LegendDisplay features={features} legendEntries={legendEntries} />
+          <LegendDisplay features={features} legendEntries={legendEntries} {...choroplethLegendProps(choropleth)} />
         </div>
       </div>
       <div className="absolute top-0 left-0 right-0 z-20 overflow-visible">

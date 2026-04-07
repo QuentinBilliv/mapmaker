@@ -197,6 +197,7 @@ export function buildChoroplethGeoJSON(
           properties: {
             ...f.properties,
             _color: cat.color,
+            _categoryId: cat.id,
             _tooltip_title: f.properties?.[config.nameProp] ?? id,
             _tooltip_desc: cat.label,
           },
@@ -237,6 +238,7 @@ export function buildGradientChoroplethGeoJSON(
           properties: {
             ...f.properties,
             _color: rgbToHex(r, g, b),
+            _categoryId: "__gradient__",
             _tooltip_title: f.properties?.[config.nameProp] ?? id,
             _tooltip_desc: String(values[id]),
           },

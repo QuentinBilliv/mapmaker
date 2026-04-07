@@ -18,6 +18,7 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
 import { DEFAULT_CHOROPLETH } from "@/lib/types";
 import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
+import { choroplethLegendProps } from "@/lib/choropleth-legend";
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const map = useQuery(api.maps.getMap, {
@@ -124,12 +125,12 @@ function EmbedMapView({
   useFeatureRendering(mapRef, features, groups, 0, legendEntries);
   useChoroplethDisplay(mapRef, choropleth, 0);
   useFeatureTooltip(mapRef, "select", 0);
-  useLegendHighlight(mapRef, 0);
+  useLegendHighlight(mapRef, 0, choropleth.opacity);
 
   return (
     <div className="w-full h-full relative">
       <div ref={containerRef} className="w-full h-full" />
-      <LegendDisplay features={features} legendEntries={legendEntries} />
+      <LegendDisplay features={features} legendEntries={legendEntries} {...choroplethLegendProps(choropleth)} />
       <a
         href={`/maps/${mapId}`}
         target="_blank"
