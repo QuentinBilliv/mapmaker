@@ -62,9 +62,9 @@ export function useLegendHighlight(
 
     if (!hoveredLegendEntryId) return;
 
-    const onRender = () => applyHighlight();
-    map.on("render", onRender);
-    return () => { map.off("render", onRender); };
+    const onStyleData = () => applyHighlight();
+    map.on("styledata", onStyleData);
+    return () => { map.off("styledata", onStyleData); };
   }, [mapRef, hoveredLegendEntryId, styleVersion, applyHighlight]);
 }
 

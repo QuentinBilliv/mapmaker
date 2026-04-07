@@ -265,12 +265,14 @@ function GradientContent({
   const [focusedIso, setFocusedIso] = useState<string | null>(null);
   const rowRefs = useRef<Record<string, HTMLDivElement | null>>({});
 
-  const config = getTileLayerConfig(choropleth.tileLayer);
   useEffect(() => {
+    const config = getTileLayerConfig(choropleth.tileLayer);
     loadTileLayerGeoJSON(choropleth.tileLayer).then((geojson) => {
       setAllCountries(getRegionList(geojson, config));
+    }).catch(() => {
+      toast.error("Failed to load regions");
     });
-  }, [choropleth.tileLayer, config]);
+  }, [choropleth.tileLayer]);
 
   useEffect(() => {
     const handler = (e: Event) => {
@@ -681,43 +683,42 @@ const SAMPLE_IDS: Record<TileLayerId, [string, string]> = {
   "russia-regions": ["Moscow Oblast", "Republic of Tatarstan"],
 };
 
-function ImportDialog({
+function ImportDialogBase({
   tileLayer,
+  title,
+  hint,
   onClose,
-  onImport,
+  parse,
 }: {
   tileLayer: TileLayerId;
+  title: string;
+  hint: React.ReactNode;
   onClose: () => void;
-  onImport: (data: { label: string; color: string; countries: string[] }[]) => void;
+  parse: (raw: string, validIds: Set<string>) => { ok: true; data: unknown; message: string } | { ok: false; error: string };
 }) {
   const [text, setText] = useState("");
   const [dragging, setDragging] = useState(false);
   const [countries, setCountries] = useState<RegionInfo[]>([]);
-  const config = getTileLayerConfig(tileLayer);
 
   useEffect(() => {
     loadTileLayerGeoJSON(tileLayer).then((geojson) => {
-      setCountries(getRegionList(geojson, config));
+      setCountries(getRegionList(geojson, getTileLayerConfig(tileLayer)));
+    }).catch(() => {
+      toast.error("Failed to load regions");
     });
-  }, [tileLayer, config]);
+  }, [tileLayer]);
 
   const validIsos = useMemo(() => new Set(countries.map((c) => c.id)), [countries]);
-  const samples = SAMPLE_IDS[tileLayer] ?? SAMPLE_IDS.countries;
 
   const processText = useCallback((raw: string) => {
-    const result = parseImportData(raw, validIsos);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    onImport(result.data);
+    const result = parse(raw, validIsos);
+    if (!result.ok) { toast.error(result.error); return null; }
     toast.success(result.message);
     onClose();
-  }, [validIsos, onImport, onClose]);
+    return result.data;
+  }, [validIsos, parse, onClose]);
 
-  const handleImport = useCallback(() => {
-    processText(text);
-  }, [text, processText]);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const validateFile = useCallback((file: File): boolean => {
     if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return false; }
@@ -740,56 +741,24 @@ function ImportDialog({
     readAndProcess(file);
   }, [validateFile, readAndProcess]);
 
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-  }, []);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !validateFile(file)) return;
-    readAndProcess(file);
-  }, [validateFile, readAndProcess]);
-
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-black/50" onClick={onClose} />
       <div className="relative bg-popover rounded-lg shadow-xl max-w-md w-full p-4 space-y-3">
         <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Import Choropleth</h3>
+          <h3 className="text-sm font-semibold">{title}</h3>
           <Button variant="ghost" size="icon-xs" onClick={onClose}>
             <FaXmark className="w-4 h-4" />
           </Button>
         </div>
-        <div className="text-xs text-muted-foreground space-y-1.5">
-          <p>Grouped format:</p>
-          <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
-{`[
-  { "label": "Group A", "color": "#3b82f6",
-    "countries": ["${samples[0]}", "${samples[1]}"] },
-  { "label": "Group B", "color": "#ef4444",
-    "countries": ["..."] }
-]`}
-          </pre>
-          <p>Or flat format (auto-groups by color):</p>
-          <pre className="bg-muted p-2 rounded text-[10px]">
-{`{ "${samples[0]}": "#3b82f6", "${samples[1]}": "#3b82f6" }`}
-          </pre>
-        </div>
+        <div className="text-xs text-muted-foreground space-y-1.5">{hint}</div>
         <div
           className={`flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed px-4 py-6 transition-colors cursor-pointer ${
             dragging ? "border-primary bg-primary/5" : "border-input hover:border-muted-foreground"
           }`}
           onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
+          onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+          onDragLeave={(e) => { e.preventDefault(); setDragging(false); }}
           onClick={() => fileInputRef.current?.click()}
         >
           <FaArrowUpFromBracket className="w-5 h-5 text-muted-foreground" />
@@ -798,7 +767,7 @@ function ImportDialog({
             ref={fileInputRef}
             type="file"
             accept=".json,.txt,application/json,text/plain"
-            onChange={handleFileSelect}
+            onChange={(e) => { const f = e.target.files?.[0]; if (f && validateFile(f)) readAndProcess(f); }}
             className="hidden"
           />
         </div>
@@ -814,11 +783,51 @@ function ImportDialog({
           className="w-full rounded-md border border-input bg-transparent px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-ring resize-none"
           placeholder="Paste JSON..."
         />
-        <Button size="sm" className="w-full text-xs" onClick={handleImport} disabled={!text.trim()}>
+        <Button size="sm" className="w-full text-xs" onClick={() => processText(text)} disabled={!text.trim()}>
           Import
         </Button>
       </div>
     </div>
+  );
+}
+
+function ImportDialog({
+  tileLayer,
+  onClose,
+  onImport,
+}: {
+  tileLayer: TileLayerId;
+  onClose: () => void;
+  onImport: (data: { label: string; color: string; countries: string[] }[]) => void;
+}) {
+  const samples = SAMPLE_IDS[tileLayer] ?? SAMPLE_IDS.countries;
+  const parse = useCallback((raw: string, validIds: Set<string>) => parseImportData(raw, validIds), []);
+  return (
+    <ImportDialogBase
+      tileLayer={tileLayer}
+      title="Import Choropleth"
+      onClose={onClose}
+      parse={(raw, validIds) => {
+        const result = parse(raw, validIds);
+        if (result.ok) onImport(result.data);
+        return result;
+      }}
+      hint={<>
+        <p>Grouped format:</p>
+        <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
+{`[
+  { "label": "Group A", "color": "#3b82f6",
+    "countries": ["${samples[0]}", "${samples[1]}"] },
+  { "label": "Group B", "color": "#ef4444",
+    "countries": ["..."] }
+]`}
+        </pre>
+        <p>Or flat format (auto-groups by color):</p>
+        <pre className="bg-muted p-2 rounded text-[10px]">
+{`{ "${samples[0]}": "#3b82f6", "${samples[1]}": "#3b82f6" }`}
+        </pre>
+      </>}
+    />
   );
 }
 
@@ -831,129 +840,28 @@ function GradientImportDialog({
   onClose: () => void;
   onImport: (data: Record<string, number>) => void;
 }) {
-  const [text, setText] = useState("");
-  const [dragging, setDragging] = useState(false);
-  const [countries, setCountries] = useState<RegionInfo[]>([]);
-  const config = getTileLayerConfig(tileLayer);
-
-  useEffect(() => {
-    loadTileLayerGeoJSON(tileLayer).then((geojson) => {
-      setCountries(getRegionList(geojson, config));
-    });
-  }, [tileLayer, config]);
-
-  const validIsos = useMemo(() => new Set(countries.map((c) => c.id)), [countries]);
   const samples = SAMPLE_IDS[tileLayer] ?? SAMPLE_IDS.countries;
-
-  const processText = useCallback((raw: string) => {
-    const result = parseGradientImportData(raw, validIsos);
-    if (!result.ok) {
-      toast.error(result.error);
-      return;
-    }
-    onImport(result.data);
-    toast.success(result.message);
-    onClose();
-  }, [validIsos, onImport, onClose]);
-
-  const handleImport = useCallback(() => {
-    processText(text);
-  }, [text, processText]);
-
-  const validateFile = useCallback((file: File): boolean => {
-    if (file.size > 5 * 1024 * 1024) { toast.error("File too large (max 5MB)"); return false; }
-    if (!file.name.endsWith(".json") && file.type !== "application/json" && !file.name.endsWith(".txt") && file.type !== "text/plain") { toast.error("Drop a .json or .txt file"); return false; }
-    return true;
-  }, []);
-
-  const readAndProcess = useCallback((file: File) => {
-    const reader = new FileReader();
-    reader.onload = () => { const c = reader.result as string; setText(c); processText(c); };
-    reader.onerror = () => toast.error("Failed to read file");
-    reader.readAsText(file);
-  }, [processText]);
-
-  const handleDrop = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-    const file = e.dataTransfer.files[0];
-    if (!file || !validateFile(file)) return;
-    readAndProcess(file);
-  }, [validateFile, readAndProcess]);
-
-  const handleDragOver = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(true);
-  }, []);
-
-  const handleDragLeave = useCallback((e: React.DragEvent) => {
-    e.preventDefault();
-    setDragging(false);
-  }, []);
-
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const handleFileSelect = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file || !validateFile(file)) return;
-    readAndProcess(file);
-  }, [validateFile, readAndProcess]);
-
+  const parse = useCallback((raw: string, validIds: Set<string>) => parseGradientImportData(raw, validIds), []);
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} />
-      <div className="relative bg-popover rounded-lg shadow-xl max-w-md w-full p-4 space-y-3">
-        <div className="flex items-center justify-between">
-          <h3 className="text-sm font-semibold">Import Gradient Values</h3>
-          <Button variant="ghost" size="icon-xs" onClick={onClose}>
-            <FaXmark className="w-4 h-4" />
-          </Button>
-        </div>
-        <div className="text-xs text-muted-foreground space-y-1.5">
-          <p>Map region IDs to numeric values:</p>
-          <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
+    <ImportDialogBase
+      tileLayer={tileLayer}
+      title="Import Gradient Values"
+      onClose={onClose}
+      parse={(raw, validIds) => {
+        const result = parse(raw, validIds);
+        if (result.ok) onImport(result.data);
+        return result;
+      }}
+      hint={<>
+        <p>Map region IDs to numeric values:</p>
+        <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
 {`{
   "${samples[0]}": 0.9764,
   "${samples[1]}": 0.2264,
   "...": 0.333
 }`}
-          </pre>
-        </div>
-        <div
-          className={`flex flex-col items-center justify-center gap-2 rounded-md border-2 border-dashed px-4 py-6 transition-colors cursor-pointer ${
-            dragging ? "border-primary bg-primary/5" : "border-input hover:border-muted-foreground"
-          }`}
-          onDrop={handleDrop}
-          onDragOver={handleDragOver}
-          onDragLeave={handleDragLeave}
-          onClick={() => fileInputRef.current?.click()}
-        >
-          <FaArrowUpFromBracket className="w-5 h-5 text-muted-foreground" />
-          <span className="text-xs text-muted-foreground">Drop a .json file or click to browse</span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".json,.txt,application/json,text/plain"
-            onChange={handleFileSelect}
-            className="hidden"
-          />
-        </div>
-        <div className="flex items-center gap-3">
-          <div className="flex-1 border-t border-input" />
-          <span className="text-xs text-muted-foreground">OR</span>
-          <div className="flex-1 border-t border-input" />
-        </div>
-        <textarea
-          value={text}
-          onChange={(e) => setText(e.target.value)}
-          rows={5}
-          className="w-full rounded-md border border-input bg-transparent px-2 py-1.5 text-xs font-mono focus:outline-none focus:ring-1 focus:ring-ring resize-none"
-          placeholder="Paste JSON..."
-        />
-        <Button size="sm" className="w-full text-xs" onClick={handleImport} disabled={!text.trim()}>
-          Import
-        </Button>
-      </div>
-    </div>
+        </pre>
+      </>}
+    />
   );
 }

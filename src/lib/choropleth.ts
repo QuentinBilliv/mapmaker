@@ -215,8 +215,8 @@ export function buildGradientChoroplethGeoJSON(
   const ids = Object.keys(values);
   if (ids.length === 0) return { type: "FeatureCollection", features: [] };
   const nums = Object.values(values);
-  const min = Math.min(...nums);
-  const max = Math.max(...nums);
+  let min = Infinity, max = -Infinity;
+  for (const n of nums) { if (n < min) min = n; if (n > max) max = n; }
   const range = max - min || 1;
   const [startR, startG, startB] = hexToRgb(gradientColors[0]);
   const [endR, endG, endB] = hexToRgb(gradientColors[1]);
