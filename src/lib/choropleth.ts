@@ -37,7 +37,7 @@ export const TILE_LAYERS: TileLayerConfig[] = [
     id: "countries",
     label: "Countries",
     file: "/geo/countries-50m.geojson",
-    idProp: "iso_a3",
+    idProp: "name",
     nameProp: "name",
     fixAntimeridian: true,
   },

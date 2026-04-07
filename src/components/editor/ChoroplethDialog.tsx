@@ -671,7 +671,7 @@ function parseGradientImportData(
 }
 
 const SAMPLE_IDS: Record<TileLayerId, [string, string]> = {
-  countries: ["FRA", "DEU"],
+  countries: ["France", "Germany"],
   "us-states": ["CA", "NY"],
   "canada-provinces": ["QC", "ON"],
   "france-departements": ["75", "13"],

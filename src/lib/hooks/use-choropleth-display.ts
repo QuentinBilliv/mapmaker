@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
 import { loadTileLayerGeoJSON, buildChoroplethGeoJSONFromData } from "@/lib/choropleth";
@@ -32,16 +32,15 @@ export function useChoroplethDisplay(
     return () => { dead = true; };
   }, [choropleth.enabled, choropleth.tileLayer]);
 
-  useEffect(() => {
-    const map = mapRef.current;
-    const src = map?.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
-    const outlineSrc = map?.getSource(CHOROPLETH_OUTLINE_SOURCE) as maplibregl.GeoJSONSource | undefined;
-    if (!map || !src) return;
-    if (choropleth.enabled && regions) {
-      src.setData(buildChoroplethGeoJSONFromData(regions, choropleth));
-      if (outlineSrc) outlineSrc.setData(regions);
+  const applyToMap = useCallback((map: maplibregl.Map, data: GeoJSON.FeatureCollection | null, choro: ChoroplethData) => {
+    const src = map.getSource(CHOROPLETH_SOURCE) as maplibregl.GeoJSONSource | undefined;
+    const outlineSrc = map.getSource(CHOROPLETH_OUTLINE_SOURCE) as maplibregl.GeoJSONSource | undefined;
+    if (!src) return false;
+    if (choro.enabled && data) {
+      src.setData(buildChoroplethGeoJSONFromData(data, choro));
+      if (outlineSrc) outlineSrc.setData(data);
       if (map.getLayer(CHOROPLETH_FILL)) {
-        map.setPaintProperty(CHOROPLETH_FILL, "fill-opacity", choropleth.opacity);
+        map.setPaintProperty(CHOROPLETH_FILL, "fill-opacity", choro.opacity);
       }
       if (map.getLayer(CHOROPLETH_BORDER)) {
         map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", 0.4);
@@ -59,5 +58,15 @@ export function useChoroplethDisplay(
         map.setPaintProperty(CHOROPLETH_OUTLINE, "line-opacity", 0);
       }
     }
-  }, [mapRef, choropleth, regions, styleVersion]);
+    return true;
+  }, []);
+
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+    if (applyToMap(map, regions, choropleth)) return;
+    const onIdle = () => { applyToMap(map, regions, choropleth); };
+    map.once("idle", onIdle);
+    return () => { map.off("idle", onIdle); };
+  }, [mapRef, choropleth, regions, styleVersion, applyToMap]);
 }
