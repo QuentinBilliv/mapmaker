@@ -159,8 +159,8 @@ const FEATURES = [
   },
   {
     icon: FaLayerGroup,
-    title: "Layers and groups",
-    desc: "Organize features into layers and groups. Reorder with drag & drop. Collapse for a clean workspace.",
+    title: "Groups",
+    desc: "Organize features into groups. Reorder with drag & drop. Collapse for a clean workspace.",
   },
   {
     icon: FaShapes,

@@ -56,7 +56,6 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     description: f.description ?? "",
     color: f.color,
     opacity: f.opacity,
-    layerId: f.layerId,
     size: 1,
     shape: "circle",
     customSvg: undefined,
@@ -224,7 +223,6 @@ export default function FeatureForm() {
         textBorderEnabled: isText ? (v.textBorderWidth ?? 0) > 0 : undefined,
         textBorderColor: isText ? v.textBorderColor : undefined,
         textBorderWidth: isText ? v.textBorderWidth : undefined,
-        layerId: v.layerId,
       });
     });
     return () => sub.unsubscribe();

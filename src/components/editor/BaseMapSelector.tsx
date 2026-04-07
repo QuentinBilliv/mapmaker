@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useDrawingState, useEditorActions } from "@/lib/editor-context";
-import { BASE_MAPS } from "@/lib/map-style";
+import { BASE_MAPS, findBaseMap } from "@/lib/map-style";
 import { Button } from "@/components/ui/button";
 import { FaMap, FaGlobe } from "react-icons/fa6";
 
@@ -24,8 +24,7 @@ export default function BaseMapSelector() {
   }
 
   function handleBaseMapChange(id: string) {
-    const bm = BASE_MAPS.find((b) => b.id === id);
-    if (bm) setActiveBaseMap(bm);
+    setActiveBaseMap(findBaseMap(id));
   }
 
   return (

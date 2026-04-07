@@ -8,13 +8,6 @@ export interface MapData {
   zoom: number;
 }
 
-export interface LayerData {
-  id: string;
-  name: string;
-  visible: boolean;
-  order: number;
-}
-
 export type PointShape = "circle" | "triangle" | "square" | "diamond" | "star" | "cross" | "pentagon" | "hexagon";
 
 export const POINT_SHAPES: { value: PointShape; label: string }[] = [
@@ -74,10 +67,47 @@ export type ShapeOrigin = "rectangle" | "circle";
 export type TextFont = "sans" | "serif" | "mono";
 
 export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] = [
-  { value: "sans", label: "Sans-serif", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
-  { value: "serif", label: "Serif", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
-  { value: "mono", label: "Monospace", stack: ["Open Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "sans", label: "Sans-serif", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "serif", label: "Serif", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "mono", label: "Monospace", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
 ];
+
+export interface ChoroplethCategory {
+  id: string;
+  color: string;
+  label: string;
+  order: number;
+}
+
+export type ChoroplethMode = "discrete" | "gradient";
+
+export type TileLayerId = "countries" | "us-states" | "canada-provinces" | "france-departements" | "eu-nuts2" | "china-provinces" | "india-states" | "russia-regions";
+
+export interface ChoroplethData {
+  enabled: boolean;
+  tileLayer: TileLayerId;
+  mode: ChoroplethMode;
+  categories: ChoroplethCategory[];
+  assignments: Record<string, string>;
+  gradientColors: [string, string];
+  gradientLabel: string;
+  values: Record<string, number>;
+  opacity: number;
+  activeCategoryId: string | null;
+}
+
+export const DEFAULT_CHOROPLETH: ChoroplethData = {
+  enabled: false,
+  tileLayer: "countries",
+  mode: "discrete",
+  categories: [],
+  assignments: {},
+  gradientColors: ["#22c55e", "#3b82f6"],
+  gradientLabel: "",
+  values: {},
+  opacity: 0.7,
+  activeCategoryId: null,
+};
 
 export interface GroupData {
   id: string;
@@ -140,7 +170,6 @@ export type NewLegendEntry = Omit<PointLegendEntry, "id" | "order"> | Omit<Polyl
 
 interface FeatureBase {
   id: string;
-  layerId: string;
   label: string;
   description: string;
   color: string;

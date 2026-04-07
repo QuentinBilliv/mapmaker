@@ -232,6 +232,7 @@ export const saveMap = mutation({
     features: v.optional(v.any()),
     groups: v.optional(v.any()),
     legendEntries: v.optional(v.any()),
+    choropleth: v.optional(v.any()),
   },
   handler: async (ctx, args) => {
     validateMapMetadata(args);
@@ -263,6 +264,7 @@ export const saveMap = mutation({
       features: isFileMode ? undefined : args.features,
       groups: isFileMode ? undefined : args.groups,
       legendEntries: isFileMode ? undefined : args.legendEntries,
+      choropleth: isFileMode ? undefined : args.choropleth,
       ownerName,
       searchText: buildSearchText(args.title, args.tags, ownerName),
       updatedAt: Date.now(),

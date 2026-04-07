@@ -29,6 +29,7 @@ import type {
   LineDecoration,
   FillPattern,
   TextFont,
+  ChoroplethCategory,
 } from "@/lib/types";
 import {
   POINT_SHAPES,
@@ -48,15 +49,31 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+interface ChoroplethGradientInfo {
+  colors: [string, string];
+  label: string;
+  min: number;
+  max: number;
+}
+
 interface LegendDisplayProps {
   features: FeatureData[];
   legendEntries?: LegendEntry[];
+  choroplethCategories?: ChoroplethCategory[];
+  choroplethGradient?: ChoroplethGradientInfo;
   onAdd?: (entry: NewLegendEntry) => void;
   alwaysShow?: boolean;
 }
 
+function formatGradientValue(v: number): string {
+  if (Number.isInteger(v)) return v.toString();
+  return v.toFixed(v < 10 ? 2 : 1);
+}
+
 export function LegendDisplay({
   legendEntries = [],
+  choroplethCategories = [],
+  choroplethGradient,
   onAdd,
   alwaysShow,
 }: LegendDisplayProps) {
@@ -74,7 +91,8 @@ export function LegendDisplay({
   }, [setHoveredLegendEntryId]);
 
   const sortedEntries = [...legendEntries].sort((a, b) => a.order - b.order);
-  const hasItems = sortedEntries.length > 0;
+  const sortedChoropleth = [...choroplethCategories].sort((a, b) => a.order - b.order);
+  const hasItems = sortedEntries.length > 0 || sortedChoropleth.length > 0 || !!choroplethGradient;
 
   if (!hasItems && !alwaysShow) return null;
 
@@ -104,7 +122,7 @@ export function LegendDisplay({
               </button>
             </div>
           </div>
-          {hasItems ? (
+          {sortedEntries.length > 0 && (
             <div className="grid grid-cols-3" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
               {sortedEntries.map((entry) => {
                 const synthetic = legendEntryToSyntheticFeature(entry);
@@ -124,7 +142,46 @@ export function LegendDisplay({
                 );
               })}
             </div>
-          ) : (
+          )}
+          {sortedChoropleth.length > 0 && (
+            <>
+              {sortedEntries.length > 0 && <div className="border-t my-1" />}
+              <div className="grid grid-cols-3" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
+                {sortedChoropleth.map((cat) => (
+                  <div key={cat.id} data-legend-id={cat.id} className="flex flex-col items-center gap-0.5 cursor-default rounded px-2 py-1.5 hover:ring-1 hover:ring-primary/40">
+                    <div className="w-5 h-4 rounded-sm border border-black/10" style={{ backgroundColor: cat.color }} />
+                    <span className="text-[10px] text-foreground text-center leading-tight break-words max-w-20">
+                      {cat.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+          {choroplethGradient && (
+            <>
+              {(sortedEntries.length > 0 || sortedChoropleth.length > 0) && <div className="border-t my-1" />}
+              <div
+                className="px-1 py-1 cursor-default rounded hover:ring-1 hover:ring-primary/40"
+                data-legend-id="__gradient__"
+                onMouseEnter={() => setHoveredLegendEntryId("__gradient__")}
+                onMouseLeave={() => setHoveredLegendEntryId(null)}
+              >
+                {choroplethGradient.label && (
+                  <span className="text-[10px] text-foreground block mb-0.5">{choroplethGradient.label}</span>
+                )}
+                <div
+                  className="h-3 rounded-sm border border-black/10"
+                  style={{ background: `linear-gradient(to right, ${choroplethGradient.colors[0]}, ${choroplethGradient.colors[1]})` }}
+                />
+                <div className="flex justify-between mt-0.5">
+                  <span className="text-[9px] text-muted-foreground">{formatGradientValue(choroplethGradient.min)}</span>
+                  <span className="text-[9px] text-muted-foreground">{formatGradientValue(choroplethGradient.max)}</span>
+                </div>
+              </div>
+            </>
+          )}
+          {!hasItems && (
             <p className="text-[10px] text-muted-foreground text-center py-2">
               No legend entries yet. Click + to add one.
             </p>

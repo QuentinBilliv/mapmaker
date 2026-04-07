@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import { ZF } from "./use-feature-rendering";
+import { ZF, CHOROPLETH_FILL } from "./use-feature-rendering";
 
 export function useFeatureTooltip(
   mapRef: React.RefObject<maplibregl.Map | null>,
@@ -30,23 +30,31 @@ export function useFeatureTooltip(
         return;
       }
 
-      const layers = (map.getStyle().layers ?? [])
+      const featureLayers = (map.getStyle().layers ?? [])
         .filter((l) => l.id.startsWith(ZF))
         .map((l) => l.id);
-      if (layers.length === 0) { popup.remove(); return; }
 
-      const hits = map.queryRenderedFeatures(e.point, { layers });
-      if (hits.length === 0) {
-        popup.remove();
-        map.getCanvas().style.cursor = "";
-        return;
+      let label = "";
+      let description = "";
+
+      if (featureLayers.length > 0) {
+        const hits = map.queryRenderedFeatures(e.point, { layers: featureLayers });
+        if (hits.length > 0) {
+          label = hits[0].properties?.label || "";
+          description = hits[0].properties?.description || "";
+        }
       }
 
-      const props = hits[0].properties;
-      const label = props?.label || "";
-      const description = props?.description || "";
+      if (!label && !description && map.getLayer(CHOROPLETH_FILL)) {
+        const choroHits = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL] });
+        if (choroHits.length > 0) {
+          label = choroHits[0].properties?._tooltip_title || "";
+          description = choroHits[0].properties?._tooltip_desc || "";
+        }
+      }
       if (!label && !description) {
         popup.remove();
+        map.getCanvas().style.cursor = "";
         return;
       }
 

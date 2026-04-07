@@ -8,20 +8,23 @@ import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
-import { BASE_MAPS } from "@/lib/map-style";
+import { findBaseMap } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { MapData, FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
+import { DEFAULT_CHOROPLETH } from "@/lib/types";
+import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
+import { choroplethLegendProps } from "@/lib/choropleth-legend";
 
 interface ReadOnlyMapViewProps {
   map: MapData;
-  layers: LayerData[];
   features: FeatureData[];
   groups: GroupData[];
   legendEntries?: LegendEntry[];
+  choropleth?: ChoroplethData;
   baseMapId: string;
   editHref?: string;
 }
@@ -36,17 +39,17 @@ export default function ReadOnlyMapView(props: ReadOnlyMapViewProps) {
 
 function ReadOnlyMapViewInner({
   map: mapData,
-  layers,
   features,
   groups,
   legendEntries = [],
+  choropleth = DEFAULT_CHOROPLETH,
   baseMapId,
   editHref,
 }: ReadOnlyMapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
 
-  const baseMap = BASE_MAPS.find((b) => b.id === baseMapId) ?? BASE_MAPS[0];
+  const baseMap = findBaseMap(baseMapId);
   const isDefaultView = mapData.center[0] === DEFAULT_CENTER[0] && mapData.center[1] === DEFAULT_CENTER[1] && mapData.zoom === DEFAULT_ZOOM;
   const bounds = useMemo(() => isDefaultView ? computeFeaturesBounds(features) : null, [features, isDefaultView]);
 
@@ -72,9 +75,10 @@ function ReadOnlyMapViewInner({
     };
   }, [baseMap.style]);
 
-  useFeatureRendering(mapRef, features, layers, groups, 0, legendEntries);
+  useFeatureRendering(mapRef, features, groups, 0, legendEntries);
+  useChoroplethDisplay(mapRef, choropleth, 0);
   useFeatureTooltip(mapRef, "select", 0);
-  useLegendHighlight(mapRef, 0);
+  useLegendHighlight(mapRef, 0, choropleth.opacity);
 
   const [headerOpen, setHeaderOpen] = useState(false);
 
@@ -83,7 +87,7 @@ function ReadOnlyMapViewInner({
       <div ref={containerRef} className="flex-1" />
       <div className="absolute inset-0 pointer-events-none z-10">
         <div className="pointer-events-auto">
-          <LegendDisplay features={features} legendEntries={legendEntries} />
+          <LegendDisplay features={features} legendEntries={legendEntries} {...choroplethLegendProps(choropleth)} />
         </div>
       </div>
       <div className="absolute top-0 left-0 right-0 z-20 overflow-visible">

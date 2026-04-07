@@ -6,7 +6,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import ReadOnlyMapView from "@/components/maps/ReadOnlyMapView";
 import { toMapData } from "@/lib/convex-mapdata";
-import type { LayerData, FeatureData, GroupData, LegendEntry } from "@/lib/types";
+import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
 
 function useIsOwner(map: { ownerId?: string } | null | undefined): boolean {
   const me = useQuery(api.users.getMe);
@@ -32,10 +32,10 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
   const hasInlineData = map && "features" in map && map.features != null;
 
   const [fileData, setFileData] = useState<{
-    layers: LayerData[];
     features: FeatureData[];
     groups: GroupData[];
     legendEntries?: LegendEntry[];
+    choropleth?: ChoroplethData;
   } | null>(null);
   const hasFetchedRef = useRef(false);
 
@@ -60,8 +60,9 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
     );
   }
 
+  const raw = map as Record<string, unknown>;
   const data = hasInlineData
-    ? { layers: map.layers!, features: map.features!, groups: map.groups!, legendEntries: (map as Record<string, unknown>).legendEntries as LegendEntry[] ?? [] }
+    ? { features: map.features!, groups: map.groups!, legendEntries: raw.legendEntries as LegendEntry[] ?? [], choropleth: raw.choropleth as ChoroplethData | undefined }
     : fileData;
 
   if (!data) return <Loading />;
@@ -73,10 +74,10 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
       </div>
       <ReadOnlyMapView
         map={toMapData(map)}
-        layers={data.layers}
         features={data.features}
         groups={data.groups}
         legendEntries={data.legendEntries ?? []}
+        choropleth={data.choropleth}
         baseMapId={map.baseMapId}
         editHref={isOwner ? `/maps/${params.id}/edit` : undefined}
       />

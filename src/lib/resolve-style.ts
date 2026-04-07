@@ -68,7 +68,6 @@ export function deduceLegendEntry(feature: FeatureData, label: string): Omit<Poi
 export function legendEntryToSyntheticFeature(entry: LegendEntry): FeatureData {
   const base = {
     id: entry.id,
-    layerId: "default",
     label: entry.label,
     description: "",
     color: entry.color,

@@ -8,10 +8,10 @@ import type { StoredMapState } from "../editor-context";
 import { toMapData } from "../convex-mapdata";
 
 interface MapFileData {
-  layers: StoredMapState["layers"];
   features: StoredMapState["features"];
   groups: StoredMapState["groups"];
   legendEntries: StoredMapState["legendEntries"];
+  choropleth?: StoredMapState["choropleth"];
 }
 
 export function useConvexPersistence(mapId: string) {
@@ -44,10 +44,11 @@ export function useConvexPersistence(mapId: string) {
     const map = toMapData(convexMap);
     const baseMapId = convexMap.baseMapId;
     if (hasInlineData) {
-      return { map, layers: convexMap.layers, features: convexMap.features, groups: convexMap.groups, legendEntries: (convexMap as Record<string, unknown>).legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId };
+      const raw = convexMap as Record<string, unknown>;
+      return { map, features: convexMap.features, groups: convexMap.groups, legendEntries: raw.legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId, choropleth: raw.choropleth as StoredMapState["choropleth"] };
     }
     if (fileData) {
-      return { map, layers: fileData.layers, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId };
+      return { map, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId, choropleth: fileData.choropleth };
     }
     return null;
   })();
@@ -62,7 +63,7 @@ export function useConvexPersistence(mapId: string) {
       clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(async () => {
         try {
-          const payload = JSON.stringify({ layers: state.layers, features: state.features, groups: state.groups, legendEntries: state.legendEntries });
+          const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: state.choropleth });
           const payloadSize = new Blob([payload]).size;
           const metadata = {
             mapId: mapId as Id<"maps">,
@@ -78,10 +79,10 @@ export function useConvexPersistence(mapId: string) {
           if (payloadSize < INLINE_THRESHOLD) {
             await saveMapMutation({
               ...metadata,
-              layers: state.layers,
               features: state.features,
               groups: state.groups,
               legendEntries: state.legendEntries,
+              choropleth: state.choropleth,
             });
           } else {
             uploadAbortRef.current?.abort();

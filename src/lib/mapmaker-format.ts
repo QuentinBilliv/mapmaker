@@ -1,6 +1,7 @@
 import { z } from "zod";
-import type { MapData, LayerData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature } from "./types";
-import { BASE_MAPS } from "./map-style";
+import type { MapData, FeatureData, GroupData, LegendEntry, PointLegendEntry, PolygonFeature, PolylineFeature, PointFeature, TextFeature, ChoroplethData, ChoroplethCategory } from "./types";
+import { DEFAULT_CHOROPLETH } from "./types";
+import { findBaseMap } from "./map-style";
 import { geometryTypeToFeatureType } from "./geojson";
 import { sanitizeSvg } from "./svg-sanitizer";
 
@@ -133,6 +134,24 @@ const mapmakerMeta = z.object({
     zoom: z.number().min(0).max(22).default(1),
   }),
   baseMap: z.string().max(100).default("osm"),
+  choropleth: z.object({
+    enabled: z.boolean().default(false),
+    tileLayer: z.enum(["countries", "us-states", "canada-provinces", "france-departements", "eu-nuts2", "china-provinces", "india-states", "russia-regions"]).default("countries"),
+    mode: z.enum(["discrete", "gradient"]).default("discrete"),
+    categories: z.array(z.object({
+      id: z.string().max(100),
+      color: z.string().max(30),
+      label: z.string().max(200),
+      order: z.number().int().min(0).max(1000),
+    })).default([]),
+    assignments: z.record(z.string(), z.string()).default({}),
+    gradientColors: z.tuple([z.string().max(30), z.string().max(30)]).default(["#22c55e", "#3b82f6"]),
+    gradientLabel: z.string().max(200).default(""),
+    values: z.record(z.string(), z.number()).default({}),
+    opacity: z.number().min(0).max(1).default(0.7),
+    entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).optional(),
+    activeColor: z.string().max(30).optional(),
+  }).default({ enabled: false, tileLayer: "countries", mode: "discrete", categories: [], assignments: {}, gradientColors: ["#22c55e", "#3b82f6"], gradientLabel: "", values: {}, opacity: 0.7 }),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
   legendEntries: z.array(legendEntrySchema).max(1000).default([]),
@@ -146,11 +165,11 @@ const documentSchema = z.object({
 
 export function serialize(
   map: MapData,
-  layers: LayerData[],
   features: FeatureData[],
   baseMapId: string,
   groups: GroupData[] = [],
-  legendEntries: LegendEntry[] = []
+  legendEntries: LegendEntry[] = [],
+  choropleth: ChoroplethData = DEFAULT_CHOROPLETH,
 ): string {
   const doc = {
     type: "FeatureCollection" as const,
@@ -165,7 +184,18 @@ export function serialize(
         zoom: map.zoom,
       },
       baseMap: baseMapId,
-      layers: layers.map(({ id, name, visible, order }) => ({ id, name, visible, order })),
+      choropleth: {
+        enabled: choropleth.enabled,
+        tileLayer: choropleth.tileLayer,
+        mode: choropleth.mode,
+        categories: choropleth.categories.map(({ id, color, label, order }) => ({ id, color, label, order })),
+        assignments: choropleth.assignments,
+        gradientColors: choropleth.gradientColors,
+        gradientLabel: choropleth.gradientLabel,
+        values: choropleth.values,
+        opacity: choropleth.opacity,
+      },
+      layers: [{ id: "default", name: "Main layer", visible: true, order: 0 }],
       groups: groups.map(({ id, label, order }) => ({ id, label, order })),
       legendEntries: legendEntries.map((e) => ({ ...e })),
     },
@@ -173,7 +203,7 @@ export function serialize(
       const hasEntry = !!f.legendEntryId;
       const props: Record<string, unknown> = {
         "mapmaker:type": f.type,
-        "mapmaker:layerId": f.layerId,
+        "mapmaker:layerId": "default",
         "mapmaker:label": f.label,
         "mapmaker:description": f.description,
         "mapmaker:order": f.order,
@@ -237,7 +267,7 @@ type FeatureWithoutId =
 export interface DeserializedMap {
   map: Omit<MapData, "id">;
   baseMapId: string;
-  layers: LayerData[];
+  choropleth: ChoroplethData;
   features: FeatureWithoutId[];
   groups: GroupData[];
   legendEntries: LegendEntry[];
@@ -254,8 +284,7 @@ export function deserialize(raw: string): DeserializedMap {
 
   const result = documentSchema.parse(parsed);
 
-  const validLayerIds = new Set(result.mapmaker.layers.map((l) => l.id));
-  const knownBaseMap = BASE_MAPS.find((b) => b.id === result.mapmaker.baseMap);
+  const knownBaseMap = findBaseMap(result.mapmaker.baseMap);
 
   const pendingIconMigrations: { featureIndex: number; iconId: string }[] = [];
 
@@ -265,7 +294,6 @@ export function deserialize(raw: string): DeserializedMap {
     const geoType = geometryTypeToFeatureType(f.geometry.type);
     const typeMatches = declaredType === "text" ? geoType === "point" : geoType === declaredType;
     if (!typeMatches) return [];
-    if (!validLayerIds.has(p["mapmaker:layerId"])) return [];
 
     let customSvg = p["mapmaker:customSvg"];
     if (customSvg) {
@@ -277,7 +305,6 @@ export function deserialize(raw: string): DeserializedMap {
     }
 
     const base = {
-      layerId: p["mapmaker:layerId"],
       label: p["mapmaker:label"],
       description: p["mapmaker:description"] ?? "",
       color: p["mapmaker:color"],
@@ -303,6 +330,52 @@ export function deserialize(raw: string): DeserializedMap {
     }
   });
 
+  const rawChoropleth = result.mapmaker.choropleth;
+  let choropleth: ChoroplethData;
+  const tileLayer = (rawChoropleth.tileLayer ?? "countries") as ChoroplethData["tileLayer"];
+  if (rawChoropleth.categories && rawChoropleth.categories.length > 0) {
+    choropleth = {
+      enabled: rawChoropleth.enabled,
+      tileLayer,
+      mode: rawChoropleth.mode ?? "discrete",
+      categories: rawChoropleth.categories as ChoroplethCategory[],
+      assignments: rawChoropleth.assignments ?? {},
+      gradientColors: (rawChoropleth.gradientColors as [string, string]) ?? ["#22c55e", "#3b82f6"],
+      gradientLabel: (rawChoropleth.gradientLabel as string) ?? "",
+      values: (rawChoropleth.values as Record<string, number>) ?? {},
+      opacity: rawChoropleth.opacity,
+      activeCategoryId: null,
+    };
+  } else if (rawChoropleth.mode === "gradient" && rawChoropleth.values && Object.keys(rawChoropleth.values).length > 0) {
+    choropleth = {
+      enabled: rawChoropleth.enabled,
+      tileLayer,
+      mode: "gradient",
+      categories: [],
+      assignments: {},
+      gradientColors: (rawChoropleth.gradientColors as [string, string]) ?? ["#22c55e", "#3b82f6"],
+      gradientLabel: (rawChoropleth.gradientLabel as string) ?? "",
+      values: (rawChoropleth.values as Record<string, number>) ?? {},
+      opacity: rawChoropleth.opacity,
+      activeCategoryId: null,
+    };
+  } else if (rawChoropleth.entries && Object.keys(rawChoropleth.entries).length > 0) {
+    choropleth = migrateLegacyChoropleth(rawChoropleth);
+  } else {
+    choropleth = {
+      enabled: rawChoropleth.enabled,
+      tileLayer,
+      mode: rawChoropleth.mode ?? "discrete",
+      categories: [],
+      assignments: {},
+      gradientColors: (rawChoropleth.gradientColors as [string, string]) ?? ["#22c55e", "#3b82f6"],
+      gradientLabel: (rawChoropleth.gradientLabel as string) ?? "",
+      values: (rawChoropleth.values as Record<string, number>) ?? {},
+      opacity: rawChoropleth.opacity,
+      activeCategoryId: null,
+    };
+  }
+
   return {
     map: {
       title: result.mapmaker.map.title,
@@ -312,12 +385,42 @@ export function deserialize(raw: string): DeserializedMap {
       center: result.mapmaker.map.center,
       zoom: result.mapmaker.map.zoom,
     },
-    baseMapId: knownBaseMap?.id ?? "osm",
-    layers: result.mapmaker.layers,
+    baseMapId: knownBaseMap.id,
+    choropleth,
     features,
     groups: result.mapmaker.groups,
     legendEntries: (result.mapmaker.legendEntries ?? []) as LegendEntry[],
     pendingIconMigrations,
+  };
+}
+
+function migrateLegacyChoropleth(raw: { enabled: boolean; entries?: Record<string, { color: string; name: string }>; opacity: number }): ChoroplethData {
+  const entries = raw.entries ?? {};
+  const byColor = new Map<string, string[]>();
+  for (const [iso, entry] of Object.entries(entries)) {
+    if (!byColor.has(entry.color)) byColor.set(entry.color, []);
+    byColor.get(entry.color)!.push(iso);
+  }
+  const categories: ChoroplethCategory[] = [];
+  const assignments: Record<string, string> = {};
+  let order = 0;
+  byColor.forEach((isos, color) => {
+    const id = `migrated-${order}`;
+    categories.push({ id, color, label: `Category ${order + 1}`, order });
+    for (const iso of isos) assignments[iso] = id;
+    order++;
+  });
+  return {
+    enabled: raw.enabled,
+    tileLayer: "countries",
+    mode: "discrete",
+    categories,
+    assignments,
+    gradientColors: ["#22c55e", "#3b82f6"] as [string, string],
+    gradientLabel: "",
+    values: {},
+    opacity: raw.opacity,
+    activeCategoryId: null,
   };
 }
 

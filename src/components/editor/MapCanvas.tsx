@@ -11,13 +11,14 @@ import { useShapeEditing } from "@/lib/hooks/use-shape-editing";
 import { useGroupEditing } from "@/lib/hooks/use-group-editing";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
+import { useChoropleth } from "@/lib/hooks/use-choropleth";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 
 export default function MapCanvas() {
-  const { map, features, layers, groups, legendEntries, selectedFeatureIds, selectedFeature } = useEditorData();
+  const { map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, choropleth, choroplethMode } = useEditorData();
   const { drawMode, activeBaseMap } = useDrawingState();
-  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup } = useEditorActions();
+  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup, assignCountryToCategory, unassignCountry } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDefaultView = map.center[0] === DEFAULT_CENTER[0] && map.center[1] === DEFAULT_CENTER[1] && map.zoom === DEFAULT_ZOOM;
@@ -28,9 +29,12 @@ export default function MapCanvas() {
   selectedFeatureIdsRef.current = selectedFeatureIds;
   const featuresRef = useRef(features);
   featuresRef.current = features;
+  const choroplethModeRef = useRef(choroplethMode);
+  choroplethModeRef.current = choroplethMode;
 
   const onFeatureClick = useCallback(
     (id: string, shiftKey: boolean) => {
+      if (choroplethModeRef.current) return;
       if (shiftKey) {
         const current = selectedFeatureIdsRef.current;
         if (current.includes(id)) {
@@ -51,7 +55,8 @@ export default function MapCanvas() {
     [selectFeature, selectFeatures]
   );
 
-  useFeatureRendering(mapRef, features, layers, groups, styleVersion, legendEntries);
+  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries);
+  const choroplethInteractingRef = useChoropleth(mapRef, choropleth, styleVersion, assignCountryToCategory, unassignCountry, drawMode);
 
   const selectedGroupId = useMemo(() => {
     if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;
@@ -71,9 +76,9 @@ export default function MapCanvas() {
   const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
   const groupInteractingRef = useGroupEditing(mapRef, selectedGroupId, groupMembers, moveGroup, rotateGroup, recordSnapshot, styleVersion);
   const combinedRef = useMemo(() => ({
-    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current); },
+    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current || choroplethInteractingRef.current); },
     set current(_v: boolean) {},
-  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef]);
+  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef, choroplethInteractingRef]);
   const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useSaveViewListener(mapRef, updateMap);
@@ -81,7 +86,7 @@ export default function MapCanvas() {
   useFitBoundsListener(mapRef);
   useProjectionListener(mapRef, styleVersion);
   useFeatureTooltip(mapRef, drawMode, styleVersion, selectedFeatureIds.length > 0);
-  useLegendHighlight(mapRef, styleVersion);
+  useLegendHighlight(mapRef, styleVersion, choropleth.opacity);
 
   return <div ref={containerRef} className="w-full h-full bg-black" />;
 }

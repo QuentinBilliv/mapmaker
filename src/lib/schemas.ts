@@ -43,7 +43,6 @@ export const featureSchema = z.object({
   textBorderEnabled: z.boolean().optional(),
   textBorderColor: hexColor.optional(),
   textBorderWidth: z.number().min(0).max(5).optional(),
-  layerId: z.string().min(1, "Layer is required"),
 });
 
 export type FeatureFormValues = z.infer<typeof featureSchema>;

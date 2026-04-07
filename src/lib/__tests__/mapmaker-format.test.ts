@@ -1,6 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { serialize, deserialize } from "../mapmaker-format";
-import type { MapData, LayerData, FeatureData, GroupData } from "../types";
+import type { MapData, FeatureData, GroupData } from "../types";
 
 const MAP: MapData = {
   id: "test",
@@ -12,15 +12,11 @@ const MAP: MapData = {
   zoom: 5,
 };
 
-const LAYER: LayerData = { id: "layer-1", name: "Main", visible: true, order: 0 };
-
 const POLYGON: FeatureData = {
   id: "f1",
   type: "polygon",
-  layerId: "layer-1",
   label: "France",
   description: "Western Europe",
-
   color: "#3b82f6",
   opacity: 0.8,
   order: 0,
@@ -37,10 +33,8 @@ const POLYGON: FeatureData = {
 const POLYLINE: FeatureData = {
   id: "f2",
   type: "polyline",
-  layerId: "layer-1",
   label: "Route",
   description: "",
-
   color: "#ef4444",
   opacity: 1,
   order: 1,
@@ -56,10 +50,8 @@ const POLYLINE: FeatureData = {
 const POINT: FeatureData = {
   id: "f3",
   type: "point",
-  layerId: "layer-1",
   label: "Paris",
   description: "Capital of France",
-
   color: "#000000",
   opacity: 1,
   order: 2,
@@ -74,10 +66,8 @@ const POINT: FeatureData = {
 const TEXT: FeatureData = {
   id: "f4",
   type: "text",
-  layerId: "layer-1",
   label: "Label",
   description: "",
-
   color: "#1a1a1a",
   opacity: 1,
   order: 3,
@@ -95,7 +85,7 @@ const GROUP: GroupData = { id: "g1", label: "Group 1", order: 0 };
 describe("mapmaker-format round-trip", () => {
   it("round-trips all feature types without data loss", () => {
     const features = [POLYGON, POLYLINE, POINT, TEXT];
-    const json = serialize(MAP, [LAYER], features, "osm", [GROUP]);
+    const json = serialize(MAP, features, "osm", [GROUP]);
     const result = deserialize(json);
 
     expect(result.map.title).toBe(MAP.title);
@@ -105,13 +95,12 @@ describe("mapmaker-format round-trip", () => {
     expect(result.map.center).toEqual(MAP.center);
     expect(result.map.zoom).toBe(MAP.zoom);
     expect(result.baseMapId).toBe("osm");
-    expect(result.layers).toEqual([LAYER]);
     expect(result.groups).toEqual([GROUP]);
     expect(result.features).toHaveLength(4);
   });
 
   it("preserves polygon properties", () => {
-    const json = serialize(MAP, [LAYER], [POLYGON], "osm");
+    const json = serialize(MAP, [POLYGON], "osm");
     const [f] = deserialize(json).features;
     expect(f.type).toBe("polygon");
     if (f.type !== "polygon") throw new Error("unexpected type");
@@ -125,7 +114,7 @@ describe("mapmaker-format round-trip", () => {
   });
 
   it("preserves polyline properties", () => {
-    const json = serialize(MAP, [LAYER], [POLYLINE], "osm");
+    const json = serialize(MAP, [POLYLINE], "osm");
     const [f] = deserialize(json).features;
     expect(f.type).toBe("polyline");
     if (f.type !== "polyline") throw new Error("unexpected type");
@@ -136,7 +125,7 @@ describe("mapmaker-format round-trip", () => {
   });
 
   it("preserves point properties", () => {
-    const json = serialize(MAP, [LAYER], [POINT], "osm");
+    const json = serialize(MAP, [POINT], "osm");
     const [f] = deserialize(json).features;
     expect(f.type).toBe("point");
     if (f.type !== "point") throw new Error("unexpected type");
@@ -147,7 +136,7 @@ describe("mapmaker-format round-trip", () => {
   });
 
   it("preserves text properties", () => {
-    const json = serialize(MAP, [LAYER], [TEXT], "osm");
+    const json = serialize(MAP, [TEXT], "osm");
     const [f] = deserialize(json).features;
     expect(f.type).toBe("text");
     if (f.type !== "text") throw new Error("unexpected type");
@@ -160,7 +149,7 @@ describe("mapmaker-format round-trip", () => {
   });
 
   it("preserves common fields (label, description, color, opacity)", () => {
-    const json = serialize(MAP, [LAYER], [POLYGON], "osm");
+    const json = serialize(MAP, [POLYGON], "osm");
     const [f] = deserialize(json).features;
     expect(f.label).toBe("France");
     expect(f.description).toBe("Western Europe");
@@ -177,24 +166,24 @@ describe("mapmaker-format round-trip", () => {
   });
 
   it("filters features with mismatched geometry/type", () => {
-    const json = serialize(MAP, [LAYER], [POLYGON], "osm");
+    const json = serialize(MAP, [POLYGON], "osm");
     const parsed = JSON.parse(json);
     parsed.features[0].properties["mapmaker:type"] = "polyline";
     const result = deserialize(JSON.stringify(parsed));
     expect(result.features).toHaveLength(0);
   });
 
-  it("filters features with invalid layerId", () => {
-    const json = serialize(MAP, [LAYER], [POLYGON], "osm");
-    const parsed = JSON.parse(json);
-    parsed.features[0].properties["mapmaker:layerId"] = "nonexistent";
-    const result = deserialize(JSON.stringify(parsed));
-    expect(result.features).toHaveLength(0);
+  it("falls back to default for unknown base map", () => {
+    const json = serialize(MAP, [], "unknown-map-id");
+    const result = deserialize(json);
+    expect(result.baseMapId).toBe("liberty");
   });
 
-  it("falls back to osm for unknown base map", () => {
-    const json = serialize(MAP, [LAYER], [], "unknown-map-id");
-    const result = deserialize(json);
-    expect(result.baseMapId).toBe("osm");
+  it("migrates legacy natgeo base map to liberty", () => {
+    const json = serialize(MAP, [], "osm");
+    const parsed = JSON.parse(json);
+    parsed.mapmaker.baseMap = "natgeo";
+    const result = deserialize(JSON.stringify(parsed));
+    expect(result.baseMapId).toBe("liberty");
   });
 });

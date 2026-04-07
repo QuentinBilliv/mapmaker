@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { v4 as uuid } from "uuid";
 import type { DrawMode } from "../draw-engine";
 import { geometryTypeToFeatureType } from "../geojson";
-import { DEFAULT_LAYER, COLORS, DEFAULT_BORDER_WIDTH } from "../defaults";
+import { COLORS, DEFAULT_BORDER_WIDTH } from "../defaults";
 import { nextOrder, shiftGeometry } from "../geometry-transforms";
 import type { FeatureData, FeatureUpdate } from "../types";
 import type { DrawingState } from "../drawing-state";
@@ -59,7 +59,6 @@ export function useFeatureActions({
     const order = nextOrder(featuresRef.current!);
     const base = {
       id: uuid(),
-      layerId: DEFAULT_LAYER.id,
       label: s.activeLabel,
       description: "",
       color: s.activeColor,
@@ -128,7 +127,6 @@ export function useFeatureActions({
     const order = nextOrder(featuresRef.current!);
     const base = {
       id: uuid(),
-      layerId: DEFAULT_LAYER.id,
       label,
       description: "",
       color: s.activeColor,
@@ -186,7 +184,6 @@ export function useFeatureActions({
     const center = geometryCentroid(source.geometry);
     const labelFeature: FeatureData = {
       id: uuid(),
-      layerId: source.layerId,
       label: `${source.label || "Untitled"} label`,
       description: "",
       color: source.color,
