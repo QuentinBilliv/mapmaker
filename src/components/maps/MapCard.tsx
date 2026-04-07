@@ -1,7 +1,8 @@
 "use client";
 
+import { useState, useCallback } from "react";
 import Link from "next/link";
-import { XIcon, LockIcon, LinkIcon, GlobeIcon, ChevronDownIcon } from "lucide-react";
+import { XIcon, LockIcon, LinkIcon, GlobeIcon, ChevronDownIcon, Share2Icon, CheckIcon } from "lucide-react";
 import MapThumbnail from "./MapThumbnail";
 import { Button } from "@/components/ui/button";
 import {
@@ -141,6 +142,9 @@ export default function MapCard({
               </Dialog>
             );
           })()}
+          {visibility && visibility !== "private" && (
+            <ShareButton mapId={id} />
+          )}
         </div>
       </div>
       {onDelete && (
@@ -174,5 +178,26 @@ export default function MapCard({
         </Dialog>
       )}
     </div>
+  );
+}
+
+function ShareButton({ mapId }: { mapId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const url = `${window.location.origin}/maps/${mapId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [mapId]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full text-[10px] font-medium bg-muted text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {copied ? <CheckIcon className="size-3" /> : <Share2Icon className="size-3" />}
+      {copied ? "Copied!" : "Share"}
+    </button>
   );
 }
