@@ -264,14 +264,14 @@ export function buildChoroplethGeoJSONFromData(
 }
 
 function hexToRgb(hex: string): [number, number, number] {
-  const h = hex.replace("#", "");
+  const h = hex.replace("#", "").replace(/[^0-9a-fA-F]/g, "");
   const full = h.length === 3
     ? h.split("").map((c) => c + c).join("")
-    : h;
+    : h.padEnd(6, "0").slice(0, 6);
   return [
-    parseInt(full.slice(0, 2), 16),
-    parseInt(full.slice(2, 4), 16),
-    parseInt(full.slice(4, 6), 16),
+    parseInt(full.slice(0, 2), 16) || 0,
+    parseInt(full.slice(2, 4), 16) || 0,
+    parseInt(full.slice(4, 6), 16) || 0,
   ];
 }
 

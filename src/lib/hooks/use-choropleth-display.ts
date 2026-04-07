@@ -4,7 +4,7 @@ import { useEffect, useRef, useState, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
 import { loadTileLayerGeoJSON, buildChoroplethGeoJSONFromData } from "@/lib/choropleth";
-import { CHOROPLETH_SOURCE, CHOROPLETH_OUTLINE_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER, CHOROPLETH_OUTLINE } from "./use-feature-rendering";
+import { CHOROPLETH_SOURCE, CHOROPLETH_OUTLINE_SOURCE, CHOROPLETH_FILL, CHOROPLETH_BORDER, CHOROPLETH_OUTLINE, CHOROPLETH_BORDER_OPACITY, CHOROPLETH_OUTLINE_OPACITY } from "./use-feature-rendering";
 
 const EMPTY_FC: GeoJSON.FeatureCollection = { type: "FeatureCollection", features: [] };
 
@@ -43,10 +43,10 @@ export function useChoroplethDisplay(
         map.setPaintProperty(CHOROPLETH_FILL, "fill-opacity", choro.opacity);
       }
       if (map.getLayer(CHOROPLETH_BORDER)) {
-        map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", 0.4);
+        map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", CHOROPLETH_BORDER_OPACITY);
       }
       if (map.getLayer(CHOROPLETH_OUTLINE)) {
-        map.setPaintProperty(CHOROPLETH_OUTLINE, "line-opacity", 0.3);
+        map.setPaintProperty(CHOROPLETH_OUTLINE, "line-opacity", CHOROPLETH_OUTLINE_OPACITY);
       }
     } else {
       src.setData(EMPTY_FC);

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
-import { ZF, CHOROPLETH_FILL, CHOROPLETH_BORDER } from "./use-feature-rendering";
+import { ZF, CHOROPLETH_FILL, CHOROPLETH_BORDER, CHOROPLETH_BORDER_OPACITY } from "./use-feature-rendering";
 import { useHighlight } from "@/lib/highlight-context";
 
 const DIM_OPACITY = 0.15;
@@ -46,9 +46,9 @@ export function useLegendHighlight(
         }
       } else if (isChoroplethBorder) {
         if (!entryId) {
-          map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", 0.4);
+          map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", CHOROPLETH_BORDER_OPACITY);
         } else {
-          map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", choroplethDimExpr(entryId, 0.4));
+          map.setPaintProperty(CHOROPLETH_BORDER, "line-opacity", choroplethDimExpr(entryId, CHOROPLETH_BORDER_OPACITY));
         }
       }
     }

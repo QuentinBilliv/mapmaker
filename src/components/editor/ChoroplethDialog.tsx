@@ -543,7 +543,7 @@ function CategoryRow({
 
   return (
     <div
-      className={`flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors ${
+      className={`group flex items-center gap-2 px-2 py-1.5 rounded-md cursor-pointer transition-colors ${
         isActive ? "ring-2 ring-primary bg-primary/5" : "hover:bg-accent"
       }`}
       onClick={onSelect}
