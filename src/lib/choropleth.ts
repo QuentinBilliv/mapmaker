@@ -291,62 +291,6 @@ export function interpolateGradientColor(
   return rgbToHex(r, g, b);
 }
 
-export function findRegionAtPoint(
-  geojson: GeoJSON.FeatureCollection,
-  lng: number,
-  lat: number,
-  config: TileLayerConfig,
-): RegionInfo | null {
-  for (const f of geojson.features) {
-    const id = f.properties?.[config.idProp] as string;
-    const name = f.properties?.[config.nameProp] as string;
-    if (!id || !name) continue;
-    if (pointInGeometry(lng, lat, f.geometry)) {
-      return { id, name };
-    }
-  }
-  return null;
-}
-
-export function findCountryAtPoint(
-  geojson: GeoJSON.FeatureCollection,
-  lng: number,
-  lat: number,
-): RegionInfo | null {
-  return findRegionAtPoint(geojson, lng, lat, getTileLayerConfig("countries"));
-}
-
-function pointInGeometry(lng: number, lat: number, geom: GeoJSON.Geometry): boolean {
-  if (geom.type === "Polygon") {
-    return pointInPolygon(lng, lat, geom.coordinates);
-  }
-  if (geom.type === "MultiPolygon") {
-    return geom.coordinates.some((poly) => pointInPolygon(lng, lat, poly));
-  }
-  return false;
-}
-
-function pointInPolygon(lng: number, lat: number, rings: number[][][]): boolean {
-  if (rings.length === 0) return false;
-  if (!pointInRing(lng, lat, rings[0])) return false;
-  for (let i = 1; i < rings.length; i++) {
-    if (pointInRing(lng, lat, rings[i])) return false;
-  }
-  return true;
-}
-
-function pointInRing(px: number, py: number, ring: number[][]): boolean {
-  let inside = false;
-  for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) {
-    const xi = ring[i][0], yi = ring[i][1];
-    const xj = ring[j][0], yj = ring[j][1];
-    if ((yi > py) !== (yj > py) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi) {
-      inside = !inside;
-    }
-  }
-  return inside;
-}
-
 function fixAntimeridian(geom: GeoJSON.Geometry): GeoJSON.Geometry {
   if (geom.type === "Polygon") {
     return fixPolygonAntimeridian(geom);

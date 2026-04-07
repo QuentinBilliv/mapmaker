@@ -18,9 +18,10 @@ export function useChoropleth(
   useChoroplethDisplay(mapRef, choropleth, styleVersion);
   const interactingRef = useRef(false);
   const choroplethRef = useRef(choropleth);
-  choroplethRef.current = choropleth;
   const drawModeRef = useRef(drawMode);
-  drawModeRef.current = drawMode;
+
+  useEffect(() => { choroplethRef.current = choropleth; }, [choropleth]);
+  useEffect(() => { drawModeRef.current = drawMode; }, [drawMode]);
 
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     const map = mapRef.current;
@@ -52,7 +53,7 @@ export function useChoropleth(
     const map = mapRef.current;
     if (!map) return;
     map.on("click", handleClick);
-    return () => { try { map.off("click", handleClick); } catch {} };
+    return () => { try { map.off("click", handleClick); } catch (e) { console.warn("Failed to remove click handler:", e); } };
   }, [mapRef, handleClick, styleVersion]);
 
   return interactingRef;
