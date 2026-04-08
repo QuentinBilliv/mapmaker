@@ -142,7 +142,7 @@ export default function MapCard({
               </Dialog>
             );
           })()}
-          {visibility && visibility !== "private" && (
+          {visibility !== "private" && (
             <ShareButton mapId={id} />
           )}
         </div>
