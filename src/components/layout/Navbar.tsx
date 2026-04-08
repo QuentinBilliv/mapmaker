@@ -14,7 +14,7 @@ export default function Navbar() {
 
   return (
     <nav className="h-12 border-b bg-background flex items-center px-4 shrink-0">
-      <Link href="/" className="font-semibold text-sm mr-6">
+      <Link href={isAuthenticated ? "/dashboard" : "/"} className="font-semibold text-sm mr-6">
         MapMaker
       </Link>
       <Link

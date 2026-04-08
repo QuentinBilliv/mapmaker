@@ -34,7 +34,7 @@ export default function LoginPage() {
       formData.set("password", data.password);
       formData.set("flow", "signIn");
       await signIn("password", formData);
-      router.replace("/account");
+      router.replace("/dashboard");
     } catch {
       setServerError("Invalid email or password");
     } finally {

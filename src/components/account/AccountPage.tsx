@@ -62,7 +62,7 @@ export default function AccountPage() {
           </p>
         </div>
       </div>
-      <Link href="/" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">
+      <Link href="/dashboard" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">
         See my maps ({maps?.length ?? 0})
       </Link>
     </div>

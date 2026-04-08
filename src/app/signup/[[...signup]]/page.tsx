@@ -35,7 +35,7 @@ export default function SignUpPage() {
       formData.set("password", data.password);
       formData.set("flow", "signUp");
       await signIn("password", formData);
-      router.replace("/account");
+      router.replace("/dashboard");
     } catch {
       setServerError("Could not create account. Email may already be in use.");
     } finally {
