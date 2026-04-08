@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -12,6 +12,7 @@ import { findBaseMap, resolveBaseMapStyle, type StyleOptions } from "@/lib/map-s
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
+import { Share2Icon, CheckIcon } from "lucide-react";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 import type { MapData, FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
@@ -128,6 +129,7 @@ function ReadOnlyMapViewInner({
                   <p className="text-[10px] text-muted-foreground">
                     License: {mapData.license}
                   </p>
+                  <ShareButton mapId={mapData.id} />
                   <EmbedButton mapId={mapData.id} />
                   {editHref && (
                     <Link
@@ -152,5 +154,26 @@ function ReadOnlyMapViewInner({
         </div>
       </div>
     </div>
+  );
+}
+
+function ShareButton({ mapId }: { mapId: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = useCallback(() => {
+    const url = `${window.location.origin}/maps/${mapId}`;
+    navigator.clipboard.writeText(url);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  }, [mapId]);
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+    >
+      {copied ? <CheckIcon className="w-3 h-3" /> : <Share2Icon className="w-3 h-3" />}
+      {copied ? "Copied!" : "Share"}
+    </button>
   );
 }
