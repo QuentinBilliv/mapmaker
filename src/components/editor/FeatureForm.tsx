@@ -50,72 +50,133 @@ const TYPE_LABELS: Record<string, string> = {
   text: "Text",
 };
 
+const FORM_DEFAULTS: FeatureFormValues = {
+  label: "",
+  description: "",
+  color: COLORS.white,
+  opacity: 1,
+  size: 1,
+  shape: "circle",
+  customSvg: undefined,
+  borderColor: COLORS.white,
+  borderWidth: DEFAULT_BORDER_WIDTH,
+  smoothing: 0,
+  strokeWidth: 3,
+  lineStyle: "solid",
+  arrowStyle: "none",
+  lineDecoration: "none",
+  decorationSpacing: 50,
+  fillPattern: "none",
+  textContent: "",
+  fontSize: 24,
+  fontFamily: "sans",
+  textBorderEnabled: true,
+  textBorderColor: COLORS.white,
+  textBorderWidth: 2,
+};
+
+const TYPE_FORM_KEYS: Record<FeatureData["type"], (keyof FeatureFormValues)[]> =
+  {
+    point: ["size", "shape", "customSvg", "borderColor", "borderWidth"],
+    text: [
+      "textContent",
+      "fontSize",
+      "fontFamily",
+      "bold",
+      "italic",
+      "textBorderEnabled",
+      "textBorderColor",
+      "textBorderWidth",
+    ],
+    polyline: [
+      "smoothing",
+      "strokeWidth",
+      "lineStyle",
+      "arrowStyle",
+      "lineDecoration",
+      "decorationSpacing",
+    ],
+    polygon: [
+      "smoothing",
+      "strokeWidth",
+      "lineStyle",
+      "lineDecoration",
+      "decorationSpacing",
+      "fillPattern",
+    ],
+  };
+
 function featureToFormValues(f: FeatureData): FeatureFormValues {
-  const defaults: FeatureFormValues = {
+  const base = {
+    ...FORM_DEFAULTS,
     label: f.label,
     description: f.description ?? "",
     color: f.color,
     opacity: f.opacity,
-    size: 1,
-    shape: "circle",
-    customSvg: undefined,
-    borderColor: COLORS.white,
-    borderWidth: DEFAULT_BORDER_WIDTH,
-    smoothing: 0,
-    strokeWidth: 3,
-    lineStyle: "solid",
-    arrowStyle: "none",
-    lineDecoration: "none",
-    decorationSpacing: 50,
-    fillPattern: "none",
-    textContent: "",
-    fontSize: 24,
-    fontFamily: "sans",
-    textBorderEnabled: true,
-    textBorderColor: COLORS.white,
-    textBorderWidth: 2,
   };
-  switch (f.type) {
+  const keys = TYPE_FORM_KEYS[f.type];
+  const overrides: Partial<FeatureFormValues> = {};
+  for (const k of keys) {
+    const val = (f as unknown as Record<string, unknown>)[k];
+    if (val !== undefined) (overrides as Record<string, unknown>)[k] = val;
+  }
+  if (f.type === "text" && f.bold === undefined) overrides.bold = false;
+  if (f.type === "text" && f.italic === undefined) overrides.italic = false;
+  if (f.type === "point" && !f.shape) overrides.shape = "circle";
+  return { ...base, ...overrides };
+}
+
+function buildFeatureUpdate(
+  v: FeatureFormValues,
+  type: FeatureData["type"],
+): FeatureUpdate {
+  const base: FeatureUpdate = {
+    label: v.label,
+    description: v.description ?? "",
+    color: v.color,
+    opacity: v.opacity,
+  };
+  switch (type) {
     case "point":
       return {
-        ...defaults,
-        size: f.size,
-        shape: f.shape ?? "circle",
-        customSvg: f.customSvg,
-        borderColor: f.borderColor,
-        borderWidth: f.borderWidth,
+        ...base,
+        size: v.size,
+        shape: v.customSvg ? undefined : v.shape,
+        customSvg: v.customSvg,
+        borderColor: v.borderColor,
+        borderWidth: v.borderWidth,
       };
     case "text":
       return {
-        ...defaults,
-        textContent: f.textContent,
-        fontSize: f.fontSize,
-        fontFamily: f.fontFamily,
-        bold: f.bold ?? false,
-        italic: f.italic ?? false,
-        textBorderEnabled: f.textBorderEnabled,
-        textBorderColor: f.textBorderColor,
-        textBorderWidth: f.textBorderWidth,
+        ...base,
+        textContent: v.textContent,
+        fontSize: v.fontSize,
+        fontFamily: v.fontFamily,
+        bold: v.bold,
+        italic: v.italic,
+        textBorderEnabled: (v.textBorderWidth ?? 0) > 0,
+        textBorderColor: v.textBorderColor,
+        textBorderWidth: v.textBorderWidth,
       };
     case "polyline":
       return {
-        ...defaults,
-        smoothing: f.smoothing,
-        strokeWidth: f.strokeWidth,
-        lineStyle: f.lineStyle,
-        arrowStyle: f.arrowStyle,
-        lineDecoration: f.lineDecoration,
-        decorationSpacing: f.decorationSpacing,
+        ...base,
+        smoothing: v.smoothing,
+        strokeWidth: v.strokeWidth,
+        lineStyle: v.lineStyle,
+        arrowStyle: v.arrowStyle,
+        lineDecoration: v.lineDecoration,
+        decorationSpacing: v.decorationSpacing,
       };
     case "polygon":
       return {
-        ...defaults,
-        smoothing: f.smoothing,
-        strokeWidth: f.strokeWidth,
-        lineStyle: f.lineStyle,
-        lineDecoration: f.lineDecoration,
-        decorationSpacing: f.decorationSpacing,
-        fillPattern: f.fillPattern,
+        ...base,
+        smoothing: v.smoothing,
+        strokeWidth: v.strokeWidth,
+        lineStyle: v.lineStyle,
+        lineDecoration: v.lineDecoration,
+        decorationSpacing: v.decorationSpacing,
+        fillPattern: v.fillPattern,
       };
   }
 }
@@ -184,10 +245,6 @@ export default function FeatureForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [featureId]);
 
-  const isPoint = selectedFeature?.type === "point";
-  const isLine = selectedFeature?.type === "polyline";
-  const isText = selectedFeature?.type === "text";
-
   useEffect(() => {
     if (!selectedFeature) return;
     const sub = methods.watch((values) => {
@@ -197,37 +254,14 @@ export default function FeatureForm() {
       }
       const result = featureSchema.safeParse(values);
       if (!result.success) return;
-      const v = result.data;
-      updateFeature(selectedFeature.id, {
-        label: v.label,
-        description: v.description ?? "",
-        color: v.color,
-        opacity: v.opacity,
-        size: isPoint ? v.size : undefined,
-        shape: isPoint ? (v.customSvg ? undefined : v.shape) : undefined,
-        customSvg: isPoint ? v.customSvg : undefined,
-        borderColor: isPoint ? v.borderColor : undefined,
-        borderWidth: isPoint ? v.borderWidth : undefined,
-        smoothing: isPoint || isText ? 0 : v.smoothing,
-        strokeWidth: isPoint || isText ? 0 : v.strokeWidth,
-        lineStyle: isPoint || isText ? "solid" : v.lineStyle,
-        arrowStyle: isLine ? v.arrowStyle : "none",
-        lineDecoration: isPoint || isText ? "none" : v.lineDecoration,
-        decorationSpacing: isPoint || isText ? 50 : v.decorationSpacing,
-        fillPattern: !isPoint && !isLine && !isText ? v.fillPattern : "none",
-        textContent: isText ? v.textContent : undefined,
-        fontSize: isText ? v.fontSize : undefined,
-        fontFamily: isText ? v.fontFamily : undefined,
-        bold: isText ? v.bold : undefined,
-        italic: isText ? v.italic : undefined,
-        textBorderEnabled: isText ? (v.textBorderWidth ?? 0) > 0 : undefined,
-        textBorderColor: isText ? v.textBorderColor : undefined,
-        textBorderWidth: isText ? v.textBorderWidth : undefined,
-      });
+      updateFeature(
+        selectedFeature.id,
+        buildFeatureUpdate(result.data, selectedFeature.type),
+      );
     });
     return () => sub.unsubscribe();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedFeature?.id, isPoint, isLine, isText, updateFeature]);
+  }, [selectedFeature?.id, selectedFeature?.type, updateFeature]);
 
   if (selectedFeatureIds.length > 1) return <GroupForm />;
   if (!selectedFeature) return null;
@@ -249,26 +283,7 @@ export default function FeatureForm() {
         <div className="p-3 space-y-3 overflow-y-auto">
           <LegendEntryPicker feature={selectedFeature} />
           <StyleFields />
-          {selectedFeature.type === "text" ? (
-            <>
-              <TextContentField />
-              {!selectedFeature.legendEntryId && <TextStyleFields />}
-              <CoordinateFields feature={selectedFeature} />
-            </>
-          ) : selectedFeature.type === "point" ? (
-            <>
-              {!selectedFeature.legendEntryId && <PointFields />}
-              <CoordinateFields feature={selectedFeature} />
-            </>
-          ) : (
-            <>
-              {!selectedFeature.legendEntryId && (
-                <StrokeFields showArrows={isLine} />
-              )}
-              {!selectedFeature.legendEntryId &&
-                selectedFeature.type === "polygon" && <FillPatternSelect />}
-            </>
-          )}
+          <TypeSpecificFields feature={selectedFeature} />
           {!selectedFeature.legendEntryId && (
             <AddToLegendButton feature={selectedFeature} />
           )}
@@ -284,6 +299,36 @@ export default function FeatureForm() {
       </div>
     </FormProvider>
   );
+}
+
+function TypeSpecificFields({ feature }: { feature: FeatureData }) {
+  const custom = !feature.legendEntryId;
+  switch (feature.type) {
+    case "text":
+      return (
+        <>
+          <TextContentField />
+          {custom && <TextStyleFields />}
+          <CoordinateFields feature={feature} />
+        </>
+      );
+    case "point":
+      return (
+        <>
+          {custom && <PointFields />}
+          <CoordinateFields feature={feature} />
+        </>
+      );
+    case "polyline":
+      return <>{custom && <StrokeFields showArrows />}</>;
+    case "polygon":
+      return (
+        <>
+          {custom && <StrokeFields showArrows={false} />}
+          {custom && <FillPatternSelect />}
+        </>
+      );
+  }
 }
 
 function StyleFields() {
