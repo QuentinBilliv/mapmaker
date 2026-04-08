@@ -50,6 +50,7 @@ function ReadOnlyMapViewInner({
 }: ReadOnlyMapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
+  const [styleVersion, setStyleVersion] = useState(0);
 
   const baseMap = findBaseMap(baseMapId);
   const isDefaultView = mapData.center[0] === DEFAULT_CENTER[0] && mapData.center[1] === DEFAULT_CENTER[1] && mapData.zoom === DEFAULT_ZOOM;
@@ -74,6 +75,7 @@ function ReadOnlyMapViewInner({
       const map = new maplibregl.Map(opts);
       map.addControl(new maplibregl.NavigationControl(), "bottom-right");
       mapRef.current = map;
+      map.once("idle", () => setStyleVersion((v) => v + 1));
     });
     return () => {
       cancelled = true;
@@ -82,10 +84,10 @@ function ReadOnlyMapViewInner({
     };
   }, [baseMap.style]);
 
-  useFeatureRendering(mapRef, features, groups, 0, legendEntries);
-  useChoroplethDisplay(mapRef, choropleth, 0);
-  useFeatureTooltip(mapRef, "select", 0);
-  useLegendHighlight(mapRef, 0, choropleth.opacity);
+  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries);
+  useChoroplethDisplay(mapRef, choropleth, styleVersion);
+  useFeatureTooltip(mapRef, "select", styleVersion);
+  useLegendHighlight(mapRef, styleVersion, choropleth.opacity);
 
   const [headerOpen, setHeaderOpen] = useState(false);
 
