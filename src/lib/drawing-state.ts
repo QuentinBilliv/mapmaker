@@ -7,7 +7,7 @@ import type {
   FillPattern,
   TextFont,
 } from "./types";
-import type { BaseMap } from "./map-style";
+import type { BaseMap, StyleOptions } from "./map-style";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "./defaults";
 import { BASE_MAPS } from "./map-style";
 
@@ -47,6 +47,7 @@ export interface DrawingState {
   activeStroke: StrokeStyle;
   activeText: TextStyle;
   activeBaseMap: BaseMap;
+  styleOptions: StyleOptions;
 }
 
 export type DrawingPayload = Partial<Omit<DrawingState, "activePoint" | "activeStroke" | "activeText">> & {
@@ -95,6 +96,7 @@ export const INITIAL_DRAWING_STATE: DrawingState = {
   activeStroke: { ...INITIAL_STROKE_STYLE },
   activeText: { ...INITIAL_TEXT_STYLE },
   activeBaseMap: BASE_MAPS[0],
+  styleOptions: {},
 };
 
 export function drawingReducer(state: DrawingState, action: DrawingAction): DrawingState {

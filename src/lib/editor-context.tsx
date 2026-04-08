@@ -106,6 +106,7 @@ interface EditorActions {
   assignLegendEntry: (featureId: string, legendEntryId: string | null) => void;
   deduceLegendEntryFromFeature: (featureId: string, label: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
+  setStyleOptions: (options: import("./map-style").StyleOptions) => void;
   setChoropleth: (updates: Partial<ChoroplethData>) => void;
   addChoroplethCategory: (color: string, label: string) => string;
   updateChoroplethCategory: (id: string, updates: Partial<{ color: string; label: string }>) => void;
@@ -164,6 +165,7 @@ export interface StoredMapState {
   groups: GroupData[];
   legendEntries: LegendEntry[];
   baseMapId: string;
+  styleOptions?: import("./map-style").StyleOptions;
   choropleth?: ChoroplethData;
 }
 
@@ -205,6 +207,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const [drawing, dispatchDrawing] = useReducer(drawingReducer, {
     ...INITIAL_DRAWING_STATE,
     activeBaseMap: initialBaseMap,
+    styleOptions: initialData?.styleOptions ?? {},
   });
 
   const selectedFeature = useMemo(
@@ -228,7 +231,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setGroups(saved.groups);
     setLegendEntries(saved.legendEntries);
     if (saved.choropleth) setChoroplethState(saved.choropleth);
-    dispatchDrawing({ type: "SET", payload: { activeBaseMap: saved.baseMap } });
+    dispatchDrawing({ type: "SET", payload: { activeBaseMap: saved.baseMap, styleOptions: saved.styleOptions ?? {} } });
   }, []);
 
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -239,16 +242,17 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       const state: StoredMapState = {
         map, features, groups, legendEntries,
         baseMapId: drawing.activeBaseMap.id,
+        styleOptions: drawing.styleOptions,
         choropleth,
       };
       if (onSaveRef.current) {
         onSaveRef.current(state);
       } else {
-        saveToLocalStorage(map, features, groups, legendEntries, drawing.activeBaseMap.id, choropleth);
+        saveToLocalStorage(map, features, groups, legendEntries, drawing.activeBaseMap.id, drawing.styleOptions, choropleth);
       }
     }, 500);
     return () => clearTimeout(saveTimerRef.current);
-  }, [map, features, groups, legendEntries, drawing.activeBaseMap, choropleth]);
+  }, [map, features, groups, legendEntries, drawing.activeBaseMap, drawing.styleOptions, choropleth]);
 
   const drawModeRef = useRef(drawing.drawMode);
   drawModeRef.current = drawing.drawMode;
@@ -361,6 +365,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const setActiveTextBorderColor = useCallback((color: string) => set({ activeText: { textBorderColor: color } }), [set]);
   const setActiveTextBorderWidth = useCallback((width: number) => set({ activeText: { textBorderWidth: width } }), [set]);
   const setActiveBaseMap = useCallback((baseMap: BaseMap) => set({ activeBaseMap: baseMap }), [set]);
+  const setStyleOptions = useCallback((options: import("./map-style").StyleOptions) => set({ styleOptions: options }), [set]);
 
   // Delegated action hooks
 
@@ -531,7 +536,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setFeatures(importedFeatures);
     setGroups(data.groups ?? []);
     setLegendEntries(data.legendEntries ?? []);
-    dispatchDrawing({ type: "SET", payload: { activeBaseMap: findBaseMap(data.baseMapId) } });
+    dispatchDrawing({ type: "SET", payload: { activeBaseMap: findBaseMap(data.baseMapId), styleOptions: data.styleOptions ?? {} } });
     if (data.choropleth) setChoroplethState(data.choropleth);
     setSelectedFeatureIds([]);
     const bounds = computeFeaturesBounds(importedFeatures);
@@ -584,7 +589,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       moveGroup, rotateGroup,
       addLegendEntry, updateLegendEntry, deleteLegendEntry,
       assignLegendEntry, deduceLegendEntryFromFeature,
-      setActiveBaseMap, setChoropleth,
+      setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
       assignCountryToCategory, unassignCountry, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
@@ -611,7 +616,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       moveGroup, rotateGroup,
       addLegendEntry, updateLegendEntry, deleteLegendEntry,
       assignLegendEntry, deduceLegendEntryFromFeature,
-      setActiveBaseMap, setChoropleth,
+      setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
       assignCountryToCategory, unassignCountry, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,

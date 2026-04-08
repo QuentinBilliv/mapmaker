@@ -134,6 +134,11 @@ const mapmakerMeta = z.object({
     zoom: z.number().min(0).max(22).default(1),
   }),
   baseMap: z.string().max(100).default("osm"),
+  styleOptions: z.object({
+    noLabels: z.boolean().optional(),
+    noBorders: z.boolean().optional(),
+    noRoads: z.boolean().optional(),
+  }).optional(),
   choropleth: z.object({
     enabled: z.boolean().default(false),
     tileLayer: z.enum(["countries", "us-states", "canada-provinces", "france-departements", "eu-nuts2", "china-provinces", "india-states", "russia-regions"]).default("countries"),
@@ -170,6 +175,7 @@ export function serialize(
   groups: GroupData[] = [],
   legendEntries: LegendEntry[] = [],
   choropleth: ChoroplethData = DEFAULT_CHOROPLETH,
+  styleOptions?: import("./map-style").StyleOptions,
 ): string {
   const doc = {
     type: "FeatureCollection" as const,
@@ -184,6 +190,7 @@ export function serialize(
         zoom: map.zoom,
       },
       baseMap: baseMapId,
+      styleOptions: styleOptions ?? undefined,
       choropleth: {
         enabled: choropleth.enabled,
         tileLayer: choropleth.tileLayer,
@@ -267,6 +274,7 @@ type FeatureWithoutId =
 export interface DeserializedMap {
   map: Omit<MapData, "id">;
   baseMapId: string;
+  styleOptions?: import("./map-style").StyleOptions;
   choropleth: ChoroplethData;
   features: FeatureWithoutId[];
   groups: GroupData[];
@@ -386,6 +394,7 @@ export function deserialize(raw: string): DeserializedMap {
       zoom: result.mapmaker.map.zoom,
     },
     baseMapId: knownBaseMap.id,
+    styleOptions: result.mapmaker.styleOptions ?? undefined,
     choropleth,
     features,
     groups: result.mapmaker.groups,

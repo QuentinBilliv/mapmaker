@@ -21,7 +21,7 @@ type Mode = "mapmaker" | "geojson";
 
 export default function CodePanel({ onClose }: { onClose: () => void }) {
   const { map, features, groups, legendEntries, choropleth, featureLimit } = useEditorData();
-  const { activeBaseMap } = useDrawingState();
+  const { activeBaseMap, styleOptions } = useDrawingState();
   const { importMapData, addBankFeature } = useEditorActions();
 
   const [mode, setMode] = useState<Mode>("mapmaker");
@@ -37,9 +37,9 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       internalUpdate.current = false;
       return;
     }
-    setValue(serialize(map, features, activeBaseMap.id, groups, legendEntries, choropleth));
+    setValue(serialize(map, features, activeBaseMap.id, groups, legendEntries, choropleth, styleOptions));
     if (mode === "mapmaker") setError(null);
-  }, [map, features, groups, legendEntries, activeBaseMap, mode]);
+  }, [map, features, groups, legendEntries, activeBaseMap, styleOptions, mode]);
 
   const handleMapmakerChange = useCallback(
     async (e: React.ChangeEvent<HTMLTextAreaElement>) => {

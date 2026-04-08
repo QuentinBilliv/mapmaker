@@ -79,6 +79,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
         legendEntries={data.legendEntries ?? []}
         choropleth={data.choropleth}
         baseMapId={map.baseMapId}
+        styleOptions={(map as Record<string, unknown>).styleOptions as import("@/lib/map-style").StyleOptions | undefined}
         editHref={isOwner ? `/maps/${params.id}/edit` : undefined}
       />
     </>

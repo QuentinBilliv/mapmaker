@@ -17,13 +17,13 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 
 export default function MapCanvas() {
   const { map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, choropleth, choroplethMode } = useEditorData();
-  const { drawMode, activeBaseMap } = useDrawingState();
+  const { drawMode, activeBaseMap, styleOptions } = useDrawingState();
   const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup, assignCountryToCategory, unassignCountry } = useEditorActions();
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDefaultView = map.center[0] === DEFAULT_CENTER[0] && map.center[1] === DEFAULT_CENTER[1] && map.zoom === DEFAULT_ZOOM;
   const initialBounds = useMemo(() => isDefaultView ? computeFeaturesBounds(features) : null, []);
-  const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap, initialBounds);
+  const { mapRef, styleVersion } = useMapInit(containerRef, map.center, map.zoom, activeBaseMap, initialBounds, styleOptions);
 
   const selectedFeatureIdsRef = useRef(selectedFeatureIds);
   selectedFeatureIdsRef.current = selectedFeatureIds;

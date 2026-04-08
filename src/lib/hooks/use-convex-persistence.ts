@@ -43,12 +43,13 @@ export function useConvexPersistence(mapId: string) {
     if (!convexMap) return null;
     const map = toMapData(convexMap);
     const baseMapId = convexMap.baseMapId;
+    const raw = convexMap as Record<string, unknown>;
+    const styleOptions = (raw.styleOptions as StoredMapState["styleOptions"]) ?? undefined;
     if (hasInlineData) {
-      const raw = convexMap as Record<string, unknown>;
-      return { map, features: convexMap.features, groups: convexMap.groups, legendEntries: raw.legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId, choropleth: raw.choropleth as StoredMapState["choropleth"] };
+      return { map, features: convexMap.features, groups: convexMap.groups, legendEntries: raw.legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId, styleOptions, choropleth: raw.choropleth as StoredMapState["choropleth"] };
     }
     if (fileData) {
-      return { map, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId, choropleth: fileData.choropleth };
+      return { map, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId, styleOptions, choropleth: fileData.choropleth };
     }
     return null;
   })();
@@ -74,6 +75,7 @@ export function useConvexPersistence(mapId: string) {
             center: state.map.center,
             zoom: state.map.zoom,
             baseMapId: state.baseMapId,
+            styleOptions: state.styleOptions,
           };
 
           if (payloadSize < INLINE_THRESHOLD) {

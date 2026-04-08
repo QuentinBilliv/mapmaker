@@ -10,12 +10,17 @@ import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
-import { findBaseMap } from "@/lib/map-style";
+import { findBaseMap, resolveBaseMapStyle } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { toMapData } from "@/lib/convex-mapdata";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
-import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
+import type {
+  FeatureData,
+  GroupData,
+  LegendEntry,
+  ChoroplethData,
+} from "@/lib/types";
 import { DEFAULT_CHOROPLETH } from "@/lib/types";
 import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
 import { choroplethLegendProps } from "@/lib/choropleth-legend";
@@ -25,7 +30,8 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
     mapId: params.id as Id<"maps">,
   });
 
-  const dataFileUrl = map && "dataFileUrl" in map ? (map.dataFileUrl as string | null) : null;
+  const dataFileUrl =
+    map && "dataFileUrl" in map ? (map.dataFileUrl as string | null) : null;
   const hasInlineData = map && "features" in map && map.features != null;
 
   const [fileData, setFileData] = useState<{
@@ -46,20 +52,37 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   }, [dataFileUrl]);
 
   if (map === undefined) {
-    return <div className="w-full h-full flex items-center justify-center"><p className="text-sm text-muted-foreground">Loading...</p></div>;
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
 
   if (map === null) {
-    return <div className="w-full h-full flex items-center justify-center"><p className="text-sm text-muted-foreground">Map not found</p></div>;
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Map not found</p>
+      </div>
+    );
   }
 
   const raw = map as Record<string, unknown>;
   const data = hasInlineData
-    ? { features: map.features!, groups: map.groups!, legendEntries: raw.legendEntries as LegendEntry[] ?? [], choropleth: raw.choropleth as ChoroplethData | undefined }
+    ? {
+        features: map.features!,
+        groups: map.groups!,
+        legendEntries: (raw.legendEntries as LegendEntry[]) ?? [],
+        choropleth: raw.choropleth as ChoroplethData | undefined,
+      }
     : fileData;
 
   if (!data) {
-    return <div className="w-full h-full flex items-center justify-center"><p className="text-sm text-muted-foreground">Loading...</p></div>;
+    return (
+      <div className="w-full h-full flex items-center justify-center">
+        <p className="text-sm text-muted-foreground">Loading...</p>
+      </div>
+    );
   }
 
   return (
@@ -71,6 +94,11 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
         legendEntries={data.legendEntries ?? []}
         choropleth={data.choropleth ?? DEFAULT_CHOROPLETH}
         baseMapId={map.baseMapId}
+        styleOptions={
+          (map as Record<string, unknown>).styleOptions as
+            | import("@/lib/map-style").StyleOptions
+            | undefined
+        }
         mapId={params.id}
       />
     </HighlightProvider>
@@ -84,6 +112,7 @@ function EmbedMapView({
   legendEntries,
   choropleth,
   baseMapId,
+  styleOptions,
   mapId,
 }: {
   mapData: ReturnType<typeof toMapData>;
@@ -92,32 +121,47 @@ function EmbedMapView({
   legendEntries: LegendEntry[];
   choropleth: ChoroplethData;
   baseMapId: string;
+  styleOptions?: import("@/lib/map-style").StyleOptions;
   mapId: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
   const baseMap = findBaseMap(baseMapId);
-  const isDefaultView = mapData.center[0] === DEFAULT_CENTER[0] && mapData.center[1] === DEFAULT_CENTER[1] && mapData.zoom === DEFAULT_ZOOM;
-  const bounds = useMemo(() => isDefaultView ? computeFeaturesBounds(features) : null, [features, isDefaultView]);
+  const isDefaultView =
+    mapData.center[0] === DEFAULT_CENTER[0] &&
+    mapData.center[1] === DEFAULT_CENTER[1] &&
+    mapData.zoom === DEFAULT_ZOOM;
+  const bounds = useMemo(
+    () => (isDefaultView ? computeFeaturesBounds(features) : null),
+    [features, isDefaultView],
+  );
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const opts: maplibregl.MapOptions = {
-      container: containerRef.current,
-      style: baseMap.style as maplibregl.StyleSpecification,
-    };
-    if (bounds) {
-      opts.bounds = bounds as maplibregl.LngLatBoundsLike;
-      opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
-    } else {
-      opts.center = mapData.center;
-      opts.zoom = mapData.zoom;
-    }
-    const map = new maplibregl.Map(opts);
-    map.addControl(new maplibregl.NavigationControl({ showCompass: false }), "top-right");
-    mapRef.current = map;
+    let cancelled = false;
+    resolveBaseMapStyle(baseMap, styleOptions).then((style) => {
+      if (cancelled || !containerRef.current) return;
+      const opts: maplibregl.MapOptions = {
+        container: containerRef.current,
+        style: style as maplibregl.StyleSpecification,
+      };
+      if (bounds) {
+        opts.bounds = bounds as maplibregl.LngLatBoundsLike;
+        opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
+      } else {
+        opts.center = mapData.center;
+        opts.zoom = mapData.zoom;
+      }
+      const map = new maplibregl.Map(opts);
+      map.addControl(
+        new maplibregl.NavigationControl({ showCompass: false }),
+        "top-right",
+      );
+      mapRef.current = map;
+    });
     return () => {
-      map.remove();
+      cancelled = true;
+      mapRef.current?.remove();
       mapRef.current = null;
     };
   }, [baseMap.style]);
@@ -130,7 +174,11 @@ function EmbedMapView({
   return (
     <div className="w-full h-full relative">
       <div ref={containerRef} className="w-full h-full" />
-      <LegendDisplay features={features} legendEntries={legendEntries} {...choroplethLegendProps(choropleth)} />
+      <LegendDisplay
+        features={features}
+        legendEntries={legendEntries}
+        {...choroplethLegendProps(choropleth)}
+      />
       <a
         href={`/maps/${mapId}`}
         target="_blank"

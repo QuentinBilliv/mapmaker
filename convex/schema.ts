@@ -26,6 +26,11 @@ export default defineSchema({
     center: v.array(v.number()),
     zoom: v.number(),
     baseMapId: v.string(),
+    styleOptions: v.optional(v.object({
+      noLabels: v.optional(v.boolean()),
+      noBorders: v.optional(v.boolean()),
+      noRoads: v.optional(v.boolean()),
+    })),
     layers: v.optional(v.any()),
     features: v.optional(v.any()),
     groups: v.optional(v.any()),

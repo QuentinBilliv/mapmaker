@@ -21,6 +21,11 @@ export const vMapMetadataArgs = {
   center: v.array(v.number()),
   zoom: v.number(),
   baseMapId: v.string(),
+  styleOptions: v.optional(v.object({
+    noLabels: v.optional(v.boolean()),
+    noBorders: v.optional(v.boolean()),
+    noRoads: v.optional(v.boolean()),
+  })),
 };
 
 export const vMapPayloadArgs = {

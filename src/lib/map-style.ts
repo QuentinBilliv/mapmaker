@@ -1,10 +1,17 @@
-import type { StyleSpecification } from "@maplibre/maplibre-gl-style-spec";
+import type { StyleSpecification, LayerSpecification } from "@maplibre/maplibre-gl-style-spec";
 import { COLORS } from "./defaults";
 
 export interface BaseMap {
   id: string;
   label: string;
   style: StyleSpecification | string;
+  vector?: boolean;
+}
+
+export interface StyleOptions {
+  noLabels?: boolean;
+  noBorders?: boolean;
+  noRoads?: boolean;
 }
 
 const GLYPHS = "https://tiles.openfreemap.org/fonts/{fontstack}/{range}.pbf";
@@ -34,16 +41,19 @@ export const BASE_MAPS: BaseMap[] = [
     id: "liberty",
     label: "Liberty",
     style: "https://tiles.openfreemap.org/styles/liberty",
+    vector: true,
   },
   {
     id: "bright",
     label: "Bright",
     style: "https://tiles.openfreemap.org/styles/bright",
+    vector: true,
   },
   {
     id: "positron",
     label: "Positron",
     style: "https://tiles.openfreemap.org/styles/positron",
+    vector: true,
   },
   {
     id: "osm",
@@ -106,9 +116,61 @@ export const DEFAULT_BASE_MAP = BASE_MAPS[0];
 
 const LEGACY_BASE_MAP_IDS: Record<string, string> = {
   natgeo: "liberty",
+  "liberty-no-labels": "liberty",
+  "bright-no-labels": "bright",
+  "positron-no-labels": "positron",
 };
 
 export function findBaseMap(id: string): BaseMap {
   const resolved = LEGACY_BASE_MAP_IDS[id] ?? id;
   return BASE_MAPS.find((b) => b.id === resolved) ?? BASE_MAPS[0];
+}
+
+function hasTextField(layer: LayerSpecification): boolean {
+  return "layout" in layer && !!layer.layout && "text-field" in layer.layout;
+}
+
+const ROAD_PREFIXES = [
+  "road_", "road-",
+  "highway_", "highway-",
+  "tunnel_", "tunnel-",
+  "bridge_", "bridge-",
+  "aeroway_", "aeroway-",
+  "railway_", "railway-",
+  "ferry",
+];
+
+function applyStyleOptions(style: StyleSpecification, options: StyleOptions): StyleSpecification {
+  if (!options.noLabels && !options.noBorders && !options.noRoads) return style;
+  return {
+    ...style,
+    layers: style.layers.filter((l) => {
+      if (options.noLabels && hasTextField(l)) return false;
+      if (options.noBorders && l.id.startsWith("boundary")) return false;
+      if (options.noRoads && ROAD_PREFIXES.some((p) => l.id.startsWith(p))) return false;
+      return true;
+    }),
+  };
+}
+
+const rawStyleCache = new Map<string, StyleSpecification>();
+
+async function fetchVectorStyle(url: string): Promise<StyleSpecification> {
+  const cached = rawStyleCache.get(url);
+  if (cached) return cached;
+  const res = await fetch(url);
+  const json: StyleSpecification = await res.json();
+  rawStyleCache.set(url, json);
+  return json;
+}
+
+export async function resolveBaseMapStyle(
+  baseMap: BaseMap,
+  options: StyleOptions = {},
+): Promise<StyleSpecification | string> {
+  const needsTransform = baseMap.vector && (options.noLabels || options.noBorders || options.noRoads);
+  if (!needsTransform) return baseMap.style;
+  if (typeof baseMap.style !== "string") return applyStyleOptions(baseMap.style, options);
+  const raw = await fetchVectorStyle(baseMap.style);
+  return applyStyleOptions(raw, options);
 }

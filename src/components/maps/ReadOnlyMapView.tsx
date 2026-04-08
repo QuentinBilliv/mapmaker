@@ -8,7 +8,7 @@ import { useFeatureRendering } from "@/lib/hooks/use-feature-rendering";
 import { useFeatureTooltip } from "@/lib/hooks/use-feature-tooltip";
 import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
-import { findBaseMap } from "@/lib/map-style";
+import { findBaseMap, resolveBaseMapStyle, type StyleOptions } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
 import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
@@ -26,6 +26,7 @@ interface ReadOnlyMapViewProps {
   legendEntries?: LegendEntry[];
   choropleth?: ChoroplethData;
   baseMapId: string;
+  styleOptions?: StyleOptions;
   editHref?: string;
 }
 
@@ -44,6 +45,7 @@ function ReadOnlyMapViewInner({
   legendEntries = [],
   choropleth = DEFAULT_CHOROPLETH,
   baseMapId,
+  styleOptions,
   editHref,
 }: ReadOnlyMapViewProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -55,22 +57,27 @@ function ReadOnlyMapViewInner({
 
   useEffect(() => {
     if (!containerRef.current || mapRef.current) return;
-    const opts: maplibregl.MapOptions = {
-      container: containerRef.current,
-      style: baseMap.style as maplibregl.StyleSpecification,
-    };
-    if (bounds) {
-      opts.bounds = bounds as maplibregl.LngLatBoundsLike;
-      opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
-    } else {
-      opts.center = mapData.center;
-      opts.zoom = mapData.zoom;
-    }
-    const map = new maplibregl.Map(opts);
-    map.addControl(new maplibregl.NavigationControl(), "bottom-right");
-    mapRef.current = map;
+    let cancelled = false;
+    resolveBaseMapStyle(baseMap, styleOptions).then((style) => {
+      if (cancelled || !containerRef.current) return;
+      const opts: maplibregl.MapOptions = {
+        container: containerRef.current,
+        style: style as maplibregl.StyleSpecification,
+      };
+      if (bounds) {
+        opts.bounds = bounds as maplibregl.LngLatBoundsLike;
+        opts.fitBoundsOptions = { padding: 60, maxZoom: 16 };
+      } else {
+        opts.center = mapData.center;
+        opts.zoom = mapData.zoom;
+      }
+      const map = new maplibregl.Map(opts);
+      map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+      mapRef.current = map;
+    });
     return () => {
-      map.remove();
+      cancelled = true;
+      mapRef.current?.remove();
       mapRef.current = null;
     };
   }, [baseMap.style]);
