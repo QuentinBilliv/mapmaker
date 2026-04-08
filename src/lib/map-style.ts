@@ -102,6 +102,15 @@ export const BASE_MAPS: BaseMap[] = [
     ),
   },
   {
+    id: "natgeo",
+    label: "National Geographic",
+    style: rasterStyle(
+      "ESRI NatGeo",
+      ["https://server.arcgisonline.com/ArcGIS/rest/services/NatGeo_World_Map/MapServer/tile/{z}/{y}/{x}"],
+      '&copy; <a href="https://www.esri.com/">Esri</a> &copy; National Geographic',
+    ),
+  },
+  {
     id: "satellite",
     label: "Satellite",
     style: rasterStyle(
@@ -115,7 +124,6 @@ export const BASE_MAPS: BaseMap[] = [
 export const DEFAULT_BASE_MAP = BASE_MAPS[0];
 
 const LEGACY_BASE_MAP_IDS: Record<string, string> = {
-  natgeo: "liberty",
   "liberty-no-labels": "liberty",
   "bright-no-labels": "bright",
   "positron-no-labels": "positron",
