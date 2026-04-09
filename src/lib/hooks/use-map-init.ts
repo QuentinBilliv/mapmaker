@@ -42,6 +42,7 @@ export function useMapInit(
       map.addControl(new maplibregl.NavigationControl(), "bottom-right");
       map.addControl(new maplibregl.ScaleControl(), "bottom-left");
       mapRef.current = map;
+      setStyleVersion((v) => v + 1);
       map.once("idle", () => setStyleVersion((v) => v + 1));
     });
 

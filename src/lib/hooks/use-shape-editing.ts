@@ -461,15 +461,11 @@ export function useShapeEditing(
       }
     }
 
-    const setup = () => {
-      refresh();
-      map.on("mousedown", onMouseDown);
-      map.on("mousemove", onMouseMove);
-      map.on("mouseup", onMouseUp);
-    };
-
-    if (map.isStyleLoaded()) setup();
-    else map.once("load", setup);
+    map.on("mousedown", onMouseDown);
+    map.on("mousemove", onMouseMove);
+    map.on("mouseup", onMouseUp);
+    if (map.isStyleLoaded()) refresh();
+    else map.once("load", refresh);
 
     return () => {
       if (dragRef.current) { map.dragPan.enable(); dragRef.current = null; }
@@ -478,7 +474,8 @@ export function useShapeEditing(
       map.off("mouseup", onMouseUp);
       if (map.isStyleLoaded() && map.getSource(SRC)) setOverlay(map, EMPTY);
     };
-  }, [mapRef]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [mapRef, styleVersion]);
 
   const selectedId = selectedFeature?.id ?? null;
   const selectedGeometry = selectedFeature?.geometry ?? null;
