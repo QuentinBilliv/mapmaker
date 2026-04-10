@@ -38,6 +38,16 @@ async function fetchJson<T>(url: string): Promise<T> {
 let countriesCache: GeoBankCountry[] | null = null;
 const geometryCache = new Map<string, GeoJSON.FeatureCollection>();
 
+const MISSING_FROM_BULK: GeoBankCountry[] = [
+  {
+    iso: "IND",
+    name: "India",
+    continent: "Asia",
+    subregion: "Southern Asia",
+    admLevels: [0, 1, 2],
+  },
+];
+
 export async function fetchCountries(): Promise<GeoBankCountry[]> {
   if (countriesCache) return countriesCache;
 
@@ -50,7 +60,7 @@ export async function fetchCountries(): Promise<GeoBankCountry[]> {
   const adm1Set = new Set(adm1.map((e) => e.boundaryISO));
   const adm2Set = new Set(adm2.map((e) => e.boundaryISO));
 
-  countriesCache = adm0.map((entry) => {
+  const fromBulk: GeoBankCountry[] = adm0.map((entry) => {
     const levels = [0];
     if (adm1Set.has(entry.boundaryISO)) levels.push(1);
     if (adm2Set.has(entry.boundaryISO)) levels.push(2);
@@ -63,7 +73,10 @@ export async function fetchCountries(): Promise<GeoBankCountry[]> {
     };
   });
 
-  countriesCache.sort((a, b) => a.name.localeCompare(b.name));
+  const seen = new Set(fromBulk.map((c) => c.iso));
+  const merged = [...fromBulk, ...MISSING_FROM_BULK.filter((c) => !seen.has(c.iso))];
+  merged.sort((a, b) => a.name.localeCompare(b.name));
+  countriesCache = merged;
   return countriesCache;
 }
 
