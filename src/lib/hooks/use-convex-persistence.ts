@@ -6,6 +6,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import type { StoredMapState } from "../editor-context";
 import { toMapData } from "../convex-mapdata";
+import { serializeChoropleth, deserializeChoropleth } from "../choropleth-serde";
 
 interface MapFileData {
   features: StoredMapState["features"];
@@ -46,10 +47,10 @@ export function useConvexPersistence(mapId: string) {
     const raw = convexMap as Record<string, unknown>;
     const styleOptions = (raw.styleOptions as StoredMapState["styleOptions"]) ?? undefined;
     if (hasInlineData) {
-      return { map, features: convexMap.features, groups: convexMap.groups, legendEntries: raw.legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId, styleOptions, choropleth: raw.choropleth as StoredMapState["choropleth"] };
+      return { map, features: convexMap.features, groups: convexMap.groups, legendEntries: raw.legendEntries as StoredMapState["legendEntries"] ?? [], baseMapId, styleOptions, choropleth: deserializeChoropleth(raw.choropleth) };
     }
     if (fileData) {
-      return { map, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId, styleOptions, choropleth: fileData.choropleth };
+      return { map, features: fileData.features, groups: fileData.groups, legendEntries: fileData.legendEntries ?? [], baseMapId, styleOptions, choropleth: deserializeChoropleth(fileData.choropleth) };
     }
     return null;
   })();
@@ -64,7 +65,8 @@ export function useConvexPersistence(mapId: string) {
       clearTimeout(saveTimerRef.current);
       saveTimerRef.current = setTimeout(async () => {
         try {
-          const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: state.choropleth });
+          const serializedChoropleth = serializeChoropleth(state.choropleth);
+          const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth });
           const payloadSize = new Blob([payload]).size;
           const metadata = {
             mapId: mapId as Id<"maps">,
@@ -84,7 +86,7 @@ export function useConvexPersistence(mapId: string) {
               features: state.features,
               groups: state.groups,
               legendEntries: state.legendEntries,
-              choropleth: state.choropleth,
+              choropleth: serializedChoropleth,
             });
           } else {
             uploadAbortRef.current?.abort();

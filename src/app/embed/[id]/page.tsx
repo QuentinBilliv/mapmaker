@@ -24,6 +24,7 @@ import type {
 import { DEFAULT_CHOROPLETH } from "@/lib/types";
 import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
 import { choroplethLegendProps } from "@/lib/choropleth-legend";
+import { deserializeChoropleth } from "@/lib/choropleth-serde";
 
 export default function EmbedPage({ params }: { params: { id: string } }) {
   const map = useQuery(api.maps.getMap, {
@@ -73,9 +74,11 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
         features: map.features!,
         groups: map.groups!,
         legendEntries: (raw.legendEntries as LegendEntry[]) ?? [],
-        choropleth: raw.choropleth as ChoroplethData | undefined,
+        choropleth: deserializeChoropleth(raw.choropleth),
       }
-    : fileData;
+    : fileData
+      ? { ...fileData, choropleth: deserializeChoropleth(fileData.choropleth) }
+      : null;
 
   if (!data) {
     return (

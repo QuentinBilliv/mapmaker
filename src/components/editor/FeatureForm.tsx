@@ -407,7 +407,7 @@ function PointFields() {
         <div className="flex gap-3">
           <Field label="Border" className="flex-1">
             <ColorInput
-              value={watch("borderColor")}
+              value={watch("borderColor") ?? ""}
               onChange={(e) =>
                 setValue("borderColor", (e.target as HTMLInputElement).value)
               }

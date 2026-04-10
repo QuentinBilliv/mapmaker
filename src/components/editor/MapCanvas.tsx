@@ -56,7 +56,7 @@ export default function MapCanvas() {
   );
 
   useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries);
-  const choroplethInteractingRef = useChoropleth(mapRef, choropleth, styleVersion, assignCountryToCategory, unassignCountry, drawMode);
+  useChoropleth(mapRef, choropleth, styleVersion, assignCountryToCategory, unassignCountry, choroplethMode);
 
   const selectedGroupId = useMemo(() => {
     if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;
@@ -76,9 +76,9 @@ export default function MapCanvas() {
   const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
   const groupInteractingRef = useGroupEditing(mapRef, selectedGroupId, groupMembers, moveGroup, rotateGroup, recordSnapshot, styleVersion);
   const combinedRef = useMemo(() => ({
-    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current || choroplethInteractingRef.current); },
+    get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current); },
     set current(_v: boolean) {},
-  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef, choroplethInteractingRef]);
+  }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef]);
   const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useSaveViewListener(mapRef, updateMap);

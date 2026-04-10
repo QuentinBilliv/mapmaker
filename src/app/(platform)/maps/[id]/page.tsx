@@ -7,6 +7,7 @@ import type { Id } from "@convex/_generated/dataModel";
 import ReadOnlyMapView from "@/components/maps/ReadOnlyMapView";
 import { toMapData } from "@/lib/convex-mapdata";
 import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
+import { deserializeChoropleth } from "@/lib/choropleth-serde";
 
 function useIsOwner(map: { ownerId?: string } | null | undefined): boolean {
   const me = useQuery(api.users.getMe);
@@ -62,8 +63,10 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
 
   const raw = map as Record<string, unknown>;
   const data = hasInlineData
-    ? { features: map.features!, groups: map.groups!, legendEntries: raw.legendEntries as LegendEntry[] ?? [], choropleth: raw.choropleth as ChoroplethData | undefined }
-    : fileData;
+    ? { features: map.features!, groups: map.groups!, legendEntries: raw.legendEntries as LegendEntry[] ?? [], choropleth: deserializeChoropleth(raw.choropleth) }
+    : fileData
+      ? { ...fileData, choropleth: deserializeChoropleth(fileData.choropleth) }
+      : null;
 
   if (!data) return <Loading />;
 
