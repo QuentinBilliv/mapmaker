@@ -848,7 +848,7 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
   const isCustom = !feature.legendEntryId && !feature.choroplethCategoryId;
   return (
     <Field label="Legend style">
-      <div className="flex flex-wrap gap-1.5">
+      <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto pr-1 [mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]">
         <button
           type="button"
           onClick={() => {
