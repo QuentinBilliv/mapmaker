@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import type { FeatureData, PolygonFeature, PolylineFeature, GroupData, LegendEntry, PointShape } from "@/lib/types";
+import type { FeatureData, PolygonFeature, PolylineFeature, GroupData, LegendEntry, PointShape, ChoroplethData } from "@/lib/types";
 import { resolveAllFeatures } from "@/lib/resolve-style";
 import {
   ensureShapeIcon,
@@ -451,6 +451,7 @@ function buildGeoJSONSorted(
             order: f.order,
             featureType: "text",
             legendEntryId: f.legendEntryId ?? "",
+            choroplethCategoryId: f.choroplethCategoryId ?? "",
             rotation: f.rotation ?? 0,
             textContent: f.textContent ?? "Text",
             fontSize: f.fontSize ?? 24,
@@ -493,7 +494,7 @@ function buildGeoJSONSorted(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { id: f.id, bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
+              properties: { id: f.id, bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "", choroplethCategoryId: f.choroplethCategoryId ?? "" },
             });
           }
           if (f.arrowStyle === "both") {
@@ -502,7 +503,7 @@ function buildGeoJSONSorted(
             arrowFeatures.push({
               type: "Feature",
               geometry: { type: "Point", coordinates: b },
-              properties: { id: f.id, bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "" },
+              properties: { id: f.id, bearing: bearing(a, b), color: f.color, opacity: f.opacity, strokeWidth: f.strokeWidth, legendEntryId: f.legendEntryId ?? "", choroplethCategoryId: f.choroplethCategoryId ?? "" },
             });
           }
         }
@@ -524,6 +525,7 @@ function buildGeoJSONSorted(
         rotation: f.rotation ?? 0,
         featureType: f.type,
         legendEntryId: f.legendEntryId ?? "",
+        choroplethCategoryId: f.choroplethCategoryId ?? "",
         iconId,
         patternId,
         strokeWidth: hasStroke ? f.strokeWidth : 0,
@@ -624,8 +626,14 @@ export function useFeatureRendering(
   groups: GroupData[],
   styleVersion: number,
   legendEntries: LegendEntry[] = [],
+  choropleth?: ChoroplethData,
 ) {
-  const resolved = useMemo(() => resolveAllFeatures(features, legendEntries), [features, legendEntries]);
+  const choroplethCategories = choropleth?.categories;
+  const choroplethOpacity = choropleth?.opacity;
+  const resolved = useMemo(
+    () => resolveAllFeatures(features, legendEntries, choroplethCategories && choroplethOpacity !== undefined ? { categories: choroplethCategories, opacity: choroplethOpacity } : undefined),
+    [features, legendEntries, choroplethCategories, choroplethOpacity],
+  );
   const lastKeyRef = useRef("");
 
   useEffect(() => {

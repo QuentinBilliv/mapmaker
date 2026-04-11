@@ -111,6 +111,7 @@ interface EditorActions {
   addChoroplethCategory: (color: string, label: string) => string;
   updateChoroplethCategory: (id: string, updates: Partial<{ color: string; label: string }>) => void;
   deleteChoroplethCategory: (id: string) => void;
+  assignChoroplethCategory: (featureId: string, categoryId: string | null) => void;
   assignCountryToCategory: (iso: string, name: string) => void;
   unassignCountry: (iso: string) => void;
   importChoroplethData: (categories: { label: string; color: string; countries: string[] }[]) => void;
@@ -421,8 +422,31 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
 
   const setChoropleth = useCallback((updates: Partial<ChoroplethData>) => {
     recordSnapshot();
-    setChoroplethState((prev) => ({ ...prev, ...updates }));
-  }, [recordSnapshot]);
+    setChoroplethState((prev) => {
+      const next = { ...prev, ...updates };
+      if (prev.enabled && next.enabled === false) {
+        const catById = new Map(prev.categories.map((c) => [c.id, c]));
+        setFeatures((feats) => feats.map((f) => {
+          if (!f.choroplethCategoryId) return f;
+          const cat = catById.get(f.choroplethCategoryId);
+          if (!cat) return { ...f, choroplethCategoryId: undefined } as FeatureData;
+          return { ...f, color: cat.color, opacity: prev.opacity, choroplethCategoryId: undefined } as FeatureData;
+        }));
+      }
+      return next;
+    });
+  }, [recordSnapshot, setFeatures]);
+
+  const assignChoroplethCategory = useCallback((featureId: string, categoryId: string | null) => {
+    recordSnapshot();
+    setFeatures((prev) => prev.map((f) => {
+      if (f.id !== featureId) return f;
+      if (categoryId === null) {
+        return { ...f, choroplethCategoryId: undefined } as FeatureData;
+      }
+      return { ...f, choroplethCategoryId: categoryId, legendEntryId: undefined } as FeatureData;
+    }));
+  }, [recordSnapshot, setFeatures]);
 
   const addChoroplethCategory = useCallback((color: string, label: string): string => {
     recordSnapshot();
@@ -449,6 +473,14 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const deleteChoroplethCategory = useCallback((id: string) => {
     recordSnapshot();
     setChoroplethState((prev) => {
+      const cat = prev.categories.find((c) => c.id === id);
+      if (cat) {
+        setFeatures((feats) => feats.map((f) =>
+          f.choroplethCategoryId === id
+            ? ({ ...f, color: cat.color, opacity: prev.opacity, choroplethCategoryId: undefined } as FeatureData)
+            : f
+        ));
+      }
       const assignments = { ...prev.assignments };
       for (const iso of Object.keys(assignments)) {
         if (assignments[iso] === id) delete assignments[iso];
@@ -460,7 +492,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
         activeCategoryId: prev.activeCategoryId === id ? null : prev.activeCategoryId,
       };
     });
-  }, [recordSnapshot]);
+  }, [recordSnapshot, setFeatures]);
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const assignCountryToCategory = useCallback((iso: string, _name: string) => {
@@ -591,6 +623,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       assignLegendEntry, deduceLegendEntryFromFeature,
       setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
+      assignChoroplethCategory,
       assignCountryToCategory, unassignCountry, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
@@ -618,6 +651,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       assignLegendEntry, deduceLegendEntryFromFeature,
       setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
+      assignChoroplethCategory,
       assignCountryToCategory, unassignCountry, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,

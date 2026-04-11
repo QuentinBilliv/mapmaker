@@ -55,7 +55,7 @@ export default function MapCanvas() {
     [selectFeature, selectFeatures]
   );
 
-  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries);
+  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries, choropleth);
   useChoropleth(mapRef, choropleth, styleVersion, assignCountryToCategory, unassignCountry, choroplethMode);
 
   const selectedGroupId = useMemo(() => {

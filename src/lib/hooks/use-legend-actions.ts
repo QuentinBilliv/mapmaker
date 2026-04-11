@@ -41,7 +41,13 @@ export function useLegendActions({
   const assignLegendEntry = useCallback((featureId: string, legendEntryId: string | null) => {
     recordSnapshot();
     setFeatures((prev) =>
-      prev.map((f) => (f.id === featureId ? { ...f, legendEntryId: legendEntryId ?? undefined } as FeatureData : f))
+      prev.map((f) => {
+        if (f.id !== featureId) return f;
+        if (legendEntryId === null) {
+          return { ...f, legendEntryId: undefined } as FeatureData;
+        }
+        return { ...f, legendEntryId, choroplethCategoryId: undefined } as FeatureData;
+      })
     );
   }, [setFeatures, recordSnapshot]);
 

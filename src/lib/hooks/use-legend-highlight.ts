@@ -71,7 +71,11 @@ export function useLegendHighlight(
 function featureDimExpr(entryId: string, normal: maplibregl.ExpressionSpecification | number): maplibregl.ExpressionSpecification {
   return [
     "case",
-    ["==", ["get", "legendEntryId"], entryId],
+    [
+      "any",
+      ["==", ["get", "legendEntryId"], entryId],
+      ["==", ["get", "choroplethCategoryId"], entryId],
+    ],
     normal as maplibregl.ExpressionSpecification,
     DIM_OPACITY,
   ];

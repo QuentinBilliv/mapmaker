@@ -171,7 +171,7 @@ function EmbedMapView({
     };
   }, [baseMap.style]);
 
-  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries);
+  useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries, choropleth);
   useChoroplethDisplay(mapRef, choropleth, styleVersion);
   useFeatureTooltip(mapRef, "select", styleVersion);
   useLegendHighlight(mapRef, styleVersion, choropleth.opacity);

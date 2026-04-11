@@ -63,6 +63,7 @@ const mapmakerProps = z
     "mapmaker:order": z.number().int().min(0).max(100_000).optional(),
     "mapmaker:groupId": z.string().max(100).optional(),
     "mapmaker:legendEntryId": z.string().max(100).optional(),
+    "mapmaker:choroplethCategoryId": z.string().max(100).optional(),
     "mapmaker:sourceText": z.string().max(MAX_STRING).default(""),
     "mapmaker:sourceUrl": z.string().url().max(MAX_STRING).refine(
       (v) => /^https?:\/\//i.test(v),
@@ -222,6 +223,7 @@ export function serialize(
       if (f.rotation !== undefined) props["mapmaker:rotation"] = f.rotation;
       if (f.groupId) props["mapmaker:groupId"] = f.groupId;
       if (f.legendEntryId) props["mapmaker:legendEntryId"] = f.legendEntryId;
+      if (f.choroplethCategoryId) props["mapmaker:choroplethCategoryId"] = f.choroplethCategoryId;
       if (f.type === "text") props["mapmaker:textContent"] = f.textContent;
       if (!hasEntry) switch (f.type) {
         case "polygon":
@@ -321,6 +323,7 @@ export function deserialize(raw: string): DeserializedMap {
       rotation: p["mapmaker:rotation"],
       groupId: p["mapmaker:groupId"],
       legendEntryId: p["mapmaker:legendEntryId"],
+      choroplethCategoryId: p["mapmaker:choroplethCategoryId"],
       geometry: f.geometry,
     };
     switch (declaredType) {

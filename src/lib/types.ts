@@ -178,6 +178,7 @@ interface FeatureBase {
   rotation?: number;
   groupId?: string;
   legendEntryId?: string;
+  choroplethCategoryId?: string;
   geometry: GeoJSON.Geometry;
 }
 

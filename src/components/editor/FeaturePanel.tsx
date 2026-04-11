@@ -4,7 +4,7 @@ import React, { useMemo, useState } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import type { FeatureData, GroupData, LegendEntry } from "@/lib/types";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
-import { resolveFeatureStyle } from "@/lib/resolve-style";
+import { resolveFeatureStyle, type ChoroplethStyleSlice } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { FaTrash, FaCopy } from "react-icons/fa6";
@@ -15,7 +15,7 @@ type SidebarItem =
   | { kind: "group"; group: GroupData; children: FeatureData[] };
 
 export default function FeaturePanel() {
-  const { features, groups, legendEntries, selectedFeatureIds, featureLimitReached } = useEditorData();
+  const { features, groups, legendEntries, choropleth, selectedFeatureIds, featureLimitReached } = useEditorData();
   const {
     selectFeature, selectFeatures, reorderItems, reorderGroupChildren,
     createGroup, updateGroup, addFeatureToGroup, removeFeatureFromGroup,
@@ -24,6 +24,10 @@ export default function FeaturePanel() {
   const [collapsed, setCollapsed] = useState<Set<string>>(new Set());
 
   const selectedSet = useMemo(() => new Set(selectedFeatureIds), [selectedFeatureIds]);
+  const choroplethSlice = useMemo<ChoroplethStyleSlice>(
+    () => ({ categories: choropleth.categories, opacity: choropleth.opacity }),
+    [choropleth.categories, choropleth.opacity],
+  );
 
   const items = useMemo(() => {
     const groupMap = new Map(groups.map((g) => [g.id, g]));
@@ -137,6 +141,7 @@ export default function FeaturePanel() {
                         isSelected={selectedSet.has(child.id)}
                         indent
                         legendEntries={legendEntries}
+                        choropleth={choroplethSlice}
                         onSelect={() => selectFeature(child.id)}
                         onDuplicate={() => duplicateFeature(child.id)}
                         onDelete={() => deleteFeature(child.id)}
@@ -158,6 +163,7 @@ export default function FeaturePanel() {
                   feature={item.feature}
                   isSelected={selectedSet.has(item.feature.id)}
                   legendEntries={legendEntries}
+                  choropleth={choroplethSlice}
                   onSelect={() => selectFeature(item.feature.id)}
                   onDuplicate={() => duplicateFeature(item.feature.id)}
                   onDelete={() => deleteFeature(item.feature.id)}
@@ -289,6 +295,7 @@ const FeatureRow = React.memo(function FeatureRow({
   isSelected,
   indent,
   legendEntries,
+  choropleth,
   onSelect,
   onDuplicate,
   onDelete,
@@ -301,6 +308,7 @@ const FeatureRow = React.memo(function FeatureRow({
   isSelected: boolean;
   indent?: boolean;
   legendEntries: LegendEntry[];
+  choropleth: ChoroplethStyleSlice;
   onSelect: () => void;
   onDuplicate: () => void;
   onDelete: () => void;
@@ -309,7 +317,7 @@ const FeatureRow = React.memo(function FeatureRow({
   onDrop?: (e: React.DragEvent) => void;
   onDragEnd: () => void;
 }) {
-  const resolved = resolveFeatureStyle(feature, legendEntries);
+  const resolved = resolveFeatureStyle(feature, legendEntries, choropleth);
 
   return (
     <div

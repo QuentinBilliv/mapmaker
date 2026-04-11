@@ -835,20 +835,28 @@ function FormSlider({
 }
 
 function LegendEntryPicker({ feature }: { feature: FeatureData }) {
-  const { legendEntries } = useEditorData();
-  const { assignLegendEntry } = useEditorActions();
+  const { legendEntries, choropleth } = useEditorData();
+  const { assignLegendEntry, assignChoroplethCategory } = useEditorActions();
   const matchingEntries = legendEntries.filter(
     (e) => e.featureType === feature.type,
   );
-  if (matchingEntries.length === 0) return null;
+  const choroCategories =
+    choropleth.enabled && choropleth.mode === "discrete"
+      ? [...choropleth.categories].sort((a, b) => a.order - b.order)
+      : [];
+  if (matchingEntries.length === 0 && choroCategories.length === 0) return null;
+  const isCustom = !feature.legendEntryId && !feature.choroplethCategoryId;
   return (
     <Field label="Legend style">
       <div className="flex flex-wrap gap-1.5">
         <button
           type="button"
-          onClick={() => assignLegendEntry(feature.id, null)}
+          onClick={() => {
+            assignLegendEntry(feature.id, null);
+            assignChoroplethCategory(feature.id, null);
+          }}
           className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
-            !feature.legendEntryId
+            isCustom
               ? "border-primary bg-primary/10 text-primary"
               : "border-border text-muted-foreground hover:border-foreground/30"
           }`}
@@ -872,6 +880,24 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
               height={16}
             />
             {e.label || "Untitled"}
+          </button>
+        ))}
+        {choroCategories.map((c) => (
+          <button
+            key={c.id}
+            type="button"
+            onClick={() => assignChoroplethCategory(feature.id, c.id)}
+            className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
+              feature.choroplethCategoryId === c.id
+                ? "border-primary bg-primary/10 text-primary"
+                : "border-border text-muted-foreground hover:border-foreground/30"
+            }`}
+          >
+            <span
+              className="inline-block rounded-sm border border-black/10"
+              style={{ width: 20, height: 16, backgroundColor: c.color }}
+            />
+            {c.label || "Untitled"}
           </button>
         ))}
       </div>

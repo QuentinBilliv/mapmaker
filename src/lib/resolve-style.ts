@@ -9,7 +9,21 @@ import type {
   PolylineFeature,
   PolygonFeature,
   TextFeature,
+  ChoroplethCategory,
 } from "./types";
+
+export type ChoroplethStyleSlice = { categories: ChoroplethCategory[]; opacity: number };
+
+function applyCategoryColor(feature: FeatureData, category: ChoroplethCategory, opacity: number): FeatureData {
+  const base = { ...feature, color: category.color, opacity };
+  if (feature.type === "polygon" || feature.type === "polyline") {
+    return { ...base, strokeWidth: 0 } as FeatureData;
+  }
+  if (feature.type === "point") {
+    return { ...base, borderWidth: 0 } as FeatureData;
+  }
+  return base as FeatureData;
+}
 
 function applyLegendEntry(feature: FeatureData, entry: LegendEntry): FeatureData {
   if (entry.featureType !== feature.type) return feature;
@@ -33,21 +47,32 @@ function applyLegendEntry(feature: FeatureData, entry: LegendEntry): FeatureData
   }
 }
 
-export function resolveFeatureStyle(feature: FeatureData, legendEntries: LegendEntry[]): FeatureData {
-  if (!feature.legendEntryId) return feature;
-  const entry = legendEntries.find((e) => e.id === feature.legendEntryId);
-  if (!entry) return feature;
-  return applyLegendEntry(feature, entry);
+export function resolveFeatureStyle(feature: FeatureData, legendEntries: LegendEntry[], choropleth?: ChoroplethStyleSlice): FeatureData {
+  if (feature.legendEntryId) {
+    const entry = legendEntries.find((e) => e.id === feature.legendEntryId);
+    if (entry) return applyLegendEntry(feature, entry);
+  }
+  if (feature.choroplethCategoryId && choropleth) {
+    const cat = choropleth.categories.find((c) => c.id === feature.choroplethCategoryId);
+    if (cat) return applyCategoryColor(feature, cat, choropleth.opacity);
+  }
+  return feature;
 }
 
-export function resolveAllFeatures(features: FeatureData[], legendEntries: LegendEntry[]): FeatureData[] {
-  if (legendEntries.length === 0) return features;
+export function resolveAllFeatures(features: FeatureData[], legendEntries: LegendEntry[], choropleth?: ChoroplethStyleSlice): FeatureData[] {
   const entryMap = new Map(legendEntries.map((e) => [e.id, e]));
+  const catMap = new Map((choropleth?.categories ?? []).map((c) => [c.id, c]));
+  if (entryMap.size === 0 && catMap.size === 0) return features;
   return features.map((f) => {
-    if (!f.legendEntryId) return f;
-    const entry = entryMap.get(f.legendEntryId);
-    if (!entry) return f;
-    return applyLegendEntry(f, entry);
+    if (f.legendEntryId) {
+      const entry = entryMap.get(f.legendEntryId);
+      if (entry) return applyLegendEntry(f, entry);
+    }
+    if (f.choroplethCategoryId && choropleth) {
+      const cat = catMap.get(f.choroplethCategoryId);
+      if (cat) return applyCategoryColor(f, cat, choropleth.opacity);
+    }
+    return f;
   });
 }
 
