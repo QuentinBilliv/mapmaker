@@ -842,10 +842,55 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
   );
   const choroCategories =
     choropleth.enabled && choropleth.mode === "discrete"
-      ? [...choropleth.categories].sort((a, b) => a.order - b.order)
+      ? choropleth.categories
       : [];
   if (matchingEntries.length === 0 && choroCategories.length === 0) return null;
   const isCustom = !feature.legendEntryId && !feature.choroplethCategoryId;
+  type Item = {
+    key: string;
+    label: string;
+    selected: boolean;
+    onClick: () => void;
+    swatch: React.ReactNode;
+  };
+  const items: Item[] = [
+    ...matchingEntries.map<Item>((e) => ({
+      key: `e:${e.id}`,
+      label: e.label || "Untitled",
+      selected: feature.legendEntryId === e.id,
+      onClick: () => assignLegendEntry(feature.id, e.id),
+      swatch: (
+        <FeatureSwatch
+          feature={legendEntryToSyntheticFeature(e)}
+          width={20}
+          height={16}
+        />
+      ),
+    })),
+    ...choroCategories.map<Item>((c) => ({
+      key: `c:${c.id}`,
+      label: c.label || "Untitled",
+      selected: feature.choroplethCategoryId === c.id,
+      onClick: () => assignChoroplethCategory(feature.id, c.id),
+      swatch: (
+        <span
+          className="inline-block rounded-sm border border-black/10"
+          style={{ width: 20, height: 16, backgroundColor: c.color }}
+        />
+      ),
+    })),
+  ].sort((a, b) =>
+    a.label.localeCompare(b.label, undefined, {
+      numeric: true,
+      sensitivity: "base",
+    }),
+  );
+  const buttonClass = (selected: boolean) =>
+    `flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
+      selected
+        ? "border-primary bg-primary/10 text-primary"
+        : "border-border text-muted-foreground hover:border-foreground/30"
+    }`;
   return (
     <Field label="Legend style">
       <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto pr-1 [mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]">
@@ -855,49 +900,19 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
             assignLegendEntry(feature.id, null);
             assignChoroplethCategory(feature.id, null);
           }}
-          className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
-            isCustom
-              ? "border-primary bg-primary/10 text-primary"
-              : "border-border text-muted-foreground hover:border-foreground/30"
-          }`}
+          className={buttonClass(isCustom)}
         >
           Custom
         </button>
-        {matchingEntries.map((e) => (
+        {items.map((item) => (
           <button
-            key={e.id}
+            key={item.key}
             type="button"
-            onClick={() => assignLegendEntry(feature.id, e.id)}
-            className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
-              feature.legendEntryId === e.id
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:border-foreground/30"
-            }`}
+            onClick={item.onClick}
+            className={buttonClass(item.selected)}
           >
-            <FeatureSwatch
-              feature={legendEntryToSyntheticFeature(e)}
-              width={20}
-              height={16}
-            />
-            {e.label || "Untitled"}
-          </button>
-        ))}
-        {choroCategories.map((c) => (
-          <button
-            key={c.id}
-            type="button"
-            onClick={() => assignChoroplethCategory(feature.id, c.id)}
-            className={`flex items-center gap-1.5 rounded border px-2 py-1 text-xs transition-colors ${
-              feature.choroplethCategoryId === c.id
-                ? "border-primary bg-primary/10 text-primary"
-                : "border-border text-muted-foreground hover:border-foreground/30"
-            }`}
-          >
-            <span
-              className="inline-block rounded-sm border border-black/10"
-              style={{ width: 20, height: 16, backgroundColor: c.color }}
-            />
-            {c.label || "Untitled"}
+            {item.swatch}
+            {item.label}
           </button>
         ))}
       </div>
