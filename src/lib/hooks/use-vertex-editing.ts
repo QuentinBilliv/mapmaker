@@ -2,6 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
+import toast from "react-hot-toast";
 import type { FeatureData, FeatureUpdate } from "@/lib/types";
 import { COLORS } from "@/lib/defaults";
 import { MOVE_ICON_ID, ensureMoveIcon } from "@/lib/move-icon";
@@ -70,6 +71,27 @@ function getCoords(f: FeatureData): CoordsInfo {
     return { coords, segments };
   }
   return { coords: [], segments: [] };
+}
+
+function deleteVertex(
+  globalIdx: number,
+  coords: Coord[],
+  segments: RingSegment[],
+): { coords: Coord[]; segments: RingSegment[] } | { error: string } {
+  const segIdx = segments.findIndex((s) => globalIdx >= s.offset && globalIdx < s.offset + s.count);
+  if (segIdx === -1) return { error: "Vertex not found" };
+  const seg = segments[segIdx];
+  const min = seg.closed ? 3 : 2;
+  if (seg.count <= min) {
+    return { error: `Cannot delete — minimum ${min} points` };
+  }
+  const newCoords = [...coords.slice(0, globalIdx), ...coords.slice(globalIdx + 1)];
+  const newSegments = segments.map((s, i) => {
+    if (i === segIdx) return { ...s, count: s.count - 1 };
+    if (s.offset > globalIdx) return { ...s, offset: s.offset - 1 };
+    return s;
+  });
+  return { coords: newCoords, segments: newSegments };
 }
 
 function centroid(coords: Coord[]): Coord {
@@ -309,6 +331,7 @@ export function useVertexEditing(
     }
 
     function onMouseDown(e: maplibregl.MapMouseEvent) {
+      if (e.originalEvent.button !== 0) return;
       const f = featRef.current;
       if (!f || (f.type === "polygon" && f.shapeOrigin)) return;
 
@@ -496,9 +519,30 @@ export function useVertexEditing(
       }
     }
 
+    function onContextMenu(e: maplibregl.MapMouseEvent) {
+      const f = featRef.current;
+      if (!f || f.type === "point" || f.type === "text") return;
+      if (f.type === "polygon" && f.shapeOrigin) return;
+      if (!map.getLayer(LAYER_VERTEX)) return;
+      const vHits = map.queryRenderedFeatures(e.point, { layers: [LAYER_VERTEX] });
+      if (vHits.length === 0) return;
+      const idx = vHits[0].properties?.index;
+      if (typeof idx !== "number") return;
+      e.preventDefault();
+      const { coords, segments } = getCoords(f);
+      const result = deleteVertex(idx, coords, segments);
+      if ("error" in result) {
+        toast.error(result.error);
+        return;
+      }
+      recordRef.current?.();
+      updateRef.current(f.id, { geometry: toGeometry(result.coords, f, result.segments) });
+    }
+
     map.on("mousedown", onMouseDown);
     map.on("mousemove", onMouseMove);
     map.on("mouseup", onMouseUp);
+    map.on("contextmenu", onContextMenu);
     if (map.isStyleLoaded()) refresh();
     else map.once("load", refresh);
 
@@ -507,6 +551,7 @@ export function useVertexEditing(
       map.off("mousedown", onMouseDown);
       map.off("mousemove", onMouseMove);
       map.off("mouseup", onMouseUp);
+      map.off("contextmenu", onContextMenu);
       if (map.isStyleLoaded() && map.getSource(SRC)) setOverlay(map, EMPTY);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
