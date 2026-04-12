@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import MapCanvas from "./MapCanvas";
 import MapCanvasErrorBoundary from "./MapCanvasErrorBoundary";
 import DrawingToolbar from "./DrawingToolbar";
@@ -18,12 +18,21 @@ import ExportImportButtons from "./ExportImportButtons";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
 import TutorialWelcome from "./TutorialWelcome";
+import MobileEditorNotice from "./MobileEditorNotice";
 import { FaLayerGroup, FaXmark } from "react-icons/fa6";
 
 export default function EditorShell() {
   const { choroplethMode } = useEditorData();
   const { setChoroplethMode, selectFeature } = useEditorActions();
   const [showSidebar, setShowSidebar] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const mq = window.matchMedia("(max-width: 767px)");
+    const update = () => setIsMobile(mq.matches);
+    update();
+    mq.addEventListener("change", update);
+    return () => mq.removeEventListener("change", update);
+  }, []);
 
   const handleOpenChoropleth = useCallback(() => {
     setShowSidebar(false);
@@ -34,6 +43,8 @@ export default function EditorShell() {
   const handleCloseChoropleth = useCallback(() => {
     setChoroplethMode(false);
   }, [setChoroplethMode]);
+
+  if (isMobile) return <MobileEditorNotice />;
 
   return (
     <div className="flex-1 flex overflow-hidden">
