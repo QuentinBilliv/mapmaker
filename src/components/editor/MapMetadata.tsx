@@ -149,7 +149,7 @@ function ViewControl({
       <div className="flex gap-2">
         <Button
           type="button"
-          variant="outline"
+          variant={isAuto ? "outline" : "default"}
           size="sm"
           className="flex-1 text-xs"
           onClick={() => window.dispatchEvent(new Event("mapmaker:save-view"))}
@@ -162,14 +162,10 @@ function ViewControl({
           size="sm"
           className="flex-1 text-xs"
           onClick={() => updateMap({ center: DEFAULT_CENTER, zoom: DEFAULT_ZOOM })}
-          disabled={isAuto}
         >
           Auto-fit
         </Button>
       </div>
-      <p className="text-[10px] text-muted-foreground mt-1">
-        {isAuto ? "View will auto-fit to features" : "Using saved view"}
-      </p>
     </Field>
   );
 }
