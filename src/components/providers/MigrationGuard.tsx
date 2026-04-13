@@ -4,8 +4,8 @@ import { useEffect, useRef } from "react";
 import { useConvexAuth, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 
-const STORAGE_KEY = "mapmaker:current";
-const MIGRATED_KEY = "mapmaker:migrated";
+const STORAGE_KEY = "idomap:current";
+const MIGRATED_KEY = "idomap:migrated";
 
 export default function MigrationGuard() {
   const { isAuthenticated } = useConvexAuth();

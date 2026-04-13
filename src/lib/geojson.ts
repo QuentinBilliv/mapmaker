@@ -14,7 +14,7 @@ export interface ExportedMap {
     tags: string[];
     license: string;
     exportedAt: string;
-    generator: "mapmaker";
+    generator: "idomap";
   };
   features: GeoJSON.Feature[];
 }

@@ -17,13 +17,13 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const SITE_URL = "https://mapmaker.dev";
+const SITE_URL = "https://idomap.com";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "MapMaker — Create thematic maps",
-    template: "%s | MapMaker",
+    default: "idomap — Create thematic maps",
+    template: "%s | idomap",
   },
   description:
     "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
@@ -36,14 +36,14 @@ export const metadata: Metadata = {
     "map creator",
     "cartography tool",
   ],
-  authors: [{ name: "MapMaker" }],
-  creator: "MapMaker",
+  authors: [{ name: "idomap" }],
+  creator: "idomap",
   openGraph: {
     type: "website",
     locale: "en_US",
     url: SITE_URL,
-    siteName: "MapMaker",
-    title: "MapMaker — Create thematic maps",
+    siteName: "idomap",
+    title: "idomap — Create thematic maps",
     description:
       "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
     images: [
@@ -51,13 +51,13 @@ export const metadata: Metadata = {
         url: "/opengraph-image",
         width: 1200,
         height: 630,
-        alt: "MapMaker — Thematic cartography",
+        alt: "idomap — Thematic cartography",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "MapMaker — Create thematic maps",
+    title: "idomap — Create thematic maps",
     description:
       "Draw, style, and share thematic maps online. Free browser-based cartography tool.",
     images: ["/opengraph-image"],

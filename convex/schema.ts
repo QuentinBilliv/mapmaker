@@ -11,7 +11,7 @@ export default defineSchema({
     image: v.optional(v.string()),
     isAnonymous: v.optional(v.boolean()),
     tier: v.optional(
-      v.union(v.literal("free"), v.literal("paid"), v.literal("admin"))
+      v.union(v.literal("free"), v.literal("paid"), v.literal("admin")),
     ),
     universityLabel: v.optional(v.string()),
     createdAt: v.optional(v.number()),
@@ -26,11 +26,13 @@ export default defineSchema({
     center: v.array(v.number()),
     zoom: v.number(),
     baseMapId: v.string(),
-    styleOptions: v.optional(v.object({
-      noLabels: v.optional(v.boolean()),
-      noBorders: v.optional(v.boolean()),
-      noRoads: v.optional(v.boolean()),
-    })),
+    styleOptions: v.optional(
+      v.object({
+        noLabels: v.optional(v.boolean()),
+        noBorders: v.optional(v.boolean()),
+        noRoads: v.optional(v.boolean()),
+      }),
+    ),
     layers: v.optional(v.any()),
     features: v.optional(v.any()),
     groups: v.optional(v.any()),
@@ -39,7 +41,9 @@ export default defineSchema({
     dataFileId: v.optional(v.id("_storage")),
     dataFileSize: v.optional(v.number()),
     isPublic: v.optional(v.boolean()),
-    visibility: v.optional(v.union(v.literal("private"), v.literal("unlisted"), v.literal("public"))),
+    visibility: v.optional(
+      v.union(v.literal("private"), v.literal("unlisted"), v.literal("public")),
+    ),
     ownerName: v.optional(v.string()),
     searchText: v.optional(v.string()),
     createdAt: v.number(),
@@ -55,3 +59,17 @@ export default defineSchema({
       filterFields: ["visibility", "ownerId"],
     }),
 });
+
+type MarketEventMap =
+  | { type: "priceUpdate"; productId: string; price: number; timestamp: Date }
+  | {
+      type: "orderFilled";
+      orderId: string;
+      quantity: number;
+      unitPrice: number;
+    }
+  | {
+      type: "connectionStatus";
+      connected: boolean;
+    }
+  | { type: "error"; code: number; message: string };

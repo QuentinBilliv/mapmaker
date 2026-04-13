@@ -9,6 +9,6 @@ export default function robots(): MetadataRoute.Robots {
         disallow: ["/account", "/maps/*/edit"],
       },
     ],
-    sitemap: "https://mapmaker.dev/sitemap.xml",
+    sitemap: "https://idomap.com/sitemap.xml",
   };
 }

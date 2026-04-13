@@ -88,7 +88,7 @@ function GeoSearchPopover({ anchorRef, onClose }: { anchorRef: React.RefObject<H
   const selectResult = (r: SearchResult) => {
     const center: [number, number] = [parseFloat(r.lon), parseFloat(r.lat)];
     window.dispatchEvent(
-      new CustomEvent("mapmaker:flyto", { detail: { center, zoom: 12 } })
+      new CustomEvent("idomap:flyto", { detail: { center, zoom: 12 } })
     );
     onClose();
   };

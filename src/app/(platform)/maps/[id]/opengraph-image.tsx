@@ -4,7 +4,7 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 
 export const runtime = "edge";
-export const alt = "Map on MapMaker";
+export const alt = "Map on idomap";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -92,7 +92,7 @@ export default async function OGImage({ params }: { params: { id: string } }) {
                 marginTop: 12,
               }}
             >
-              mapmaker.dev
+              idomap.com
             </span>
           </div>
         </div>
@@ -159,7 +159,7 @@ export default async function OGImage({ params }: { params: { id: string } }) {
             marginTop: 16,
           }}
         >
-          mapmaker.dev
+          idomap.com
         </span>
       </div>
     ),

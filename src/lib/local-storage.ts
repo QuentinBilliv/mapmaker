@@ -3,7 +3,7 @@ import type { BaseMap, StyleOptions } from "./map-style";
 import { findBaseMap } from "./map-style";
 import { DEFAULT_MAP } from "./defaults";
 
-const STORAGE_KEY = "mapmaker:current";
+const STORAGE_KEY = "idomap:current";
 const VERSION = 1;
 
 export type StorageError = "quota_exceeded" | "save_failed" | "load_corrupted";

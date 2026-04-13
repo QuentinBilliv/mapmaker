@@ -56,7 +56,7 @@
   }
 }
 
-.mapmaker-tooltip .maplibregl-popup-content {
+.idomap-tooltip .maplibregl-popup-content {
   background: hsl(var(--popover));
   color: hsl(var(--popover-foreground));
   font-size: 0.8125rem;
@@ -66,6 +66,6 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
   pointer-events: none;
 }
-.mapmaker-tooltip .maplibregl-popup-tip {
+.idomap-tooltip .maplibregl-popup-tip {
   display: none;
 }

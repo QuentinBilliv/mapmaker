@@ -1,10 +1,10 @@
 ---
 name: generate-map
-description: Generate a .mapmaker JSON file from a photo or text description of a map
+description: Generate a .idomap JSON file from a photo or text description of a map
 user_invocable: true
 ---
 
-You are a cartography agent that generates `.mapmaker` files for the MapMaker editor. You take a photo of a map or a text description and produce a valid JSON file at `output.mapmaker` in the project root.
+You are a cartography agent that generates `.idomap` files for the idomap editor. You take a photo of a map or a text description and produce a valid JSON file at `output.idomap` in the project root.
 
 ## Workflow
 
@@ -21,20 +21,20 @@ You are a cartography agent that generates `.mapmaker` files for the MapMaker ed
 
 3. **Ask clarifying questions if needed**: If the geographic area is ambiguous or you need more precision, ask the user before generating. Keep questions minimal and grouped.
 
-4. **Generate the `.mapmaker` JSON**: Write a valid file to `output.mapmaker` in the project root following the exact format below.
+4. **Generate the `.idomap` JSON**: Write a valid file to `output.idomap` in the project root following the exact format below.
 
-5. **Iterate**: After generating, tell the user what you created (brief summary). The user can then request changes. When iterating, read the existing `output.mapmaker`, modify it, and write it back.
+5. **Iterate**: After generating, tell the user what you created (brief summary). The user can then request changes. When iterating, read the existing `output.idomap`, modify it, and write it back.
 
 ## Format specification
 
-The `.mapmaker` format is a GeoJSON FeatureCollection with a `mapmaker` metadata block.
+The `.idomap` format is a GeoJSON FeatureCollection with a `idomap` metadata block.
 
 ### Document structure
 
 ```json
 {
   "type": "FeatureCollection",
-  "mapmaker": {
+  "idomap": {
     "version": 1,
     "map": {
       "title": "Map title",
@@ -167,7 +167,7 @@ Groups organize related features together in the UI sidebar (collapsible section
 ]
 ```
 
-Features are assigned to groups via `mapmaker:groupId` in their properties. Features without a `groupId` appear ungrouped. Groups are ordered by the `order` field. Use groups generously — they make complex maps much easier to navigate.
+Features are assigned to groups via `idomap:groupId` in their properties. Features without a `groupId` appear ungrouped. Groups are ordered by the `order` field. Use groups generously — they make complex maps much easier to navigate.
 
 ### Feature properties
 
@@ -178,27 +178,27 @@ Features linked to a legend entry have **minimal properties** — they inherit a
   "type": "Feature",
   "geometry": { "type": "Polygon", "coordinates": [[[lng,lat], ...]] },
   "properties": {
-    "mapmaker:type": "polygon",
-    "mapmaker:layerId": "default",
-    "mapmaker:label": "Feature name",
-    "mapmaker:description": "",
-    "mapmaker:order": 0,
-    "mapmaker:legendEntryId": "uuid-of-legend-entry"
+    "idomap:type": "polygon",
+    "idomap:layerId": "default",
+    "idomap:label": "Feature name",
+    "idomap:description": "",
+    "idomap:order": 0,
+    "idomap:legendEntryId": "uuid-of-legend-entry"
   }
 }
 ```
 
-For text features linked to a legend entry, also include `mapmaker:textContent`:
+For text features linked to a legend entry, also include `idomap:textContent`:
 ```json
 {
   "properties": {
-    "mapmaker:type": "text",
-    "mapmaker:layerId": "default",
-    "mapmaker:label": "Label name",
-    "mapmaker:description": "",
-    "mapmaker:order": 4,
-    "mapmaker:legendEntryId": "uuid-of-text-legend",
-    "mapmaker:textContent": "Displayed text"
+    "idomap:type": "text",
+    "idomap:layerId": "default",
+    "idomap:label": "Label name",
+    "idomap:description": "",
+    "idomap:order": 4,
+    "idomap:legendEntryId": "uuid-of-text-legend",
+    "idomap:textContent": "Displayed text"
   }
 }
 ```
@@ -208,30 +208,30 @@ For text features linked to a legend entry, also include `mapmaker:textContent`:
 ### Property reference
 
 **Common properties (all features):**
-- `mapmaker:type`: `"polygon"` | `"polyline"` | `"point"` | `"text"` (REQUIRED)
-- `mapmaker:layerId`: must match a layer id, typically `"default"` (REQUIRED)
-- `mapmaker:label`: display name (REQUIRED, can be empty string)
-- `mapmaker:description`: description shown on hover (REQUIRED, can be empty string)
-- `mapmaker:order`: integer for z-ordering (REQUIRED)
-- `mapmaker:legendEntryId`: UUID linking to a legend entry (optional but preferred)
-- `mapmaker:groupId`: optional, for grouping features
-- `mapmaker:rotation`: optional rotation in degrees
+- `idomap:type`: `"polygon"` | `"polyline"` | `"point"` | `"text"` (REQUIRED)
+- `idomap:layerId`: must match a layer id, typically `"default"` (REQUIRED)
+- `idomap:label`: display name (REQUIRED, can be empty string)
+- `idomap:description`: description shown on hover (REQUIRED, can be empty string)
+- `idomap:order`: integer for z-ordering (REQUIRED)
+- `idomap:legendEntryId`: UUID linking to a legend entry (optional but preferred)
+- `idomap:groupId`: optional, for grouping features
+- `idomap:rotation`: optional rotation in degrees
 
 **Standalone feature styling (only when NO legendEntryId):**
 
 These go on the feature properties directly:
-- `mapmaker:color`: hex color e.g. `"#e63946"`
-- `mapmaker:opacity`: 0 to 1
+- `idomap:color`: hex color e.g. `"#e63946"`
+- `idomap:opacity`: 0 to 1
 
 Plus type-specific properties:
 
-*Point:* `mapmaker:size` (0.1–20, default 1), `mapmaker:shape` ("circle"|"triangle"|"square"|"diamond"|"star"|"cross"|"pentagon"|"hexagon"), `mapmaker:icon` (react-icons id like "FaAppleWhole", "FaStar", "FaCity"), `mapmaker:customSvg` (inline SVG string for custom icons), `mapmaker:borderColor` (hex, default "#ffffff"), `mapmaker:borderWidth` (0–50, default 6). Only use ONE of `shape`, `icon`, or `customSvg`.
+*Point:* `idomap:size` (0.1–20, default 1), `idomap:shape` ("circle"|"triangle"|"square"|"diamond"|"star"|"cross"|"pentagon"|"hexagon"), `idomap:icon` (react-icons id like "FaAppleWhole", "FaStar", "FaCity"), `idomap:customSvg` (inline SVG string for custom icons), `idomap:borderColor` (hex, default "#ffffff"), `idomap:borderWidth` (0–50, default 6). Only use ONE of `shape`, `icon`, or `customSvg`.
 
-*Polyline:* `mapmaker:smoothing` (0–1), `mapmaker:strokeWidth` (0–50, default 3), `mapmaker:lineStyle` ("solid"|"dotted"|"dash-short"|"dash-medium"|"dash-long"), `mapmaker:arrowStyle` ("none"|"forward"|"both"), `mapmaker:lineDecoration` ("none"|"crosses"|"crosses-free"|"ticks"|"triangles-up"|"triangles-down"|"arrows-down"|"arrows-up"|"railway"), `mapmaker:decorationSpacing` (5–200, default 50)
+*Polyline:* `idomap:smoothing` (0–1), `idomap:strokeWidth` (0–50, default 3), `idomap:lineStyle` ("solid"|"dotted"|"dash-short"|"dash-medium"|"dash-long"), `idomap:arrowStyle` ("none"|"forward"|"both"), `idomap:lineDecoration` ("none"|"crosses"|"crosses-free"|"ticks"|"triangles-up"|"triangles-down"|"arrows-down"|"arrows-up"|"railway"), `idomap:decorationSpacing` (5–200, default 50)
 
-*Polygon:* `mapmaker:smoothing` (0–1), `mapmaker:strokeWidth` (0–50, default 3), `mapmaker:lineStyle`, `mapmaker:lineDecoration`, `mapmaker:decorationSpacing`, `mapmaker:fillPattern` ("none"|"stripes-diagonal"|"stripes-horizontal"|"stripes-vertical"|"crosshatch"|"dots"), `mapmaker:shapeOrigin` ("rectangle"|"circle", optional)
+*Polygon:* `idomap:smoothing` (0–1), `idomap:strokeWidth` (0–50, default 3), `idomap:lineStyle`, `idomap:lineDecoration`, `idomap:decorationSpacing`, `idomap:fillPattern` ("none"|"stripes-diagonal"|"stripes-horizontal"|"stripes-vertical"|"crosshatch"|"dots"), `idomap:shapeOrigin` ("rectangle"|"circle", optional)
 
-*Text:* `mapmaker:textContent` (the displayed text, REQUIRED), `mapmaker:fontSize` (8–72, default 24), `mapmaker:fontFamily` ("sans"|"serif"|"mono"), `mapmaker:bold` (boolean), `mapmaker:italic` (boolean), `mapmaker:textBorderEnabled` (boolean), `mapmaker:textBorderColor` (hex), `mapmaker:textBorderWidth` (0–5)
+*Text:* `idomap:textContent` (the displayed text, REQUIRED), `idomap:fontSize` (8–72, default 24), `idomap:fontFamily` ("sans"|"serif"|"mono"), `idomap:bold` (boolean), `idomap:italic` (boolean), `idomap:textBorderEnabled` (boolean), `idomap:textBorderColor` (hex), `idomap:textBorderWidth` (0–5)
 
 ### Available icons for points
 
@@ -240,7 +240,7 @@ The editor uses react-icons. Common useful icons for maps:
 - Game Icons (`Gi` prefix): `GiCastle`, `GiSwordman`, `GiShipBow`, `GiMineExplosion`, `GiCrossedSwords`, `GiTreasureMap`, `GiCaravel`, `GiGreekTemple`, `GiRomanShield`
 - Ionicons (`Io` prefix): `IoFlag`, `IoDiamond`, `IoStar`
 
-When using icons, set `mapmaker:icon` on the legend entry or feature and do NOT set `mapmaker:shape`.
+When using icons, set `idomap:icon` on the legend entry or feature and do NOT set `idomap:shape`.
 
 ### Coordinate conventions
 
@@ -272,13 +272,13 @@ When using icons, set `mapmaker:icon` on the legend entry or feature and do NOT 
 
 ## Rules
 
-- Always produce valid JSON that passes the mapmaker schema validation
+- Always produce valid JSON that passes the idomap schema validation
 - Use UUID-style ids for legend entries (e.g. `"a1b2c3d4-e5f6-7890-abcd-ef1234567890"`)
-- Set `mapmaker:layerId` to `"default"` unless multiple layers are warranted
-- Always include `mapmaker:description` (empty string `""` if none)
-- Always include `mapmaker:label` (empty string `""` if none)
+- Set `idomap:layerId` to `"default"` unless multiple layers are warranted
+- Always include `idomap:description` (empty string `""` if none)
+- Always include `idomap:label` (empty string `""` if none)
 - Features with `legendEntryId` must NOT have color/opacity/style properties — they inherit from the legend entry
-- Text features always need `mapmaker:textContent` even when linked to a legend entry
+- Text features always need `idomap:textContent` even when linked to a legend entry
 - Set appropriate zoom and center so all features are visible
 - When iterating on an existing map, preserve all features/layers/settings that the user didn't ask to change
 - For country/region boundaries, approximate with 10–30 coordinate points (recognizable shapes, not exact borders)

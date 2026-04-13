@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { serialize, deserialize } from "../mapmaker-format";
+import { serialize, deserialize } from "../idomap-format";
 import type { MapData, FeatureData, GroupData } from "../types";
 
 const MAP: MapData = {
@@ -82,7 +82,7 @@ const TEXT: FeatureData = {
 
 const GROUP: GroupData = { id: "g1", label: "Group 1", order: 0 };
 
-describe("mapmaker-format round-trip", () => {
+describe("idomap-format round-trip", () => {
   it("round-trips all feature types without data loss", () => {
     const features = [POLYGON, POLYLINE, POINT, TEXT];
     const json = serialize(MAP, features, "osm", [GROUP]);
@@ -168,7 +168,7 @@ describe("mapmaker-format round-trip", () => {
   it("filters features with mismatched geometry/type", () => {
     const json = serialize(MAP, [POLYGON], "osm");
     const parsed = JSON.parse(json);
-    parsed.features[0].properties["mapmaker:type"] = "polyline";
+    parsed.features[0].properties["idomap:type"] = "polyline";
     const result = deserialize(JSON.stringify(parsed));
     expect(result.features).toHaveLength(0);
   });
@@ -182,7 +182,7 @@ describe("mapmaker-format round-trip", () => {
   it("migrates legacy natgeo base map to liberty", () => {
     const json = serialize(MAP, [], "osm");
     const parsed = JSON.parse(json);
-    parsed.mapmaker.baseMap = "natgeo";
+    parsed.idomap.baseMap = "natgeo";
     const result = deserialize(JSON.stringify(parsed));
     expect(result.baseMapId).toBe("liberty");
   });

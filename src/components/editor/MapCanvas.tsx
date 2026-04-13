@@ -99,8 +99,8 @@ function useFlyToListener(mapRef: React.RefObject<maplibregl.Map | null>) {
       const { center, zoom } = (e as CustomEvent).detail;
       map.flyTo({ center, zoom, duration: 1500 });
     };
-    window.addEventListener("mapmaker:flyto", handler);
-    return () => window.removeEventListener("mapmaker:flyto", handler);
+    window.addEventListener("idomap:flyto", handler);
+    return () => window.removeEventListener("idomap:flyto", handler);
   }, [mapRef]);
 }
 
@@ -115,8 +115,8 @@ function useProjectionListener(mapRef: React.RefObject<maplibregl.Map | null>, s
       projectionRef.current = projection;
       map.setProjection({ type: projection });
     };
-    window.addEventListener("mapmaker:set-projection", handler);
-    return () => window.removeEventListener("mapmaker:set-projection", handler);
+    window.addEventListener("idomap:set-projection", handler);
+    return () => window.removeEventListener("idomap:set-projection", handler);
   }, [mapRef]);
 
   useEffect(() => {
@@ -134,8 +134,8 @@ function useFitBoundsListener(mapRef: React.RefObject<maplibregl.Map | null>) {
       const { bounds } = (e as CustomEvent).detail;
       map.fitBounds(bounds, { padding: 60, maxZoom: 16, duration: 1500 });
     };
-    window.addEventListener("mapmaker:fitbounds", handler);
-    return () => window.removeEventListener("mapmaker:fitbounds", handler);
+    window.addEventListener("idomap:fitbounds", handler);
+    return () => window.removeEventListener("idomap:fitbounds", handler);
   }, [mapRef]);
 }
 
@@ -151,7 +151,7 @@ function useSaveViewListener(
       const c = m.getCenter();
       updateMap({ center: [c.lng, c.lat], zoom: m.getZoom() });
     };
-    window.addEventListener("mapmaker:save-view", handler);
-    return () => window.removeEventListener("mapmaker:save-view", handler);
+    window.addEventListener("idomap:save-view", handler);
+    return () => window.removeEventListener("idomap:save-view", handler);
   }, [mapRef, updateMap]);
 }

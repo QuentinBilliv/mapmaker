@@ -55,8 +55,8 @@ export function GradientContent({
         }
       }, 50);
     };
-    window.addEventListener("mapmaker:country-clicked", handler);
-    return () => window.removeEventListener("mapmaker:country-clicked", handler);
+    window.addEventListener("idomap:country-clicked", handler);
+    return () => window.removeEventListener("idomap:country-clicked", handler);
   }, []);
 
   const countryMap = useMemo(() => {

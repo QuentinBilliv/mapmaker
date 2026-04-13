@@ -1,6 +1,6 @@
 {
-  "name": "MapMaker",
-  "short_name": "MapMaker",
+  "name": "idomap",
+  "short_name": "idomap",
   "description": "Create thematic maps online",
   "start_url": "/",
   "display": "standalone",

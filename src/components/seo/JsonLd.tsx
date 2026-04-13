@@ -2,8 +2,8 @@ export function WebAppJsonLd() {
   const jsonLd = {
     "@context": "https://schema.org",
     "@type": "WebApplication",
-    name: "MapMaker",
-    url: "https://mapmaker.dev",
+    name: "idomap",
+    url: "https://idomap.com",
     description:
       "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
     applicationCategory: "DesignApplication",
@@ -16,7 +16,7 @@ export function WebAppJsonLd() {
     featureList: [
       "Draw polygons, polylines, points, and text on maps",
       "Style features with colors, patterns, and icons",
-      "Export to GeoJSON and MapMaker format",
+      "Export to GeoJSON and idomap format",
       "Share maps publicly",
       "Multiple base maps including OpenStreetMap",
     ],

@@ -10,7 +10,7 @@ type ImportMode = "replace" | "add";
 
 interface PendingImport {
   content: string;
-  isMapmaker: boolean;
+  isIdomap: boolean;
   fileName: string;
 }
 
@@ -22,7 +22,7 @@ export default function ImportDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onImport: (content: string, isMapmaker: boolean, mode: ImportMode) => void;
+  onImport: (content: string, isIdomap: boolean, mode: ImportMode) => void;
   hasFeatures: boolean;
 }) {
   const [pasteValue, setPasteValue] = useState("");
@@ -36,9 +36,9 @@ export default function ImportDialog({
   };
 
   const submit = (raw: string, fileName: string) => {
-    const isMapmaker = fileName.endsWith(".mapmaker");
+    const isIdomap = fileName.endsWith(".idomap");
 
-    if (isMapmaker) {
+    if (isIdomap) {
       onImport(raw, true, "replace");
       onOpenChange(false);
       reset();
@@ -53,7 +53,7 @@ export default function ImportDialog({
     }
 
     if (hasFeatures) {
-      setPending({ content: raw, isMapmaker: false, fileName });
+      setPending({ content: raw, isIdomap: false, fileName });
     } else {
       onImport(raw, false, "add");
       onOpenChange(false);
@@ -63,7 +63,7 @@ export default function ImportDialog({
 
   const confirmMode = (mode: ImportMode) => {
     if (!pending) return;
-    onImport(pending.content, pending.isMapmaker, mode);
+    onImport(pending.content, pending.isIdomap, mode);
     onOpenChange(false);
     reset();
   };
@@ -94,9 +94,9 @@ export default function ImportDialog({
         ) : (
           <>
             <FileDropZone
-              accept=".mapmaker,.geojson,.json"
+              accept=".idomap,.geojson,.json"
               maxSizeKB={5000}
-              label="Drop a .mapmaker or .geojson file"
+              label="Drop a .idomap or .geojson file"
               onFile={(content, fileName) => submit(content, fileName ?? "import.geojson")}
               onError={setError}
             />

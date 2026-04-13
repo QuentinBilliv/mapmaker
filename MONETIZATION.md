@@ -2,7 +2,7 @@
 
 ## Positioning
 
-MapMaker sits between geojson.io (too basic) and Felt (too expensive/enterprise). The target is individuals, students, teachers, bloggers, and hobbyists who want to make thematic maps without coding or paying $200/month.
+idomap sits between geojson.io (too basic) and Felt (too expensive/enterprise). The target is individuals, students, teachers, bloggers, and hobbyists who want to make thematic maps without coding or paying $200/month.
 
 No direct competitor at this price point for this use case.
 
@@ -28,7 +28,7 @@ No direct competitor at this price point for this use case.
 | Features per map | 50 | 10,000 | 10,000 |
 | Base maps | OSM, Voyager, Light | All 7 | All 7 |
 | Visibility | All (public, unlisted, private) | All | All |
-| Export | `.mapmaker` only | `.mapmaker` + GeoJSON | All |
+| Export | `.idomap` only | `.idomap` + GeoJSON | All |
 | Point shapes | All 8 | All 8 | All 8 |
 | Fill patterns | Solid, Stripes diagonal | All | All |
 | Line styles | Solid, Dash | All | All |

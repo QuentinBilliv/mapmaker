@@ -32,7 +32,7 @@ export default function BaseMapSelector() {
     if (p === projection) return;
     setProjection(p);
     window.dispatchEvent(
-      new CustomEvent("mapmaker:set-projection", {
+      new CustomEvent("idomap:set-projection", {
         detail: { projection: p },
       })
     );

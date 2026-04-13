@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 
-const STORAGE_KEY = "mapmaker:tutorial-done";
+const STORAGE_KEY = "idomap:tutorial-done";
 
 export default function TutorialWelcome() {
   const [open, setOpen] = useState(false);
@@ -30,7 +30,7 @@ export default function TutorialWelcome() {
     <Dialog open={open} onOpenChange={(v) => { if (!v) dismiss(); }}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Welcome to MapMaker</DialogTitle>
+          <DialogTitle>Welcome to idomap</DialogTitle>
           <DialogDescription>
             Here is how the editor is organized:
           </DialogDescription>

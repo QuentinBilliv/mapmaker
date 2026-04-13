@@ -97,7 +97,7 @@ function MapCarousel() {
           <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
           <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
           <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-          <span className="ml-3 text-[10px] text-white/20 tracking-wider">mapmaker.dev</span>
+          <span className="ml-3 text-[10px] text-white/20 tracking-wider">idomap.com</span>
         </div>
         <div className="aspect-[16/9] bg-[#1a1a1a] relative overflow-hidden">
           {SHOWCASE_MAPS.map((m, i) => (
@@ -215,7 +215,7 @@ function EmbedDemo() {
           Explore a map
         </h2>
         <p className="text-base text-[#1a1a1a]/50 max-w-xl mb-8">
-          This is a real map made with MapMaker. Zoom, pan, and hover to explore.
+          This is a real map made with idomap. Zoom, pan, and hover to explore.
         </p>
         <div className="rounded-xl overflow-hidden border shadow-lg">
           <iframe
@@ -288,7 +288,7 @@ function Footer() {
   return (
     <footer className="bg-[#0a0a0a] border-t border-white/5 py-8">
       <div className="max-w-5xl mx-auto px-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <span className="text-xs text-white/20">&copy; {new Date().getFullYear()} MapMaker</span>
+        <span className="text-xs text-white/20">&copy; {new Date().getFullYear()} idomap</span>
         <div className="flex items-center gap-4">
           <Link href="/maps" className="text-xs text-white/30 hover:text-white/60 transition-colors">
             Public maps

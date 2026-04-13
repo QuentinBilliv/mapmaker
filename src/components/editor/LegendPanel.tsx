@@ -27,8 +27,8 @@ export default function LegendPanel() {
 
   useEffect(() => {
     const handler = () => setDialogOpen(true);
-    window.addEventListener("mapmaker:open-legend-create", handler);
-    return () => window.removeEventListener("mapmaker:open-legend-create", handler);
+    window.addEventListener("idomap:open-legend-create", handler);
+    return () => window.removeEventListener("idomap:open-legend-create", handler);
   }, []);
 
   const sorted = [...legendEntries].sort((a, b) => a.order - b.order);

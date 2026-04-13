@@ -22,18 +22,18 @@ export async function generateMetadata({
   if (!map) return { title: "Map not found" };
 
   const title = map.title || "Untitled map";
-  const description = map.description || "A map created with MapMaker";
+  const description = map.description || "A map created with idomap";
 
   return {
     title,
     description,
     openGraph: {
-      title: `${title} | MapMaker`,
+      title: `${title} | idomap`,
       description,
     },
     twitter: {
       card: "summary_large_image",
-      title: `${title} | MapMaker`,
+      title: `${title} | idomap`,
       description,
     },
   };

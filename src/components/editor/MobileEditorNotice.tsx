@@ -13,7 +13,7 @@ export default function MobileEditorNotice() {
         <div className="space-y-2">
           <h1 className="text-lg font-semibold">Editor works best on desktop</h1>
           <p className="text-sm text-muted-foreground">
-            MapMaker needs precise drawing and a wider screen. Open this page on
+            idomap needs precise drawing and a wider screen. Open this page on
             a computer to create and edit maps.
           </p>
         </div>

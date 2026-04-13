@@ -1,4 +1,4 @@
-# MapMaker — TODO
+# idomap — TODO
 
 ## High priority — Acquisition & retention
 

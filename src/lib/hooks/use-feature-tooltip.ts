@@ -19,7 +19,7 @@ export function useFeatureTooltip(
     const popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
-      className: "mapmaker-tooltip",
+      className: "idomap-tooltip",
       maxWidth: "260px",
     });
     popupRef.current = popup;

@@ -58,12 +58,12 @@ Target keywords:
 Content ideas:
 - Blog posts featuring each showcase map with a "Make your own" CTA
 - "How to create a historical map" tutorial
-- "Best free map making tools" comparison (include MapMaker)
+- "Best free map making tools" comparison (include idomap)
 - Each public map is indexable content (dynamic OG images already implemented)
 
 ### 6. Video Content (Month 3+)
 
-- YouTube: 2-3 min tutorials "How to map X with MapMaker"
+- YouTube: 2-3 min tutorials "How to map X with idomap"
 - TikTok/Reels: 30-60s time-lapse of map creation (satisfying content)
 - Example: "Watch me draw the Roman Empire in 60 seconds"
 - Maps are inherently visual — high share potential

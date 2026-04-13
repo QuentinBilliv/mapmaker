@@ -1,4 +1,4 @@
-# Audit de code — MapMaker
+# Audit de code — idomap
 
 Audit complet du codebase couvrant 4 axes : securite, performance, correctness, maintenabilite.
 Chaque section explique le probleme concret, pourquoi c'est un risque, et ce qui a ete change pour le corriger.

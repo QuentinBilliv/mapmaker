@@ -4,11 +4,11 @@ import MapLibrary from "@/components/maps/MapLibrary";
 export const metadata: Metadata = {
   title: "Public maps",
   description:
-    "Browse public thematic maps created by the MapMaker community.",
+    "Browse public thematic maps created by the idomap community.",
   openGraph: {
-    title: "Public maps | MapMaker",
+    title: "Public maps | idomap",
     description:
-      "Browse public thematic maps created by the MapMaker community.",
+      "Browse public thematic maps created by the idomap community.",
   },
 };
 
