@@ -44,13 +44,7 @@ export default function MapCanvas() {
         }
         return;
       }
-      const f = featuresRef.current.find((feat) => feat.id === id);
-      if (f?.groupId) {
-        const groupMembers = featuresRef.current.filter((feat) => feat.groupId === f.groupId).map((feat) => feat.id);
-        selectFeatures(groupMembers);
-      } else {
-        selectFeature(id);
-      }
+      selectFeature(id);
     },
     [selectFeature, selectFeatures]
   );
@@ -72,8 +66,8 @@ export default function MapCanvas() {
   }, [selectedGroupId, features]);
 
   const selectTarget = drawMode === "select" && !selectedGroupId ? selectedFeature : null;
-  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
-  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot, features, moveGroup, rotateGroup);
+  const vertexInteractingRef = useVertexEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot);
+  const shapeInteractingRef = useShapeEditing(mapRef, selectTarget, updateFeature, styleVersion, recordSnapshot);
   const groupInteractingRef = useGroupEditing(mapRef, selectedGroupId, groupMembers, moveGroup, rotateGroup, recordSnapshot, styleVersion);
   const combinedRef = useMemo(() => ({
     get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current); },

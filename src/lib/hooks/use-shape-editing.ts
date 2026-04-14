@@ -235,9 +235,6 @@ export function useShapeEditing(
   updateFeature: (id: string, updates: FeatureUpdate) => void,
   styleVersion: number,
   recordSnapshot?: () => void,
-  features: FeatureData[] = [],
-  moveGroup?: (groupId: string, dlng: number, dlat: number) => void,
-  rotateGroup?: (groupId: string, deltaAngle: number, center: [number, number]) => void,
 ): React.RefObject<boolean> {
   const interactingRef = useRef(false);
   const dragRef = useRef<DragState | null>(null);
@@ -247,12 +244,6 @@ export function useShapeEditing(
   updateRef.current = updateFeature;
   const recordRef = useRef(recordSnapshot);
   recordRef.current = recordSnapshot;
-  const featuresRef = useRef(features);
-  featuresRef.current = features;
-  const moveGroupRef = useRef(moveGroup);
-  moveGroupRef.current = moveGroup;
-  const rotateGroupRef = useRef(rotateGroup);
-  rotateGroupRef.current = rotateGroup;
 
   useEffect(() => {
     const m = mapRef.current;
@@ -407,56 +398,13 @@ export function useShapeEditing(
       dragRef.current = null;
       endDrag(map, interactingRef);
 
-      const f = featRef.current;
       if (d.kind === "shape-rotate") {
-        if (f?.groupId && rotateGroupRef.current) {
-          const origCoords = d.origCoords;
-          const angle = Math.atan2(
-            toMercatorY(d.coords[0][1]) - toMercatorY(d.center[1]),
-            d.coords[0][0] - d.center[0]
-          ) - Math.atan2(
-            toMercatorY(origCoords[0][1]) - toMercatorY(d.center[1]),
-            origCoords[0][0] - d.center[0]
-          );
-          rotateGroupRef.current(f.groupId, angle, d.center);
-        } else {
-          const ring = [...d.coords, d.coords[0]];
-          const geometry: GeoJSON.Geometry = { type: "Polygon", coordinates: [ring] };
-          updateRef.current(d.id, { geometry, shapeOrigin: undefined });
-        }
-      } else if (d.kind === "rect-center" && f?.groupId && moveGroupRef.current) {
-        const origF = featuresRef.current.find((feat) => feat.id === d.id);
-        if (origF && origF.type === "polygon") {
-          const origRc = rectCorners(origF as PolygonFeature);
-          if (origRc) {
-            const dlng = d.a[0] - origRc.a[0];
-            const dMercY = toMercatorY(d.a[1]) - toMercatorY(origRc.a[1]);
-            moveGroupRef.current(f.groupId, dlng, dMercY);
-          } else {
-            updateRef.current(d.id, { geometry: buildRectGeometry(d.a, d.b) });
-          }
-        } else {
-          updateRef.current(d.id, { geometry: buildRectGeometry(d.a, d.b) });
-        }
-      } else if (d.kind === "circle-center" && f?.groupId && moveGroupRef.current) {
-        const origF = featuresRef.current.find((feat) => feat.id === d.id);
-        if (origF && origF.type === "polygon") {
-          const origCp = circleParams(origF as PolygonFeature);
-          if (origCp) {
-            const dlng = d.center[0] - origCp.center[0];
-            const dMercY = toMercatorY(d.center[1]) - toMercatorY(origCp.center[1]);
-            moveGroupRef.current(f.groupId, dlng, dMercY);
-          } else {
-            updateRef.current(d.id, { geometry: buildCircleGeometry(d.center, d.radius) });
-          }
-        } else {
-          updateRef.current(d.id, { geometry: buildCircleGeometry(d.center, d.radius) });
-        }
+        const ring = [...d.coords, d.coords[0]];
+        const geometry: GeoJSON.Geometry = { type: "Polygon", coordinates: [ring] };
+        updateRef.current(d.id, { geometry, shapeOrigin: undefined });
       } else if (d.kind === "rect-corner" || d.kind === "rect-center") {
         updateRef.current(d.id, { geometry: buildRectGeometry(d.a, d.b) });
-      } else if (d.kind === "circle-center") {
-        updateRef.current(d.id, { geometry: buildCircleGeometry(d.center, d.radius) });
-      } else if (d.kind === "circle-edge") {
+      } else if (d.kind === "circle-center" || d.kind === "circle-edge") {
         updateRef.current(d.id, { geometry: buildCircleGeometry(d.center, d.radius) });
       }
     }
