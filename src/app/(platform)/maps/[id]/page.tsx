@@ -1,13 +1,16 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { useConvex, useQuery } from "convex/react";
+import type { FunctionReturnType } from "convex/server";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import ReadOnlyMapView from "@/components/maps/ReadOnlyMapView";
 import { toMapData } from "@/lib/convex-mapdata";
 import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
 import { deserializeChoropleth } from "@/lib/choropleth-serde";
+
+type MapSnapshot = FunctionReturnType<typeof api.maps.getMap>;
 
 function useIsOwner(map: { ownerId?: string } | null | undefined): boolean {
   const me = useQuery(api.users.getMe);
@@ -24,9 +27,23 @@ function Loading() {
 }
 
 export default function MapViewPage({ params }: { params: { id: string } }) {
-  const map = useQuery(api.maps.getMap, {
-    mapId: params.id as Id<"maps">,
-  });
+  const convex = useConvex();
+  const [map, setMap] = useState<MapSnapshot | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    convex
+      .query(api.maps.getMap, { mapId: params.id as Id<"maps"> })
+      .then((result) => {
+        if (!cancelled) setMap(result as MapSnapshot);
+      })
+      .catch(() => {
+        if (!cancelled) setMap(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [convex, params.id]);
 
   const isOwner = useIsOwner(map);
   const dataFileUrl = map && "dataFileUrl" in map ? (map.dataFileUrl as string | null) : null;

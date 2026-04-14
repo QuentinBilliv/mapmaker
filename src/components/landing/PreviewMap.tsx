@@ -1,7 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "convex/react";
+import { useConvex } from "convex/react";
+import type { FunctionReturnType } from "convex/server";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import maplibregl from "maplibre-gl";
@@ -17,8 +18,27 @@ interface PreviewMapProps {
   active: boolean;
 }
 
+type MapSnapshot = FunctionReturnType<typeof api.maps.getMap>;
+
 export default function PreviewMap({ mapId, active }: PreviewMapProps) {
-  const map = useQuery(api.maps.getMap, { mapId });
+  const convex = useConvex();
+  const [map, setMap] = useState<MapSnapshot | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    convex
+      .query(api.maps.getMap, { mapId })
+      .then((result) => {
+        if (!cancelled) setMap(result as MapSnapshot);
+      })
+      .catch(() => {
+        if (!cancelled) setMap(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [convex, mapId]);
+
   const dataFileUrl = map && "dataFileUrl" in map ? (map.dataFileUrl as string | null) : null;
   const hasInlineData = map && "features" in map && map.features != null;
 
