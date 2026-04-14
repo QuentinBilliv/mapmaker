@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
-import { FaArrowRight, FaPenRuler, FaLayerGroup, FaShareNodes, FaGlobe, FaPalette, FaShapes, FaChevronLeft, FaChevronRight } from "react-icons/fa6";
+import { FaArrowRight, FaPenRuler, FaLayerGroup, FaShareNodes, FaGlobe, FaPalette, FaShapes, FaChevronLeft, FaChevronRight, FaGraduationCap, FaBookOpen, FaRoute, FaNewspaper, FaLandmarkDome, FaBuildingColumns } from "react-icons/fa6";
 
 const SHOWCASE_MAPS = [
   { id: "jx77494rrqvc0012k7c0sznrbd83nj0c", image: "/showcase_1.png", title: "Iceland — Nature & National Parks", description: "Volcanoes, glaciers, waterfalls, and the Ring Road" },
@@ -16,6 +16,7 @@ export default function LandingPage() {
     <div className="flex-1 overflow-y-auto">
       <Hero />
       <Features />
+      <UseCases />
       <EmbedDemo />
       <HowItWorks />
       <CallToAction />
@@ -198,6 +199,100 @@ function Features() {
               </div>
               <h3 className="font-semibold text-[#1a1a1a] mb-1.5">{f.title}</h3>
               <p className="text-sm text-[#1a1a1a]/50 leading-relaxed">{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </section>
+  );
+}
+
+const USE_CASES: { icon: typeof FaGraduationCap; title: string; desc: string; tags: string[]; example?: { label: string; href: string } }[] = [
+  {
+    icon: FaGraduationCap,
+    title: "Education",
+    desc: "Teachers and professors create thematic maps for history, geography, and social studies. Visualize trade routes, migrations, or geopolitical boundaries.",
+    tags: ["History", "Geography", "Social studies"],
+    example: { label: "The Silk Road", href: "/maps/jx7e6n14xpes80bazt5f9r87ph83pv2b" },
+  },
+  {
+    icon: FaRoute,
+    title: "Travel & outdoors",
+    desc: "Plan road trips, document hikes, or build travel guides with custom markers, routes, and photos. Share an interactive map instead of a static image.",
+    tags: ["Road trips", "Hiking", "Travel blogs"],
+    example: { label: "Iceland — Nature & National Parks", href: "/maps/jx77494rrqvc0012k7c0sznrbd83nj0c" },
+  },
+  {
+    icon: FaBookOpen,
+    title: "Research & journalism",
+    desc: "Illustrate data stories, fieldwork, or investigative pieces with detailed, styled maps that can be embedded in any article or report.",
+    tags: ["Data stories", "Fieldwork", "Reports"],
+    example: { label: "GDP per capita by state", href: "/maps/jx76b2aygehf1188yzgga3vyph84s3cr" },
+  },
+  {
+    icon: FaNewspaper,
+    title: "Content creation",
+    desc: "Bloggers, YouTubers, and newsletter authors build beautiful maps to illustrate their content — no GIS skills or expensive software needed.",
+    tags: ["Blogs", "YouTube", "Newsletters"],
+    example: { label: "Sake Regions of Japan", href: "/maps/jx78nmwn7a4w8rfhr4dgtznb8h83h3pn" },
+  },
+  {
+    icon: FaBuildingColumns,
+    title: "Local government",
+    desc: "Municipalities and public agencies map zoning plans, bike lanes, heritage sites, or public consultations. Embed interactive maps on official websites.",
+    tags: ["Urban planning", "Public consultation", "Infrastructure"],
+    example: { label: "Paris Metro Network", href: "/maps/jx743f4zfgs8x9dkj4kje0prcs84vm8s" },
+  },
+  {
+    icon: FaLandmarkDome,
+    title: "Museums & cultural heritage",
+    desc: "Curators and cultural institutions create maps for exhibitions — archaeological sites, artist journeys, historical events, or collection origins.",
+    tags: ["Exhibitions", "Archaeology", "Cultural history"],
+    example: { label: "Pompeii — the lost Roman city", href: "/maps/jx7f5q0xte6z1wtp0fq0c799v584t77r" },
+  },
+];
+
+function UseCases() {
+  return (
+    <section className="bg-white py-20 md:py-28 border-t border-black/5">
+      <div className="max-w-5xl mx-auto px-6">
+        <p className="text-xs tracking-[0.2em] uppercase text-amber-700/60 font-medium mb-3">Use cases</p>
+        <h2 className="font-serif text-3xl md:text-4xl font-bold tracking-tight text-[#1a1a1a] mb-4">
+          Maps for every purpose
+        </h2>
+        <p className="text-base text-[#1a1a1a]/50 max-w-xl mb-14">
+          From classroom handouts to published articles — idomap adapts to how you work.
+        </p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          {USE_CASES.map((uc) => (
+            <div key={uc.title} className="group relative rounded-xl border border-black/[0.06] bg-[#faf9f6] p-6 hover:border-amber-700/20 transition-colors">
+              <div className="flex items-start gap-4">
+                <div className="w-10 h-10 rounded-lg bg-[#1a1a1a] text-white flex items-center justify-center shrink-0 group-hover:bg-amber-700 transition-colors">
+                  <uc.icon className="w-4.5 h-4.5" />
+                </div>
+                <div className="min-w-0">
+                  <h3 className="font-semibold text-[#1a1a1a] mb-1.5">{uc.title}</h3>
+                  <p className="text-sm text-[#1a1a1a]/50 leading-relaxed mb-3">{uc.desc}</p>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    {uc.tags.map((tag) => (
+                      <span key={tag} className="px-2 py-0.5 rounded-full bg-[#1a1a1a]/[0.04] text-xs text-[#1a1a1a]/40">{tag}</span>
+                    ))}
+                  </div>
+                  {uc.example && (
+                    <div className="flex justify-end mt-2">
+                      <Link
+                        href={uc.example.href}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-amber-700/60 hover:text-amber-700 transition-colors"
+                      >
+                        {uc.example.label}
+                        <FaArrowRight className="w-2.5 h-2.5" />
+                      </Link>
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
           ))}
         </div>
