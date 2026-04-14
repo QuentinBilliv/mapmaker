@@ -197,6 +197,11 @@ function CoverImageUpload() {
       if (!res.ok) return;
       const { storageId } = await res.json();
       await saveThumbnail({ mapId: mapId as Id<"maps">, storageId });
+      void fetch("/api/revalidate-og", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ mapId }),
+      }).catch(() => {});
     } catch {
     } finally {
       setUploading(false);
@@ -229,7 +234,14 @@ function CoverImageUpload() {
           />
           <button
             type="button"
-            onClick={() => removeThumbnail({ mapId: mapId as Id<"maps"> })}
+            onClick={() => {
+              void removeThumbnail({ mapId: mapId as Id<"maps"> });
+              void fetch("/api/revalidate-og", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ mapId }),
+              }).catch(() => {});
+            }}
             className="absolute top-1 right-1 rounded-full bg-black/60 hover:bg-black/80 text-white w-5 h-5 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>

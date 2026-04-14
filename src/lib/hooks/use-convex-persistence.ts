@@ -32,6 +32,7 @@ export function useConvexPersistence(mapId: string) {
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
   const pendingSaveRef = useRef<(() => Promise<void>) | null>(null);
   const lastSavedHashRef = useRef<string | null>(null);
+  const lastMetadataHashRef = useRef<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const savePausedRef = useRef(false);
   const [fileData, setFileData] = useState<MapFileData | null>(null);
@@ -87,6 +88,7 @@ export function useConvexPersistence(mapId: string) {
         baseMapId: state.baseMapId,
         styleOptions: state.styleOptions,
       };
+      const metadataHash = hashString(`${state.map.title}|${state.map.description}`);
 
       const doSave = async () => {
         try {
@@ -109,6 +111,14 @@ export function useConvexPersistence(mapId: string) {
 
           await saveMapMutation({ ...metadata, dataFileId: storageId });
           lastSavedHashRef.current = payloadHash;
+          if (lastMetadataHashRef.current !== null && lastMetadataHashRef.current !== metadataHash) {
+            void fetch("/api/revalidate-og", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ mapId }),
+            }).catch(() => {});
+          }
+          lastMetadataHashRef.current = metadataHash;
         } catch (err) {
           if (err instanceof DOMException && err.name === "AbortError") return;
           const msg = (err as Error).message ?? "";
