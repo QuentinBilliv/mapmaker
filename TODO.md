@@ -48,43 +48,34 @@ all re-fetch the full map unnecessarily.
 
 ### Plan (ordered by impact × effort)
 
-**Phase 1 — Quick wins (~half a day, should drop us to ~200-300 MB)**
-- [ ] Split `getMap` into two queries:
-  - `getMapMeta(id)` → title, description, center, zoom, baseMap,
-        groups, legendEntries, choropleth, tags, license, thumbnailId,
-        visibility (no features)
-  - `getMapFeatures(id)` → features array only
-- [ ] Editor subscribes to BOTH (still needs full data to render)
-- [ ] Viewer (`/maps/[id]`), embed (`/embed/[id]`), OG image route,
-      `PreviewMap`, and `MapMetadata` panel subscribe to `getMapMeta`
-      only — none of them need the feature array at subscribe time,
-      they can fetch features lazily or render directly from the
-      server-side feature payload
-- [ ] Cache OG images via Next.js `export const revalidate = 3600`
-      in `opengraph-image.tsx` — 1 fetch per hour per map instead of
-      1 per social preview
-- [ ] Debounce the editor auto-save: raise interval from 2.5s to
-      ~10s and skip the write entirely if the map payload is
-      unchanged since the last save (compare hashes)
-- [ ] Verify that the editor query does not re-run on local
-      optimistic mutations — Convex should echo back only the diff;
-      if it's sending the full doc, we need to confirm and possibly
-      switch to `usePaginatedQuery` or a manual `fetchQuery`
+**Phase 1 — Shipped (2026-04-14)**
+- [x] Always persist features via Convex file storage (lower
+      `INLINE_THRESHOLD` to 0). Existing inline maps keep working
+      via `getMap`'s backward-compat path and migrate lazily on
+      next save. *(commit b5d09d6)*
+- [x] Editor auto-save: raise debounce from 2.5s → 4s, hash-skip
+      when payload is unchanged, flush pending save on
+      `beforeunload`. *(commit b5d09d6)*
+- [x] Convert viewer (`/maps/[id]`), embed (`/embed/[id]`), and
+      landing `PreviewMap` to one-shot `useConvex().query(...)`
+      instead of reactive `useQuery` — none of these surfaces
+      needed live updates. *(commit 8751c13)*
+- [x] Cache OG images for 7 days via `export const revalidate =
+      604800`, and bust the cache via `/api/revalidate-og` when
+      the editor saves a new title/description or cover image.
+      *(commit d904cd4)*
 
-**Phase 2 — Structural fix (~1-2 days, takes us well below the cap)**
-- [ ] Store the `features` array as a JSON blob in Convex Storage
-      instead of inlining it in the `maps` document:
-  - Add a `featuresFileId` field on `maps`
-  - New mutation `saveMapFeatures(id, blob)` that writes to storage
-  - Query `getMapFeatures` returns the storage URL instead of the
-    array → client fetches the blob via plain HTTPS (this traffic
-    does NOT count against Convex DB bandwidth)
-  - Editor: on load, fetch blob once; on save, write a new blob
-    periodically (local-first model)
-  - Migration script to move existing maps' features into storage
-- [ ] Revisit auto-save strategy once features live in storage: we
-      can afford much less frequent writes because the intermediate
-      state lives in client memory + undo history
+**Phase 2 — Already mostly built, just turn it on fully**
+The storage-based feature persistence infra (new `dataFileId`
+field on `maps`, file-mode branch in `saveMap`, `dataFileUrl`
+fallback in `getMap`) was already in place — Phase 1 flipped the
+threshold so every new save uses it. What's left:
+- [ ] One-shot migration pass to rewrite existing inline maps
+      into file storage (cron or admin script reading all maps
+      with `features != null` and resaving through `saveMap`)
+- [ ] After migration, drop the inline-mode branches from
+      `getMap` / `saveMap` and remove the `features` / `groups`
+      fields from the `maps` doc schema entirely
 
 **Phase 3 — Polish**
 - [ ] Add a `lastFeaturesUpdatedAt` timestamp on the map doc so
