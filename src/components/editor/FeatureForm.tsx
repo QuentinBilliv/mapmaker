@@ -837,6 +837,18 @@ function FormSlider({
 function LegendEntryPicker({ feature }: { feature: FeatureData }) {
   const { legendEntries, choropleth } = useEditorData();
   const { assignLegendEntry, assignChoroplethCategory } = useEditorActions();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const [canScroll, setCanScroll] = useState(false);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    const check = () => setCanScroll(el.scrollHeight > el.clientHeight + 1);
+    check();
+    const obs = new ResizeObserver(check);
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [legendEntries.length, choropleth]);
   const matchingEntries = legendEntries.filter(
     (e) => e.featureType === feature.type,
   );
@@ -893,7 +905,7 @@ function LegendEntryPicker({ feature }: { feature: FeatureData }) {
     }`;
   return (
     <Field label="Legend style">
-      <div className="flex max-h-44 flex-wrap gap-1.5 overflow-y-auto pr-1 [mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]">
+      <div ref={scrollRef} className={`flex max-h-44 flex-wrap gap-1.5 overflow-y-auto pr-1 ${canScroll ? "[mask-image:linear-gradient(to_bottom,black_calc(100%-16px),transparent)]" : ""}`}>
         <button
           type="button"
           onClick={() => {

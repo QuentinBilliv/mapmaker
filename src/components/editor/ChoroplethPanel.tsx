@@ -2,8 +2,7 @@
 
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
-import { FaChevronDown, FaChevronRight, FaEarthAmericas } from "react-icons/fa6";
-import { useState } from "react";
+import { FaEarthAmericas } from "react-icons/fa6";
 
 interface ChoroplethPanelProps {
   onOpenDialog: () => void;
@@ -12,7 +11,6 @@ interface ChoroplethPanelProps {
 export default function ChoroplethPanel({ onOpenDialog }: ChoroplethPanelProps) {
   const { choropleth } = useEditorData();
   const { setChoropleth } = useEditorActions();
-  const [expanded, setExpanded] = useState(true);
   const assignmentCount = choropleth.mode === "gradient"
     ? Object.keys(choropleth.values ?? {}).length
     : Object.keys(choropleth.assignments ?? {}).length;
@@ -20,14 +18,10 @@ export default function ChoroplethPanel({ onOpenDialog }: ChoroplethPanelProps) 
   return (
     <div className="border-t flex flex-col">
       <div className="flex items-center justify-between px-3 py-2 bg-muted border-b shrink-0">
-        <button
-          className="flex items-center gap-1.5 text-sm font-semibold text-foreground"
-          onClick={() => setExpanded((v) => !v)}
-        >
-          {expanded ? <FaChevronDown className="w-2.5 h-2.5" /> : <FaChevronRight className="w-2.5 h-2.5" />}
+        <span className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
           <FaEarthAmericas className="w-3.5 h-3.5" />
           Choropleth
-        </button>
+        </span>
         <label className="flex items-center gap-1.5 cursor-pointer">
           <span className="text-xs text-muted-foreground">{choropleth.enabled ? "On" : "Off"}</span>
           <input
@@ -38,7 +32,7 @@ export default function ChoroplethPanel({ onOpenDialog }: ChoroplethPanelProps) 
           />
         </label>
       </div>
-      {expanded && choropleth.enabled && (
+      {choropleth.enabled && (
         <div className="px-3 py-2 space-y-2">
           <Button
             size="sm"

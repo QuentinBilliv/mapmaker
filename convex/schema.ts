@@ -59,17 +59,3 @@ export default defineSchema({
       filterFields: ["visibility", "ownerId"],
     }),
 });
-
-type MarketEventMap =
-  | { type: "priceUpdate"; productId: string; price: number; timestamp: Date }
-  | {
-      type: "orderFilled";
-      orderId: string;
-      quantity: number;
-      unitPrice: number;
-    }
-  | {
-      type: "connectionStatus";
-      connected: boolean;
-    }
-  | { type: "error"; code: number; message: string };
