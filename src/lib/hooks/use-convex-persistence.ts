@@ -15,11 +15,23 @@ interface MapFileData {
   choropleth?: StoredMapState["choropleth"];
 }
 
+function hashString(s: string): string {
+  let h = 0;
+  for (let i = 0; i < s.length; i++) {
+    h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  }
+  return h.toString(36);
+}
+
+const SAVE_DEBOUNCE_MS = 4000;
+
 export function useConvexPersistence(mapId: string) {
   const convexMap = useQuery(api.maps.getMap, { mapId: mapId as Id<"maps"> });
   const saveMapMutation = useMutation(api.maps.saveMap);
   const generateUploadUrl = useMutation(api.maps.generateUploadUrl);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
+  const pendingSaveRef = useRef<(() => Promise<void>) | null>(null);
+  const lastSavedHashRef = useRef<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const savePausedRef = useRef(false);
   const [fileData, setFileData] = useState<MapFileData | null>(null);
@@ -57,60 +69,46 @@ export function useConvexPersistence(mapId: string) {
 
   const uploadAbortRef = useRef<AbortController | null>(null);
 
-  const INLINE_THRESHOLD = 500_000;
-
   const onSave = useCallback(
     (state: StoredMapState) => {
       if (savePausedRef.current) return;
-      clearTimeout(saveTimerRef.current);
-      saveTimerRef.current = setTimeout(async () => {
+      const serializedChoropleth = serializeChoropleth(state.choropleth);
+      const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth });
+      const payloadHash = hashString(payload);
+      if (payloadHash === lastSavedHashRef.current) return;
+      const metadata = {
+        mapId: mapId as Id<"maps">,
+        title: state.map.title,
+        description: state.map.description,
+        tags: state.map.tags,
+        license: state.map.license,
+        center: state.map.center,
+        zoom: state.map.zoom,
+        baseMapId: state.baseMapId,
+        styleOptions: state.styleOptions,
+      };
+
+      const doSave = async () => {
         try {
-          const serializedChoropleth = serializeChoropleth(state.choropleth);
-          const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth });
-          const payloadSize = new Blob([payload]).size;
-          const metadata = {
-            mapId: mapId as Id<"maps">,
-            title: state.map.title,
-            description: state.map.description,
-            tags: state.map.tags,
-            license: state.map.license,
-            center: state.map.center,
-            zoom: state.map.zoom,
-            baseMapId: state.baseMapId,
-            styleOptions: state.styleOptions,
-          };
+          uploadAbortRef.current?.abort();
+          const abort = new AbortController();
+          uploadAbortRef.current = abort;
 
-          if (payloadSize < INLINE_THRESHOLD) {
-            await saveMapMutation({
-              ...metadata,
-              features: state.features,
-              groups: state.groups,
-              legendEntries: state.legendEntries,
-              choropleth: serializedChoropleth,
-            });
-          } else {
-            uploadAbortRef.current?.abort();
-            const abort = new AbortController();
-            uploadAbortRef.current = abort;
+          const uploadUrl = await generateUploadUrl();
+          if (abort.signal.aborted) return;
 
-            const uploadUrl = await generateUploadUrl();
-            if (abort.signal.aborted) return;
+          const uploadRes = await fetch(uploadUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: payload,
+            signal: abort.signal,
+          });
+          if (!uploadRes.ok) throw new Error("Upload failed");
+          const { storageId } = await uploadRes.json();
+          if (abort.signal.aborted) return;
 
-            const uploadRes = await fetch(uploadUrl, {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: payload,
-              signal: abort.signal,
-            });
-            if (!uploadRes.ok) throw new Error("Upload failed");
-            const { storageId } = await uploadRes.json();
-            if (abort.signal.aborted) return;
-
-            await saveMapMutation({
-              ...metadata,
-              dataFileId: storageId,
-            });
-          }
+          await saveMapMutation({ ...metadata, dataFileId: storageId });
+          lastSavedHashRef.current = payloadHash;
         } catch (err) {
           if (err instanceof DOMException && err.name === "AbortError") return;
           const msg = (err as Error).message ?? "";
@@ -121,10 +119,29 @@ export function useConvexPersistence(mapId: string) {
             console.error(err);
           }
         }
-      }, 2500);
+      };
+
+      clearTimeout(saveTimerRef.current);
+      pendingSaveRef.current = doSave;
+      saveTimerRef.current = setTimeout(async () => {
+        pendingSaveRef.current = null;
+        await doSave();
+      }, SAVE_DEBOUNCE_MS);
     },
     [mapId, saveMapMutation, generateUploadUrl]
   );
+
+  useEffect(() => {
+    const handler = () => {
+      if (!pendingSaveRef.current) return;
+      const pending = pendingSaveRef.current;
+      pendingSaveRef.current = null;
+      clearTimeout(saveTimerRef.current);
+      void pending();
+    };
+    window.addEventListener("beforeunload", handler);
+    return () => window.removeEventListener("beforeunload", handler);
+  }, []);
 
   return {
     initialData,
