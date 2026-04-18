@@ -402,7 +402,6 @@ export const reportMap = mutation({
     reason: v.union(
       v.literal("inappropriate"),
       v.literal("spam"),
-      v.literal("copyright"),
       v.literal("other"),
     ),
   },

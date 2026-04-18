@@ -177,7 +177,6 @@ function ReadOnlyMapViewInner({
 const REPORT_REASONS = [
   { value: "inappropriate" as const, label: "Inappropriate content" },
   { value: "spam" as const, label: "Spam" },
-  { value: "copyright" as const, label: "Copyright violation" },
   { value: "other" as const, label: "Other" },
 ];
 

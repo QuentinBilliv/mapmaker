@@ -162,15 +162,7 @@ protection against the most common abuse patterns.
 - [x] Audit logging via console.info on every admin action
 - [x] "This map is not available" for unpublished/private maps
 
-### 5. Copyright & DMCA
-- [ ] Add a DMCA / copyright takedown form (separate from the general
-      report button) that captures the required fields: identification
-      of the work, identification of the infringing URL, contact info,
-      good-faith statement, signature
-- [ ] Document the takedown SLA (e.g. 72h for DMCA, 24h for clearly
-      illegal content)
-
-### 6. What we deliberately skip
+### 5. What we deliberately skip
 - Pricing is NOT part of the safety plan. It will come later if/when
   we know what to charge for (private maps, no-watermark embeds,
   collaboration, higher rate limits, exports) — driven by value, not
@@ -185,5 +177,4 @@ protection against the most common abuse patterns.
 1. ~~OAuth login + publish-requires-auth~~ (already in place)
 2. ~~ToS / Privacy Policy + Report button~~ (shipped)
 3. ~~Moderation queue + unpublish flow~~ (shipped)
-4. Static blocklist + SVG sanitizer at publish time
-5. DMCA form
+4. ~~Static blocklist + SVG sanitizer at publish time~~ (shipped)
