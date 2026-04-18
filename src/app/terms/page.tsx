@@ -7,7 +7,7 @@ export const metadata: Metadata = {
 
 export default function TermsPage() {
   return (
-    <div className="min-h-screen bg-background">
+    <div className="flex-1 overflow-y-auto bg-background">
       <div className="max-w-2xl mx-auto px-6 py-16">
         <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
           &larr; Back to idomap
