@@ -65,6 +65,14 @@ export default function AccountPage() {
       <Link href="/dashboard" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">
         See my maps ({maps?.length ?? 0})
       </Link>
+      <div className="mt-8 pt-6 border-t flex items-center gap-4">
+        <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+          Terms of Service
+        </Link>
+        <Link href="/privacy" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
+          Privacy Policy
+        </Link>
+      </div>
     </div>
   );
 }
