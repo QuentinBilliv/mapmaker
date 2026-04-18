@@ -40,7 +40,8 @@ export default defineSchema({
     choropleth: v.optional(v.any()),
     dataFileId: v.optional(v.id("_storage")),
     dataFileSize: v.optional(v.number()),
-    interactionLocked: v.optional(v.boolean()),
+    zoomLocked: v.optional(v.boolean()),
+    panLocked: v.optional(v.boolean()),
     isPublic: v.optional(v.boolean()),
     visibility: v.optional(
       v.union(v.literal("private"), v.literal("unlisted"), v.literal("public")),

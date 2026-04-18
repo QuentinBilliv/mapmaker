@@ -6,7 +6,8 @@ export interface MapData {
   license: string;
   center: [number, number];
   zoom: number;
-  interactionLocked?: boolean;
+  zoomLocked?: boolean;
+  panLocked?: boolean;
 }
 
 export type PointShape = "circle" | "triangle" | "square" | "diamond" | "star" | "cross" | "pentagon" | "hexagon";

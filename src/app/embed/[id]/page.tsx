@@ -173,11 +173,19 @@ function EmbedMapView({
         opts.center = mapData.center;
         opts.zoom = mapData.zoom;
       }
-      if (mapData.interactionLocked) {
-        opts.interactive = false;
-      }
       const map = new maplibregl.Map(opts);
-      if (!mapData.interactionLocked) {
+      if (mapData.zoomLocked) {
+        map.scrollZoom.disable();
+        map.boxZoom.disable();
+        map.doubleClickZoom.disable();
+        map.touchZoomRotate.disable();
+      }
+      if (mapData.panLocked) {
+        map.dragPan.disable();
+        map.dragRotate.disable();
+        map.keyboard.disable();
+      }
+      if (!mapData.zoomLocked || !mapData.panLocked) {
         map.addControl(
           new maplibregl.NavigationControl({ showCompass: false }),
           "top-right",

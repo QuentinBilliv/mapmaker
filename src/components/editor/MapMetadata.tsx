@@ -78,7 +78,7 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
         <form onSubmit={save} className="p-3 space-y-3 overflow-y-auto flex-1">
           <MetadataFields save={save} />
           <ViewControl updateMap={updateMap} center={map.center} zoom={map.zoom} />
-          <InteractionLockToggle locked={!!map.interactionLocked} updateMap={updateMap} />
+          <ViewLockToggles zoomLocked={!!map.zoomLocked} panLocked={!!map.panLocked} updateMap={updateMap} />
           <CoverImageUpload />
         </form>
       </div>
@@ -171,24 +171,37 @@ function ViewControl({
   );
 }
 
-function InteractionLockToggle({
-  locked,
+function ViewLockToggles({
+  zoomLocked,
+  panLocked,
   updateMap,
 }: {
-  locked: boolean;
-  updateMap: (updates: { interactionLocked?: boolean }) => void;
+  zoomLocked: boolean;
+  panLocked: boolean;
+  updateMap: (updates: { zoomLocked?: boolean; panLocked?: boolean }) => void;
 }) {
   return (
     <Field label="Viewer interaction">
-      <label className="flex items-center gap-2 text-xs cursor-pointer">
-        <input
-          type="checkbox"
-          checked={locked}
-          onChange={(e) => updateMap({ interactionLocked: e.target.checked })}
-          className="rounded border-input"
-        />
-        <span className="text-muted-foreground">Lock zoom and pan (static view)</span>
-      </label>
+      <div className="space-y-1.5">
+        <label className="flex items-center gap-2 text-xs cursor-pointer">
+          <input
+            type="checkbox"
+            checked={zoomLocked}
+            onChange={(e) => updateMap({ zoomLocked: e.target.checked })}
+            className="rounded border-input"
+          />
+          <span className="text-muted-foreground">Lock zoom</span>
+        </label>
+        <label className="flex items-center gap-2 text-xs cursor-pointer">
+          <input
+            type="checkbox"
+            checked={panLocked}
+            onChange={(e) => updateMap({ panLocked: e.target.checked })}
+            className="rounded border-input"
+          />
+          <span className="text-muted-foreground">Lock pan (no dragging)</span>
+        </label>
+      </div>
     </Field>
   );
 }

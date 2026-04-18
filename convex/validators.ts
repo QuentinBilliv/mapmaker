@@ -26,7 +26,8 @@ export const vMapMetadataArgs = {
     noBorders: v.optional(v.boolean()),
     noRoads: v.optional(v.boolean()),
   })),
-  interactionLocked: v.optional(v.boolean()),
+  zoomLocked: v.optional(v.boolean()),
+  panLocked: v.optional(v.boolean()),
 };
 
 export const vMapPayloadArgs = {
