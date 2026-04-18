@@ -182,22 +182,30 @@ const REPORT_REASONS = [
 
 function ReportButton({ mapId }: { mapId: string }) {
   const [open, setOpen] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<(typeof REPORT_REASONS)[number]["value"] | null>(null);
+  const [details, setDetails] = useState("");
   const [sent, setSent] = useState(false);
   const reportMap = useMutation(api.maps.reportMap);
 
-  const handleReport = useCallback(
-    async (reason: (typeof REPORT_REASONS)[number]["value"]) => {
-      try {
-        await reportMap({ mapId: mapId as Id<"maps">, reason });
-        setSent(true);
-        setTimeout(() => {
-          setOpen(false);
-          setSent(false);
-        }, 2000);
-      } catch {}
-    },
-    [mapId, reportMap],
-  );
+  const handleSubmit = useCallback(async () => {
+    if (!selectedReason) return;
+    try {
+      await reportMap({ mapId: mapId as Id<"maps">, reason: selectedReason, details: details.trim() || undefined });
+      setSent(true);
+      setTimeout(() => {
+        setOpen(false);
+        setSent(false);
+        setSelectedReason(null);
+        setDetails("");
+      }, 2000);
+    } catch {}
+  }, [mapId, reportMap, selectedReason, details]);
+
+  const handleClose = useCallback(() => {
+    setOpen(false);
+    setSelectedReason(null);
+    setDetails("");
+  }, []);
 
   return (
     <div className="relative">
@@ -209,21 +217,41 @@ function ReportButton({ mapId }: { mapId: string }) {
         Report
       </button>
       {open && (
-        <div className="absolute bottom-full left-0 mb-1 bg-popover border rounded-md shadow-lg p-2 min-w-[160px] z-50">
+        <div className="absolute bottom-full left-0 mb-1 bg-popover border rounded-md shadow-lg p-2 min-w-[200px] z-50">
           {sent ? (
             <p className="text-xs text-muted-foreground py-1">Thanks for reporting.</p>
-          ) : (
+          ) : !selectedReason ? (
             <>
               <p className="text-xs font-medium mb-1.5">Report this map</p>
               {REPORT_REASONS.map((r) => (
                 <button
                   key={r.value}
-                  onClick={() => handleReport(r.value)}
+                  onClick={() => setSelectedReason(r.value)}
                   className="block w-full text-left text-xs px-2 py-1 rounded hover:bg-muted transition-colors"
                 >
                   {r.label}
                 </button>
               ))}
+            </>
+          ) : (
+            <>
+              <p className="text-xs font-medium mb-1.5">Tell us more (optional)</p>
+              <textarea
+                value={details}
+                onChange={(e) => setDetails(e.target.value)}
+                placeholder="Add details..."
+                maxLength={500}
+                rows={3}
+                className="w-full text-xs rounded border bg-background px-2 py-1.5 resize-none focus:outline-none focus:ring-1 focus:ring-ring"
+              />
+              <div className="flex gap-1.5 mt-1.5">
+                <button onClick={handleSubmit} className="flex-1 text-xs px-2 py-1 rounded bg-destructive text-destructive-foreground hover:bg-destructive/90 transition-colors">
+                  Submit
+                </button>
+                <button onClick={handleClose} className="text-xs px-2 py-1 rounded border hover:bg-muted transition-colors">
+                  Cancel
+                </button>
+              </div>
             </>
           )}
         </div>

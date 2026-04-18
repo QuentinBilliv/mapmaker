@@ -47,7 +47,12 @@ export default function AdminPage() {
                   <p className="text-xs text-muted-foreground mt-0.5">
                     by {r.mapOwnerName} &middot; {r.mapVisibility} &middot; {r.reason}
                   </p>
-                  <p className="text-[10px] text-muted-foreground">
+                  {r.details && (
+                    <p className="text-xs text-muted-foreground mt-1 italic">
+                      &ldquo;{r.details}&rdquo;
+                    </p>
+                  )}
+                  <p className="text-[10px] text-muted-foreground mt-0.5">
                     {new Date(r.createdAt).toLocaleString()}
                   </p>
                 </div>

@@ -64,6 +64,7 @@ export default defineSchema({
   reports: defineTable({
     mapId: v.id("maps"),
     reason: v.string(),
+    details: v.optional(v.string()),
     createdAt: v.number(),
     resolved: v.optional(v.boolean()),
     resolvedAt: v.optional(v.number()),

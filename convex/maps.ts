@@ -404,13 +404,16 @@ export const reportMap = mutation({
       v.literal("spam"),
       v.literal("other"),
     ),
+    details: v.optional(v.string()),
   },
-  handler: async (ctx, { mapId, reason }) => {
+  handler: async (ctx, { mapId, reason, details }) => {
     const map = await ctx.db.get(mapId);
     if (!map) throw new Error("Map not found");
+    if (details && details.length > 500) throw new Error("Details too long");
     await ctx.db.insert("reports", {
       mapId,
       reason,
+      details: details || undefined,
       createdAt: Date.now(),
     });
   },
