@@ -41,32 +41,36 @@ export default function TermsPage() {
               <li>Exposes personal data of third parties without consent</li>
               <li>Infringes on copyrights, trademarks, or other intellectual property rights</li>
               <li>Constitutes spam or is used for advertising without authorization</li>
-              <li>Violates applicable laws, including French and European Union law</li>
+              <li>Violates any applicable law</li>
             </ul>
           </Section>
 
           <Section title="6. Moderation and takedown">
-            idomap reserves the right to remove, unpublish, or restrict access to any content at any time, without prior notice, if it violates these Terms or applicable law. We may also suspend or terminate accounts that repeatedly violate these Terms. idomap acts as a hosting provider under Article 6 of the French LCEN (Loi pour la Confiance dans l&apos;Economie Numerique) and Article 14 of the EU e-Commerce Directive. We process takedown requests expeditiously upon notification.
+            idomap reserves the right to remove, unpublish, or restrict access to any content at any time, without prior notice, if it violates these Terms or applicable law. We may also suspend or terminate accounts that repeatedly violate these Terms.
           </Section>
 
-          <Section title="7. Reporting">
-            If you believe that content on idomap violates these Terms or applicable law, you can use the &quot;Report&quot; button on any public map page. For copyright-related takedown requests, please contact us at the email address below.
+          <Section title="7. Copyright (DMCA and EU)">
+            idomap respects intellectual property rights. If you believe that content on idomap infringes your copyright, you may submit a takedown request to <strong>contact@idomap.com</strong> including: identification of the copyrighted work, the URL of the infringing content, your contact information, and a statement of good faith. We act as a hosting provider under the U.S. Digital Millennium Copyright Act (DMCA), Article 6 of the French LCEN, and Article 14 of the EU e-Commerce Directive, and we process takedown requests expeditiously upon notification.
           </Section>
 
-          <Section title="8. Limitation of liability">
-            The Service is provided &quot;as is&quot; without warranties of any kind. idomap shall not be liable for any indirect, incidental, or consequential damages arising from the use of the Service. We do not guarantee the availability, accuracy, or permanence of user-generated content or the Service itself.
+          <Section title="8. Reporting">
+            If you believe that content on idomap violates these Terms or applicable law, you can use the &quot;Report&quot; button on any public map page, or contact us at the email address below.
           </Section>
 
-          <Section title="9. Changes to these Terms">
+          <Section title="9. Limitation of liability">
+            The Service is provided &quot;as is&quot; without warranties of any kind, whether express or implied, including but not limited to implied warranties of merchantability, fitness for a particular purpose, and non-infringement. To the fullest extent permitted by applicable law, idomap shall not be liable for any indirect, incidental, special, or consequential damages arising from the use of the Service. We do not guarantee the availability, accuracy, or permanence of user-generated content or the Service itself.
+          </Section>
+
+          <Section title="10. Changes to these Terms">
             We may update these Terms from time to time. Continued use of the Service after changes constitutes acceptance of the updated Terms. We will indicate the date of the last update at the top of this page.
           </Section>
 
-          <Section title="10. Contact">
+          <Section title="11. Contact">
             For any questions regarding these Terms, reports of illegal content, or copyright takedown requests, please contact us at: <strong>contact@idomap.com</strong>
           </Section>
 
-          <Section title="11. Governing law">
-            These Terms are governed by the laws of France. Any disputes shall be submitted to the competent courts of France.
+          <Section title="12. Governing law">
+            If you are located in the European Union, these Terms are governed by the laws of France and you may bring claims before the competent courts of France. If you are located in the United States, these Terms are governed by the laws of the State of California, without regard to conflict-of-law principles, and any disputes shall be resolved in the state or federal courts located in San Francisco County, California. For all other jurisdictions, these Terms are governed by the laws of France.
           </Section>
         </div>
       </div>

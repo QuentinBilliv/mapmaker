@@ -55,32 +55,45 @@ export default function PrivacyPage() {
             </ul>
           </Section>
 
-          <Section title="6. Your rights (GDPR)">
-            Under the General Data Protection Regulation (GDPR), you have the right to:
+          <Section title="6. Your rights">
+            <p className="font-medium mt-1">European users (GDPR)</p>
+            Under the General Data Protection Regulation, you have the right to:
             <ul className="list-disc pl-5 mt-2 space-y-1">
               <li><strong>Access</strong> your personal data</li>
               <li><strong>Rectify</strong> inaccurate data</li>
               <li><strong>Delete</strong> your account and associated data</li>
               <li><strong>Export</strong> your data (you can export your maps in .idomap format at any time)</li>
               <li><strong>Object</strong> to processing based on legitimate interest</li>
-              <li><strong>Lodge a complaint</strong> with the CNIL (Commission Nationale de l&apos;Informatique et des Libertes), the French data protection authority</li>
+              <li><strong>Lodge a complaint</strong> with the CNIL (Commission Nationale de l&apos;Informatique et des Libertes) or your local data protection authority</li>
             </ul>
-            <p className="mt-2">To exercise any of these rights, contact us at <strong>contact@idomap.com</strong>. We will respond within 30 days.</p>
+            <p className="font-medium mt-4">California residents (CCPA)</p>
+            Under the California Consumer Privacy Act, you have the right to:
+            <ul className="list-disc pl-5 mt-2 space-y-1">
+              <li><strong>Know</strong> what personal information we collect and how it is used</li>
+              <li><strong>Delete</strong> your personal information</li>
+              <li><strong>Opt out</strong> of the sale of personal information — we do not sell your data</li>
+              <li><strong>Non-discrimination</strong> for exercising your privacy rights</li>
+            </ul>
+            <p className="mt-4">To exercise any of these rights, contact us at <strong>contact@idomap.com</strong>. We will respond within 30 days (GDPR) or 45 days (CCPA).</p>
           </Section>
 
-          <Section title="7. Cookies">
+          <Section title="7. International data transfers">
+            Your data may be processed in the United States (Convex, Vercel) and in the European Union. Where data is transferred outside the EU, our service providers rely on Standard Contractual Clauses or equivalent safeguards to ensure adequate protection of your personal data.
+          </Section>
+
+          <Section title="8. Cookies">
             idomap uses only essential cookies required for authentication and session management. We do not use tracking cookies, advertising cookies, or analytics cookies. No cookie consent banner is required as we only use strictly necessary cookies.
           </Section>
 
-          <Section title="8. Children">
-            idomap is not directed at children under 16. We do not knowingly collect personal data from children under 16. If you believe we have collected data from a child, please contact us and we will delete it promptly.
+          <Section title="9. Children">
+            idomap is not directed at children under 16 (or under 13 in the United States). We do not knowingly collect personal data from children. If you believe we have collected data from a child, please contact us and we will delete it promptly.
           </Section>
 
-          <Section title="9. Changes to this policy">
+          <Section title="10. Changes to this policy">
             We may update this Privacy Policy from time to time. The date of the last update is indicated at the top of this page. Continued use of the Service after changes constitutes acceptance.
           </Section>
 
-          <Section title="10. Contact">
+          <Section title="11. Contact">
             For any questions about this Privacy Policy or to exercise your rights, contact us at: <strong>contact@idomap.com</strong>
           </Section>
         </div>
