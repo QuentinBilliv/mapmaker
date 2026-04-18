@@ -141,16 +141,8 @@ protection against the most common abuse patterns.
       content)
 
 ### 3. Automated checks at publish time
-- [ ] Server-side text screening of every field that reaches a public
-      map before `publish` succeeds: `title`, `description`, all
-      feature `label`s and `description`s, legend entry labels, group
-      labels, text feature `textContent`. Two-stage approach:
-  - [ ] Fast path: static blocklist of obvious slurs / porn terms in
-        FR + EN (and a few more languages). Reject immediately.
-  - [ ] Slow path: pass the bundle to a small LLM (Haiku or similar)
-        with a classification prompt ("does this contain sexual,
-        hateful, or illegal content? yes/no + reason"). If yes, keep
-        the map unpublished and flag for review.
+- [ ] Static blocklist of obvious slurs / porn terms in FR + EN
+      (and a few more languages). Reject immediately at publish time.
 - [ ] Validate any `customSvg` the user sets: strip `<script>`, event
       handlers, external URLs, `<foreignObject>`. We already render
       these — an unsanitized SVG is an XSS vector too. Use a real
@@ -161,19 +153,14 @@ protection against the most common abuse patterns.
       page until moderation is in place. Published = URL-shareable,
       but not listed anywhere crawlable from the homepage.
 
-### 4. Moderation queue & takedown
-- [ ] Convex admin-only query that lists maps flagged by the LLM or
-      by users (`reports` table joined with `maps`), sorted by severity
-- [ ] Admin UI (protected by a hardcoded user id check for now) to:
-      - preview a flagged map
-      - unpublish it with one click
-      - soft-delete the map and ban the account if needed
-      - mark a report as resolved
-- [ ] Log every moderation action (who, what, when, why) in an
-      `audit` table — useful if a user contests
-- [ ] On unpublish, show a generic "This map is no longer available"
-      page at `/maps/[id]` instead of 404, so existing links degrade
-      gracefully and we avoid leaking moderation state
+### 4. Moderation queue & takedown — DONE
+- [x] `reports` table + `reportMap` mutation
+- [x] Report button on every public map (reason: inappropriate,
+      spam, copyright, other)
+- [x] Admin page at `/admin` to list pending reports, unpublish
+      maps, and dismiss reports (protected by tier === "admin")
+- [x] Audit logging via console.info on every admin action
+- [x] "This map is not available" for unpublished/private maps
 
 ### 5. Copyright & DMCA
 - [ ] Add a DMCA / copyright takedown form (separate from the general
@@ -183,20 +170,20 @@ protection against the most common abuse patterns.
 - [ ] Document the takedown SLA (e.g. 72h for DMCA, 24h for clearly
       illegal content)
 
-### 6. What we deliberately skip for now
+### 6. What we deliberately skip
 - Pricing is NOT part of the safety plan. It will come later if/when
   we know what to charge for (private maps, no-watermark embeds,
   collaboration, higher rate limits, exports) — driven by value, not
   by "filtering cons".
-- No human pre-moderation of every publish. We rely on automated
-  screening + post-hoc reports. Manual review only for flagged items.
+- No LLM-based screening. Report button + admin moderation is enough.
+- No human pre-moderation of every publish. We rely on blocklist +
+  post-hoc reports. Manual review only for flagged items.
 - No real-name / KYC requirement. OAuth + ToS is enough friction for
   the target audience.
 
 ### Rollout order (minimum viable "safe to open")
-1. OAuth login + publish-requires-auth + rate limits
-2. ToS / Privacy Policy + Report button + abuse email
-3. Static blocklist + SVG sanitizer at publish time
-4. Moderation queue + unpublish flow + audit log
-5. LLM-based screening (once the above is solid)
-6. DMCA form
+1. ~~OAuth login + publish-requires-auth~~ (already in place)
+2. ~~ToS / Privacy Policy + Report button~~ (shipped)
+3. ~~Moderation queue + unpublish flow~~ (shipped)
+4. Static blocklist + SVG sanitizer at publish time
+5. DMCA form
