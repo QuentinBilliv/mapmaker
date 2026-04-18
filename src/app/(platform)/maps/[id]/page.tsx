@@ -72,7 +72,7 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
     return (
       <div className="flex-1 flex items-center justify-center">
         <p className="text-sm text-muted-foreground">
-          Map not found or access denied.
+          This map is not available.
         </p>
       </div>
     );

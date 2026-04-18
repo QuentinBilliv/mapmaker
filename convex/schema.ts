@@ -60,4 +60,13 @@ export default defineSchema({
       searchField: "searchText",
       filterFields: ["visibility", "ownerId"],
     }),
+
+  reports: defineTable({
+    mapId: v.id("maps"),
+    reason: v.string(),
+    createdAt: v.number(),
+    resolved: v.optional(v.boolean()),
+    resolvedAt: v.optional(v.number()),
+    resolvedBy: v.optional(v.id("users")),
+  }).index("by_map", ["mapId"]).index("by_resolved", ["resolved", "createdAt"]),
 });

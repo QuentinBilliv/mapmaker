@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation } from "./_generated/server";
+import { mutation, query } from "./_generated/server";
 import { getAuthenticatedUser } from "./helpers";
 
 export const setUserTier = mutation({
@@ -75,5 +75,56 @@ export const setUniversityLabel = mutation({
     console.info(
       `[audit] setUniversityLabel: admin=${admin.email} target=${targetEmail} label=${universityLabel ?? "(removed)"}`
     );
+  },
+});
+
+export const listReports = query({
+  args: {},
+  handler: async (ctx) => {
+    const admin = await getAuthenticatedUser(ctx);
+    if (admin.tier !== "admin") throw new Error("Admin access required");
+    const reports = await ctx.db
+      .query("reports")
+      .withIndex("by_resolved", (q) => q.eq("resolved", undefined))
+      .order("desc")
+      .take(100);
+    const results = await Promise.all(
+      reports.map(async (r) => {
+        const map = await ctx.db.get(r.mapId);
+        return {
+          ...r,
+          mapTitle: map?.title ?? "(deleted)",
+          mapOwnerName: map?.ownerName ?? "unknown",
+          mapVisibility: map?.visibility ?? "private",
+        };
+      }),
+    );
+    return results;
+  },
+});
+
+export const unpublishMap = mutation({
+  args: { mapId: v.id("maps") },
+  handler: async (ctx, { mapId }) => {
+    const admin = await getAuthenticatedUser(ctx);
+    if (admin.tier !== "admin") throw new Error("Admin access required");
+    const map = await ctx.db.get(mapId);
+    if (!map) throw new Error("Map not found");
+    await ctx.db.patch(mapId, { visibility: "private", updatedAt: Date.now() });
+    console.info(`[audit] unpublishMap: admin=${admin.email} map=${mapId} title="${map.title}"`);
+  },
+});
+
+export const resolveReport = mutation({
+  args: { reportId: v.id("reports") },
+  handler: async (ctx, { reportId }) => {
+    const admin = await getAuthenticatedUser(ctx);
+    if (admin.tier !== "admin") throw new Error("Admin access required");
+    await ctx.db.patch(reportId, {
+      resolved: true,
+      resolvedAt: Date.now(),
+      resolvedBy: admin._id,
+    });
+    console.info(`[audit] resolveReport: admin=${admin.email} report=${reportId}`);
   },
 });

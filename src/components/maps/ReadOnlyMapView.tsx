@@ -1,6 +1,9 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMutation } from "convex/react";
+import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
 import Link from "next/link";
 import maplibregl from "maplibre-gl";
 import "maplibre-gl/dist/maplibre-gl.css";
@@ -11,7 +14,7 @@ import { HighlightProvider } from "@/lib/highlight-context";
 import { findBaseMap, resolveBaseMapStyle, type StyleOptions } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
-import { FaPenToSquare, FaChevronUp, FaChevronDown } from "react-icons/fa6";
+import { FaPenToSquare, FaChevronUp, FaChevronDown, FaFlag } from "react-icons/fa6";
 import { Share2Icon, CheckIcon } from "lucide-react";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
@@ -144,6 +147,7 @@ function ReadOnlyMapViewInner({
                   </p>
                   <ShareButton mapId={mapData.id} />
                   <EmbedButton mapId={mapData.id} />
+                  {!editHref && <ReportButton mapId={mapData.id} />}
                   {editHref && (
                     <Link
                       href={editHref}
@@ -166,6 +170,65 @@ function ReadOnlyMapViewInner({
           </button>
         </div>
       </div>
+    </div>
+  );
+}
+
+const REPORT_REASONS = [
+  { value: "inappropriate" as const, label: "Inappropriate content" },
+  { value: "spam" as const, label: "Spam" },
+  { value: "copyright" as const, label: "Copyright violation" },
+  { value: "other" as const, label: "Other" },
+];
+
+function ReportButton({ mapId }: { mapId: string }) {
+  const [open, setOpen] = useState(false);
+  const [sent, setSent] = useState(false);
+  const reportMap = useMutation(api.maps.reportMap);
+
+  const handleReport = useCallback(
+    async (reason: (typeof REPORT_REASONS)[number]["value"]) => {
+      try {
+        await reportMap({ mapId: mapId as Id<"maps">, reason });
+        setSent(true);
+        setTimeout(() => {
+          setOpen(false);
+          setSent(false);
+        }, 2000);
+      } catch {}
+    },
+    [mapId, reportMap],
+  );
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setOpen((v) => !v)}
+        className="inline-flex items-center gap-1 text-[10px] text-muted-foreground hover:text-foreground transition-colors"
+      >
+        <FaFlag className="w-2.5 h-2.5" />
+        Report
+      </button>
+      {open && (
+        <div className="absolute bottom-full left-0 mb-1 bg-popover border rounded-md shadow-lg p-2 min-w-[160px] z-50">
+          {sent ? (
+            <p className="text-xs text-muted-foreground py-1">Thanks for reporting.</p>
+          ) : (
+            <>
+              <p className="text-xs font-medium mb-1.5">Report this map</p>
+              {REPORT_REASONS.map((r) => (
+                <button
+                  key={r.value}
+                  onClick={() => handleReport(r.value)}
+                  className="block w-full text-left text-xs px-2 py-1 rounded hover:bg-muted transition-colors"
+                >
+                  {r.label}
+                </button>
+              ))}
+            </>
+          )}
+        </div>
+      )}
     </div>
   );
 }

@@ -386,3 +386,24 @@ export const migrateFromLocalStorage = mutation({
     });
   },
 });
+
+export const reportMap = mutation({
+  args: {
+    mapId: v.id("maps"),
+    reason: v.union(
+      v.literal("inappropriate"),
+      v.literal("spam"),
+      v.literal("copyright"),
+      v.literal("other"),
+    ),
+  },
+  handler: async (ctx, { mapId, reason }) => {
+    const map = await ctx.db.get(mapId);
+    if (!map) throw new Error("Map not found");
+    await ctx.db.insert("reports", {
+      mapId,
+      reason,
+      createdAt: Date.now(),
+    });
+  },
+});
