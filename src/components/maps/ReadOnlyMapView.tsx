@@ -73,8 +73,13 @@ function ReadOnlyMapViewInner({
         opts.center = mapData.center;
         opts.zoom = mapData.zoom;
       }
+      if (mapData.interactionLocked) {
+        opts.interactive = false;
+      }
       const map = new maplibregl.Map(opts);
-      map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+      if (!mapData.interactionLocked) {
+        map.addControl(new maplibregl.NavigationControl(), "bottom-right");
+      }
       mapRef.current = map;
       map.once("idle", () => setStyleVersion((v) => v + 1));
     });

@@ -259,6 +259,7 @@ export const saveMap = mutation({
       zoom: args.zoom,
       baseMapId: args.baseMapId,
       styleOptions: args.styleOptions,
+      interactionLocked: args.interactionLocked,
       dataFileId: isFileMode ? args.dataFileId : undefined,
       dataFileSize: isFileMode ? dataFileSize : undefined,
       layers: isFileMode ? undefined : args.layers,

@@ -8,6 +8,7 @@ export function toMapData(doc: {
   license: string;
   center: number[];
   zoom: number;
+  interactionLocked?: boolean;
 }): MapData {
   return {
     id: doc._id,
@@ -17,5 +18,6 @@ export function toMapData(doc: {
     license: doc.license,
     center: doc.center as [number, number],
     zoom: doc.zoom,
+    interactionLocked: doc.interactionLocked,
   };
 }

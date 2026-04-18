@@ -133,6 +133,7 @@ const idomapMeta = z.object({
     license: z.string().max(100).default("CC BY"),
     center: z.tuple([z.number(), z.number()]).default([0, 20]),
     zoom: z.number().min(0).max(22).default(1),
+    interactionLocked: z.boolean().optional(),
   }),
   baseMap: z.string().max(100).default("osm"),
   styleOptions: z.object({
@@ -189,6 +190,7 @@ export function serialize(
         license: map.license,
         center: map.center,
         zoom: map.zoom,
+        interactionLocked: map.interactionLocked || undefined,
       },
       baseMap: baseMapId,
       styleOptions: styleOptions ?? undefined,
@@ -395,6 +397,7 @@ export function deserialize(raw: string): DeserializedMap {
       license: result.idomap.map.license,
       center: result.idomap.map.center,
       zoom: result.idomap.map.zoom,
+      interactionLocked: result.idomap.map.interactionLocked,
     },
     baseMapId: knownBaseMap.id,
     styleOptions: result.idomap.styleOptions ?? undefined,

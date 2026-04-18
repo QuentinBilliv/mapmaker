@@ -78,6 +78,7 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
         <form onSubmit={save} className="p-3 space-y-3 overflow-y-auto flex-1">
           <MetadataFields save={save} />
           <ViewControl updateMap={updateMap} center={map.center} zoom={map.zoom} />
+          <InteractionLockToggle locked={!!map.interactionLocked} updateMap={updateMap} />
           <CoverImageUpload />
         </form>
       </div>
@@ -166,6 +167,28 @@ function ViewControl({
           Auto-fit
         </Button>
       </div>
+    </Field>
+  );
+}
+
+function InteractionLockToggle({
+  locked,
+  updateMap,
+}: {
+  locked: boolean;
+  updateMap: (updates: { interactionLocked?: boolean }) => void;
+}) {
+  return (
+    <Field label="Viewer interaction">
+      <label className="flex items-center gap-2 text-xs cursor-pointer">
+        <input
+          type="checkbox"
+          checked={locked}
+          onChange={(e) => updateMap({ interactionLocked: e.target.checked })}
+          className="rounded border-input"
+        />
+        <span className="text-muted-foreground">Lock zoom and pan (static view)</span>
+      </label>
     </Field>
   );
 }

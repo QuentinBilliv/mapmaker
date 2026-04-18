@@ -173,11 +173,16 @@ function EmbedMapView({
         opts.center = mapData.center;
         opts.zoom = mapData.zoom;
       }
+      if (mapData.interactionLocked) {
+        opts.interactive = false;
+      }
       const map = new maplibregl.Map(opts);
-      map.addControl(
-        new maplibregl.NavigationControl({ showCompass: false }),
-        "top-right",
-      );
+      if (!mapData.interactionLocked) {
+        map.addControl(
+          new maplibregl.NavigationControl({ showCompass: false }),
+          "top-right",
+        );
+      }
       mapRef.current = map;
       map.once("idle", () => setStyleVersion((v) => v + 1));
     });

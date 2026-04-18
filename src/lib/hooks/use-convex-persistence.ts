@@ -87,6 +87,7 @@ export function useConvexPersistence(mapId: string) {
         zoom: state.map.zoom,
         baseMapId: state.baseMapId,
         styleOptions: state.styleOptions,
+        interactionLocked: state.map.interactionLocked,
       };
       const metadataHash = hashString(`${state.map.title}|${state.map.description}`);
 
