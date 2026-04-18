@@ -9,6 +9,7 @@ import {
   validateMapMetadata,
   validateMapPayload,
 } from "./helpers";
+import { screenMapContent } from "./blocklist";
 import { vMapMetadataArgs, vMapPayloadArgs } from "./validators";
 
 type Visibility = "private" | "unlisted" | "public";
@@ -344,6 +345,14 @@ export const setVisibility = mutation({
   },
   handler: async (ctx, { mapId, visibility }) => {
     const { map } = await checkMapOwnership(ctx, mapId);
+    if (visibility === "public" || visibility === "unlisted") {
+      const blocked = screenMapContent(map);
+      if (blocked) {
+        throw new Error(
+          `This map cannot be published because it contains prohibited content. Please review your title, description, and tags.`
+        );
+      }
+    }
     await ctx.db.patch(map._id, {
       visibility,
       updatedAt: Date.now(),
