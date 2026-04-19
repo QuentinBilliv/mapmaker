@@ -4,7 +4,7 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { useForm, FormProvider, useFormContext } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useMutation, useQuery } from "convex/react";
+import { useConvex, useMutation, useQuery } from "convex/react";
 import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
@@ -79,6 +79,7 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
           <MetadataFields save={save} />
           <ViewControl updateMap={updateMap} center={map.center} zoom={map.zoom} />
           <ViewLockToggles zoomLocked={!!map.zoomLocked} panLocked={!!map.panLocked} updateMap={updateMap} />
+          <MapSizeIndicator />
           <CoverImageUpload />
         </form>
       </div>
@@ -206,13 +207,54 @@ function ViewLockToggles({
   );
 }
 
+function MapSizeIndicator() {
+  const { payloadSize, maxPayloadSize, features } = useEditorData();
+  const ratio = maxPayloadSize > 0 ? payloadSize / maxPayloadSize : 0;
+  const formatSize = (bytes: number) => {
+    if (bytes < 1024) return `${bytes} B`;
+    return `${Math.round(bytes / 1024)} KB`;
+  };
+  const barColor = ratio > 0.95 ? "bg-destructive" : ratio > 0.8 ? "bg-amber-500" : "bg-primary";
+
+  return (
+    <Field label="Map data">
+      <div className="space-y-1.5">
+        <div className="flex justify-between text-[10px] text-muted-foreground">
+          <span>{formatSize(payloadSize)} / {formatSize(maxPayloadSize)}</span>
+          <span>{features.length} features</span>
+        </div>
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${barColor}`}
+            style={{ width: `${Math.min(ratio * 100, 100)}%` }}
+          />
+        </div>
+        {ratio > 0.95 && (
+          <p className="text-[10px] text-destructive">Near limit — remove features or simplify geometries</p>
+        )}
+      </div>
+    </Field>
+  );
+}
+
 function CoverImageUpload() {
   const params = useParams();
   const mapId = params?.id as string | undefined;
-  const mapData = useQuery(api.maps.getMap, mapId ? { mapId: mapId as Id<"maps"> } : "skip");
+  const convex = useConvex();
+  const [thumbnailId, setThumbnailId] = useState<Id<"_storage"> | null>(null);
+  const fetchedRef = useRef(false);
+
+  useEffect(() => {
+    if (!mapId || fetchedRef.current) return;
+    fetchedRef.current = true;
+    convex.query(api.maps.getMap, { mapId: mapId as Id<"maps"> }).then((map) => {
+      if (map?.thumbnailId) setThumbnailId(map.thumbnailId);
+    }).catch(() => {});
+  }, [mapId, convex]);
+
   const thumbnailUrl = useQuery(
     api.maps.getThumbnailUrl,
-    mapData?.thumbnailId ? { storageId: mapData.thumbnailId } : "skip"
+    thumbnailId ? { storageId: thumbnailId } : "skip"
   );
   const generateUploadUrl = useMutation(api.maps.generateUploadUrl);
   const saveThumbnail = useMutation(api.maps.saveThumbnail);
@@ -233,6 +275,7 @@ function CoverImageUpload() {
       if (!res.ok) return;
       const { storageId } = await res.json();
       await saveThumbnail({ mapId: mapId as Id<"maps">, storageId });
+      setThumbnailId(storageId);
       void fetch("/api/revalidate-og", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -271,7 +314,7 @@ function CoverImageUpload() {
           <button
             type="button"
             onClick={() => {
-              void removeThumbnail({ mapId: mapId as Id<"maps"> });
+              void removeThumbnail({ mapId: mapId as Id<"maps"> }).then(() => setThumbnailId(null));
               void fetch("/api/revalidate-og", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },

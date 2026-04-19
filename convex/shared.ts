@@ -13,4 +13,4 @@ export const MAX_BASE_MAP_ID = 100;
 export const MAX_FEATURES = 10_000;
 export const MAX_LAYERS = 100;
 export const MAX_GROUPS = 1_000;
-export const MAX_MAP_PAYLOAD = 950_000;
+export const MAX_MAP_PAYLOAD = 5_000_000;

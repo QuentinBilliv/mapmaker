@@ -26,7 +26,8 @@ function hashString(s: string): string {
 const SAVE_DEBOUNCE_MS = 4000;
 
 export function useConvexPersistence(mapId: string) {
-  const convexMap = useQuery(api.maps.getMap, { mapId: mapId as Id<"maps"> });
+  const [cachedData, setCachedData] = useState<StoredMapState | null>(null);
+  const convexMap = useQuery(api.maps.getMap, cachedData ? "skip" : { mapId: mapId as Id<"maps"> });
   const saveMapMutation = useMutation(api.maps.saveMap);
   const generateUploadUrl = useMutation(api.maps.generateUploadUrl);
   const saveTimerRef = useRef<ReturnType<typeof setTimeout>>();
@@ -53,7 +54,7 @@ export function useConvexPersistence(mapId: string) {
       .finally(() => setFileLoading(false));
   }, [dataFileUrl]);
 
-  const initialData: StoredMapState | null = (() => {
+  const computedData: StoredMapState | null = (() => {
     if (!convexMap) return null;
     const map = toMapData(convexMap);
     const baseMapId = convexMap.baseMapId;
@@ -67,6 +68,12 @@ export function useConvexPersistence(mapId: string) {
     }
     return null;
   })();
+
+  useEffect(() => {
+    if (computedData && !cachedData) setCachedData(computedData);
+  }, [computedData, cachedData]);
+
+  const initialData = cachedData ?? computedData;
 
   const uploadAbortRef = useRef<AbortController | null>(null);
 
@@ -159,7 +166,7 @@ export function useConvexPersistence(mapId: string) {
     initialData,
     onSave,
     saveError,
-    isLoading: convexMap === undefined || fileLoading || (!!dataFileUrl && !fileData && !saveError),
-    notFound: convexMap === null,
+    isLoading: !initialData && (convexMap === undefined || fileLoading || (!!dataFileUrl && !fileData && !saveError)),
+    notFound: !initialData && convexMap === null,
   };
 }

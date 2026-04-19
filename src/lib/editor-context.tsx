@@ -12,7 +12,7 @@ import {
 } from "react";
 import { v4 as uuid } from "uuid";
 import type { DrawMode } from "./draw-engine";
-import { DEFAULT_MAP, FEATURE_LIMIT } from "./defaults";
+import { DEFAULT_MAP, FEATURE_LIMIT, MAX_MAP_PAYLOAD } from "./defaults";
 import toast from "react-hot-toast";
 import { saveToLocalStorage, loadFromLocalStorage, setStorageErrorHandler, type StorageError } from "./local-storage";
 import { BASE_MAPS, findBaseMap, type BaseMap } from "./map-style";
@@ -50,6 +50,8 @@ interface EditorDataState {
   selectedFeature: FeatureData | null;
   featureLimitReached: boolean;
   featureLimit: number;
+  payloadSize: number;
+  maxPayloadSize: number;
   choropleth: ChoroplethData;
   choroplethMode: boolean;
   canUndo: boolean;
@@ -217,6 +219,14 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   );
 
   const featureLimitReached = featureLimit !== Infinity && features.length >= featureLimit;
+
+  const payloadSize = useMemo(() => {
+    try {
+      return JSON.stringify({ features, groups, legendEntries, choropleth }).length;
+    } catch {
+      return 0;
+    }
+  }, [features, groups, legendEntries, choropleth]);
 
   const hasLoadedRef = useRef(!!initialData);
   const onSaveRef = useRef(onSave);
@@ -597,8 +607,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   // Context values
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, choroplethMode, canUndo, canRedo }),
-    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, choropleth, choroplethMode, canUndo, canRedo]
+    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, payloadSize, maxPayloadSize: MAX_MAP_PAYLOAD, choropleth, choroplethMode, canUndo, canRedo }),
+    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, payloadSize, choropleth, choroplethMode, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(
