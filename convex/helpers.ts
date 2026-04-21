@@ -7,7 +7,6 @@ import {
   MAX_DESCRIPTION,
   MAX_TAG,
   MAX_TAGS,
-  MAX_LICENSE,
   MAX_BASE_MAP_ID,
   MAX_FEATURES,
   MAX_LAYERS,
@@ -46,7 +45,6 @@ export function validateMapMetadata(args: {
   title: string;
   description: string;
   tags: string[];
-  license: string;
   baseMapId: string;
 }) {
   if (args.title.length > MAX_TITLE) throw new Error("Title too long");
@@ -55,7 +53,6 @@ export function validateMapMetadata(args: {
   for (const tag of args.tags) {
     if (tag.length > MAX_TAG) throw new Error("Tag too long");
   }
-  if (args.license.length > MAX_LICENSE) throw new Error("License too long");
   if (args.baseMapId.length > MAX_BASE_MAP_ID) throw new Error("Invalid base map ID");
 }
 
@@ -63,7 +60,6 @@ export function validateMapPayload(args: {
   title: string;
   description: string;
   tags: string[];
-  license: string;
   baseMapId: string;
   layers: unknown;
   features: unknown;

@@ -9,19 +9,12 @@ import { api } from "@convex/_generated/api";
 import type { Id } from "@convex/_generated/dataModel";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { mapMetadataSchema, type MapMetadataFormValues } from "@/lib/schemas";
-import { LICENSES, DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
+import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 export default function MapMetadata() {
   const [isOpen, setIsOpen] = useState(false);
@@ -54,22 +47,14 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
     defaultValues: {
       title: map.title,
       description: map.description,
-      license: map.license as MapMetadataFormValues["license"],
       tagsStr: map.tags.join(", "),
     },
   });
 
   const save = methods.handleSubmit((data) => {
     const tags = data.tagsStr.split(",").map((t) => t.trim()).filter(Boolean);
-    updateMap({ title: data.title, description: data.description, tags, license: data.license });
+    updateMap({ title: data.title, description: data.description, tags });
   });
-
-  const license = methods.watch("license");
-
-  useEffect(() => {
-    save();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [license]);
 
   return (
     <FormProvider {...methods}>
@@ -79,7 +64,6 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
           <MetadataFields save={save} />
           <ViewControl updateMap={updateMap} center={map.center} zoom={map.zoom} />
           <ViewLockToggles zoomLocked={!!map.zoomLocked} panLocked={!!map.panLocked} updateMap={updateMap} />
-          <MapSizeIndicator />
           <CoverImageUpload />
         </form>
       </div>
@@ -88,8 +72,7 @@ function MetadataPanel({ onClose }: { onClose: () => void }) {
 }
 
 function MetadataFields({ save }: { save: () => void }) {
-  const { register, watch, setValue, formState: { errors } } = useFormContext<MapMetadataFormValues>();
-  const license = watch("license");
+  const { register, formState: { errors } } = useFormContext<MapMetadataFormValues>();
 
   return (
     <>
@@ -107,21 +90,6 @@ function MetadataFields({ save }: { save: () => void }) {
           rows={2}
           maxLength={500}
         />
-      </Field>
-      <Field label="License" error={errors.license?.message}>
-        <Select
-          value={license}
-          onValueChange={(v) => setValue("license", v as MapMetadataFormValues["license"])}
-        >
-          <SelectTrigger className="w-full">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {LICENSES.map((l) => (
-              <SelectItem key={l} value={l}>{l}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
       </Field>
       <Field label="Tags (comma-separated)" error={errors.tagsStr?.message}>
         <Input
@@ -147,7 +115,10 @@ function ViewControl({
   const isAuto = center[0] === DEFAULT_CENTER[0] && center[1] === DEFAULT_CENTER[1] && zoom === DEFAULT_ZOOM;
 
   return (
-    <Field label="Initial view">
+    <Field
+      label="Initial view"
+      help="Where the map is centered and how zoomed in it is when a visitor opens it. Save current view locks in your current framing; Auto-fit recomputes it to show all features."
+    >
       <div className="flex gap-2">
         <Button
           type="button"
@@ -182,7 +153,10 @@ function ViewLockToggles({
   updateMap: (updates: { zoomLocked?: boolean; panLocked?: boolean }) => void;
 }) {
   return (
-    <Field label="Viewer interaction">
+    <Field
+      label="Viewer interaction"
+      help="Restrict what visitors can do on the published map. Useful for embeds where you want a fixed frame."
+    >
       <div className="space-y-1.5">
         <label className="flex items-center gap-2 text-xs cursor-pointer">
           <input
@@ -202,36 +176,6 @@ function ViewLockToggles({
           />
           <span className="text-muted-foreground">Lock pan (no dragging)</span>
         </label>
-      </div>
-    </Field>
-  );
-}
-
-function MapSizeIndicator() {
-  const { payloadSize, maxPayloadSize, features } = useEditorData();
-  const ratio = maxPayloadSize > 0 ? payloadSize / maxPayloadSize : 0;
-  const formatSize = (bytes: number) => {
-    if (bytes < 1024) return `${bytes} B`;
-    return `${Math.round(bytes / 1024)} KB`;
-  };
-  const barColor = ratio > 0.95 ? "bg-destructive" : ratio > 0.8 ? "bg-amber-500" : "bg-primary";
-
-  return (
-    <Field label="Map data">
-      <div className="space-y-1.5">
-        <div className="flex justify-between text-[10px] text-muted-foreground">
-          <span>{formatSize(payloadSize)} / {formatSize(maxPayloadSize)}</span>
-          <span>{features.length} features</span>
-        </div>
-        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-          <div
-            className={`h-full rounded-full transition-all ${barColor}`}
-            style={{ width: `${Math.min(ratio * 100, 100)}%` }}
-          />
-        </div>
-        {ratio > 0.95 && (
-          <p className="text-[10px] text-destructive">Near limit — remove features or simplify geometries</p>
-        )}
       </div>
     </Field>
   );
@@ -303,7 +247,10 @@ function CoverImageUpload() {
   if (!mapId) return null;
 
   return (
-    <Field label="Cover image">
+    <Field
+      label="Cover image"
+      help="Thumbnail displayed in the public maps list and in share / social previews. Optional."
+    >
       {thumbnailUrl && (
         <div className="relative group mb-2">
           <img

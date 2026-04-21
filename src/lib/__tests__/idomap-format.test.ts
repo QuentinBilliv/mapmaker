@@ -7,7 +7,6 @@ const MAP: MapData = {
   title: "Test Map",
   description: "A test map",
   tags: ["history", "borders"],
-  license: "CC BY",
   center: [2.3, 46.5],
   zoom: 5,
 };
@@ -91,7 +90,6 @@ describe("idomap-format round-trip", () => {
     expect(result.map.title).toBe(MAP.title);
     expect(result.map.description).toBe(MAP.description);
     expect(result.map.tags).toEqual(MAP.tags);
-    expect(result.map.license).toBe(MAP.license);
     expect(result.map.center).toEqual(MAP.center);
     expect(result.map.zoom).toBe(MAP.zoom);
     expect(result.baseMapId).toBe("osm");

@@ -8,7 +8,6 @@ export const MAX_TITLE = 500;
 export const MAX_DESCRIPTION = 10_000;
 export const MAX_TAG = 100;
 export const MAX_TAGS = 50;
-export const MAX_LICENSE = 100;
 export const MAX_BASE_MAP_ID = 100;
 export const MAX_FEATURES = 10_000;
 export const MAX_LAYERS = 100;

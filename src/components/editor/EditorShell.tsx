@@ -9,7 +9,7 @@ import FeatureForm from "./FeatureForm";
 import MapMetadata from "./MapMetadata";
 import BaseMapSelector from "./BaseMapSelector";
 import Legend from "./Legend";
-import FeaturePanel from "./FeaturePanel";
+import FeaturePanel, { MapSizeBar } from "./FeaturePanel";
 import LegendPanel from "./LegendPanel";
 import ChoroplethPanel from "./ChoroplethPanel";
 import ChoroplethDialog from "./ChoroplethDialog";
@@ -95,6 +95,7 @@ export default function EditorShell() {
             <FaXmark className="w-4 h-4" />
           </Button>
         </div>
+        <MapSizeBar />
         <div className={choroplethMode ? "opacity-40 pointer-events-none" : ""}>
           <FeaturePanel />
           <LegendPanel />

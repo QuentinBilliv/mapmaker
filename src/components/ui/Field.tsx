@@ -2,15 +2,18 @@
 
 import { useId, Children, cloneElement, isValidElement } from "react";
 import { Label } from "@/components/ui/label";
+import HelpTip from "@/components/ui/HelpTip";
 
 export default function Field({
   label,
+  help,
   error,
   required,
   className,
   children,
 }: {
   label: string;
+  help?: React.ReactNode;
   error?: string;
   required?: boolean;
   className?: string;
@@ -27,8 +30,9 @@ export default function Field({
 
   return (
     <div className={className}>
-      <Label htmlFor={autoId} className="text-xs text-muted-foreground mb-1">
+      <Label htmlFor={autoId} className="flex items-center gap-1 text-xs text-muted-foreground mb-1">
         {label}{required && <span className="text-destructive ml-0.5">*</span>}
+        {help && <HelpTip text={help} />}
       </Label>
       {enhanced}
       {error && <p className="text-xs text-destructive mt-1">{error}</p>}

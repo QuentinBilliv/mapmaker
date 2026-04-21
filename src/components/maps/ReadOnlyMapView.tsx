@@ -142,9 +142,6 @@ function ReadOnlyMapViewInner({
                   </div>
                 )}
                 <div className="flex items-center gap-3 mt-1">
-                  <p className="text-[10px] text-muted-foreground">
-                    License: {mapData.license}
-                  </p>
                   <ShareButton mapId={mapData.id} />
                   <EmbedButton mapId={mapData.id} />
                   {!editHref && <ReportButton mapId={mapData.id} />}

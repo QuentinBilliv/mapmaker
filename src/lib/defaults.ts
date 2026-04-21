@@ -1,7 +1,5 @@
 import type { MapData } from "./types";
 
-export const LICENSES = ["CC BY", "CC BY-SA", "CC BY-NC", "Public domain"] as const;
-
 export const DEFAULT_CENTER: [number, number] = [0, 20];
 export const DEFAULT_ZOOM = 1;
 
@@ -22,7 +20,6 @@ export const DEFAULT_MAP: MapData = {
   title: "New map",
   description: "",
   tags: [],
-  license: "CC BY",
   center: DEFAULT_CENTER,
   zoom: DEFAULT_ZOOM,
 };

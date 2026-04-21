@@ -6,8 +6,10 @@ import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { CreateEntryDialog, EditEntryDialog } from "@/components/ui/legend-display";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
-import { FaTrash, FaPen } from "react-icons/fa6";
+import { FaTrash, FaPen, FaListUl } from "react-icons/fa6";
 import { useHighlight } from "@/lib/highlight-context";
+import HelpHint from "@/components/ui/HelpHint";
+import LegendHelp from "@/components/help/Legend";
 
 export default function LegendPanel() {
   const { legendEntries } = useEditorData();
@@ -37,7 +39,11 @@ export default function LegendPanel() {
   return (
     <div className="border-t flex flex-col">
       <div className="flex items-center justify-between px-3 py-2 bg-muted border-b shrink-0">
-        <h3 className="text-sm font-semibold text-foreground">Legend</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <FaListUl className="w-3.5 h-3.5" />
+          Legend
+          <HelpHint help={LegendHelp} />
+        </h3>
         <Button
           variant="ghost"
           size="icon-xs"

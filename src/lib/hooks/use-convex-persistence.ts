@@ -89,7 +89,6 @@ export function useConvexPersistence(mapId: string) {
         title: state.map.title,
         description: state.map.description,
         tags: state.map.tags,
-        license: state.map.license,
         center: state.map.center,
         zoom: state.map.zoom,
         baseMapId: state.baseMapId,

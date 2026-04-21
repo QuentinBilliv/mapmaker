@@ -3,7 +3,6 @@ export interface MapData {
   title: string;
   description: string;
   tags: string[];
-  license: string;
   center: [number, number];
   zoom: number;
   zoomLocked?: boolean;

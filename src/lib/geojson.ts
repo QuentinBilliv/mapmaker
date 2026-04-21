@@ -12,7 +12,6 @@ export interface ExportedMap {
     title: string;
     description: string;
     tags: string[];
-    license: string;
     exportedAt: string;
     generator: "idomap";
   };

@@ -30,7 +30,6 @@ export default function MigrationGuard() {
         title: saved.map.title ?? "Imported map",
         description: saved.map.description ?? "",
         tags: saved.map.tags ?? [],
-        license: saved.map.license ?? "CC BY",
         center: saved.map.center ?? [2.3, 46.5],
         zoom: saved.map.zoom ?? 5,
         baseMapId: saved.baseMapId ?? "osm",

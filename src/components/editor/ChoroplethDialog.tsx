@@ -8,6 +8,9 @@ import { TILE_LAYERS } from "@/lib/choropleth";
 import type { TileLayerId } from "@/lib/types";
 import { GradientContent } from "@/components/editor/ChoroplethGradient";
 import { ImportDialog, GradientImportDialog } from "@/components/editor/ChoroplethImport";
+import HelpHint from "@/components/ui/HelpHint";
+import ChoroplethHelp from "@/components/help/Choropleth";
+import Field from "@/components/ui/Field";
 
 const CATEGORY_COLORS = [
   "#3b82f6", "#ef4444", "#22c55e", "#f59e0b", "#8b5cf6",
@@ -73,7 +76,10 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
       />
       <aside className="fixed right-0 top-0 bottom-0 z-40 w-80 max-w-[calc(100vw-3rem)] bg-popover flex flex-col border-l shadow-xl animate-in slide-in-from-right duration-200">
         <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <h2 className="text-sm font-semibold">Choropleth</h2>
+          <h2 className="text-sm font-semibold flex items-center gap-1.5">
+            Choropleth
+            <HelpHint help={ChoroplethHelp} />
+          </h2>
           <div className="flex items-center gap-1">
             <Button variant="ghost" size="icon-xs" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">
               <FaRotateLeft />
@@ -88,33 +94,48 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
         </div>
         <div className="flex-1 overflow-y-auto">
           <div className="px-4 py-3 space-y-3">
-            <select
-              value={choropleth.tileLayer}
-              onChange={(e) => handleTileLayerChange(e.target.value as TileLayerId)}
-              className="w-full rounded-md border bg-transparent px-2 py-1.5 text-xs"
+            <Field
+              label="Regions"
+              help="Which set of regions will be colored. You can only use one set per map — switching resets any assigned categories and values."
             >
-              {TILE_LAYERS.map((layer) => (
-                <option key={layer.id} value={layer.id}>{layer.label}</option>
-              ))}
-            </select>
-            <div className="flex gap-1">
-              <Button
-                size="sm"
-                variant={choropleth.mode === "discrete" ? "default" : "outline"}
-                className="flex-1 text-xs"
-                onClick={() => handleModeSwitch("discrete")}
+              <select
+                value={choropleth.tileLayer}
+                onChange={(e) => handleTileLayerChange(e.target.value as TileLayerId)}
+                className="w-full rounded-md border bg-transparent px-2 py-1.5 text-xs"
               >
-                Discrete
-              </Button>
-              <Button
-                size="sm"
-                variant={choropleth.mode === "gradient" ? "default" : "outline"}
-                className="flex-1 text-xs"
-                onClick={() => handleModeSwitch("gradient")}
-              >
-                Gradient
-              </Button>
-            </div>
+                {TILE_LAYERS.map((layer) => (
+                  <option key={layer.id} value={layer.id}>{layer.label}</option>
+                ))}
+              </select>
+            </Field>
+            <Field
+              label="Coloring mode"
+              help={
+                <>
+                  <p><strong>Discrete:</strong> assign each region to a named category with a fixed color (e.g. political blocs, climate zones).</p>
+                  <p className="mt-1.5"><strong>Gradient:</strong> give each region a numeric value — colors interpolate between a low and high color (e.g. population, GDP).</p>
+                </>
+              }
+            >
+              <div className="flex gap-1">
+                <Button
+                  size="sm"
+                  variant={choropleth.mode === "discrete" ? "default" : "outline"}
+                  className="flex-1 text-xs"
+                  onClick={() => handleModeSwitch("discrete")}
+                >
+                  Discrete
+                </Button>
+                <Button
+                  size="sm"
+                  variant={choropleth.mode === "gradient" ? "default" : "outline"}
+                  className="flex-1 text-xs"
+                  onClick={() => handleModeSwitch("gradient")}
+                >
+                  Gradient
+                </Button>
+              </div>
+            </Field>
             <div className="space-y-1">
               <div className="flex items-center justify-between">
                 <span className="text-xs text-muted-foreground">Opacity</span>

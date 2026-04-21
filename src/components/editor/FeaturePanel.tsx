@@ -7,8 +7,39 @@ import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { resolveFeatureStyle, type ChoroplethStyleSlice } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { FaTrash, FaCopy } from "react-icons/fa6";
+import { FaTrash, FaCopy, FaShapes } from "react-icons/fa6";
+import HelpHint from "@/components/ui/HelpHint";
+import FeaturesHelp from "@/components/help/Features";
 import { usePanelDragDrop } from "@/lib/hooks/use-panel-drag-drop";
+
+function formatBytes(bytes: number) {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1_048_576) return `${Math.round(bytes / 1024)} KB`;
+  return `${(bytes / 1_048_576).toFixed(1)} MB`;
+}
+
+export function MapSizeBar() {
+  const { payloadSize, maxPayloadSize } = useEditorData();
+  const ratio = maxPayloadSize > 0 ? payloadSize / maxPayloadSize : 0;
+  const barColor = ratio > 0.95 ? "bg-destructive" : ratio > 0.8 ? "bg-amber-500" : "bg-muted-foreground/40";
+
+  return (
+    <div className="px-3 py-1.5 border-b space-y-1">
+      <div className="flex justify-between text-[10px] text-muted-foreground">
+        <span>{formatBytes(payloadSize)} / {formatBytes(maxPayloadSize)}</span>
+        {ratio > 0.8 && <span className={ratio > 0.95 ? "text-destructive" : "text-amber-500"}>
+          {ratio > 0.95 ? "Near limit" : "Getting large"}
+        </span>}
+      </div>
+      <div className="h-1 rounded-full bg-muted overflow-hidden">
+        <div
+          className={`h-full rounded-full transition-all ${barColor}`}
+          style={{ width: `${Math.min(ratio * 100, 100)}%` }}
+        />
+      </div>
+    </div>
+  );
+}
 
 type SidebarItem =
   | { kind: "feature"; feature: FeatureData }
@@ -76,7 +107,11 @@ export default function FeaturePanel() {
   return (
     <div className="flex-1 min-h-0 flex flex-col overflow-hidden">
       <div className="flex items-center justify-between px-3 py-2 bg-muted border-b shrink-0">
-        <h3 className="text-sm font-semibold text-foreground">Features</h3>
+        <h3 className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
+          <FaShapes className="w-3.5 h-3.5" />
+          Features
+          <HelpHint help={FeaturesHelp} />
+        </h3>
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"

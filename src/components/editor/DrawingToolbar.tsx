@@ -9,6 +9,8 @@ import { Separator } from "@/components/ui/separator";
 import GeoBankDialog from "@/components/editor/GeoBankDialog";
 import GeoSearchButton from "@/components/editor/GeoSearchBar";
 import KeyboardShortcutsButton from "@/components/editor/KeyboardShortcutsDialog";
+import HelpHint from "@/components/ui/HelpHint";
+import DrawingToolbarHelp from "@/components/help/DrawingToolbar";
 
 const TOOLS: { mode: DrawMode; label: string; icon: React.ReactNode }[] = [
   { mode: "select", label: "Select", icon: <FaArrowPointer className="w-4 h-4" /> },
@@ -24,14 +26,19 @@ const TOOLS: { mode: DrawMode; label: string; icon: React.ReactNode }[] = [
 
 export default function DrawingToolbar() {
   return (
-    <div className="absolute left-3 top-3 z-10 flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-1.5 max-h-[calc(100vh-6rem)] overflow-y-auto md:p-2">
-      <ToolButtons />
-      <Separator />
-      <UndoRedoButtons />
-      <Separator />
-      <GeoBankButton />
-      <GeoSearchButton />
-      <KeyboardShortcutsButton />
+    <div className="absolute left-3 top-3 z-10">
+      <div className="flex flex-col gap-1 bg-popover rounded-lg shadow-lg p-1.5 max-h-[calc(100vh-6rem)] overflow-y-auto md:p-2">
+        <ToolButtons />
+        <Separator />
+        <UndoRedoButtons />
+        <Separator />
+        <GeoBankButton />
+        <GeoSearchButton />
+        <KeyboardShortcutsButton />
+      </div>
+      <div className="absolute -right-2.5 -top-2.5 flex size-6 items-center justify-center rounded-full border bg-popover shadow-md">
+        <HelpHint help={DrawingToolbarHelp} />
+      </div>
     </div>
   );
 }

@@ -5,7 +5,6 @@ export function toMapData(doc: {
   title: string;
   description: string;
   tags: string[];
-  license: string;
   center: number[];
   zoom: number;
   zoomLocked?: boolean;
@@ -16,7 +15,6 @@ export function toMapData(doc: {
     title: doc.title,
     description: doc.description,
     tags: doc.tags,
-    license: doc.license,
     center: doc.center as [number, number],
     zoom: doc.zoom,
     zoomLocked: doc.zoomLocked,

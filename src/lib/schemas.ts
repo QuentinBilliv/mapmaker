@@ -1,10 +1,8 @@
 import { z } from "zod";
-import { LICENSES } from "./defaults";
 
 export const mapMetadataSchema = z.object({
   title: z.string().min(1, "Title is required").max(100, "Title is too long"),
   description: z.string().max(500, "Description is too long"),
-  license: z.enum(LICENSES),
   tagsStr: z.string().max(200, "Tags string is too long"),
 });
 

@@ -5,6 +5,8 @@ import { useDrawingState, useEditorActions } from "@/lib/editor-context";
 import { BASE_MAPS } from "@/lib/map-style";
 import { Button } from "@/components/ui/button";
 import { FaMap, FaGlobe, FaBorderAll, FaRoad } from "react-icons/fa6";
+import HelpHint from "@/components/ui/HelpHint";
+import BaseMapSelectorHelp from "@/components/help/BaseMapSelector";
 
 type Projection = "mercator" | "globe";
 
@@ -40,6 +42,9 @@ export default function BaseMapSelector() {
 
   return (
     <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-popover rounded-lg shadow-lg p-1">
+      <div className="absolute -right-2.5 -top-2.5 flex size-6 items-center justify-center rounded-full border bg-popover shadow-md">
+        <HelpHint help={BaseMapSelectorHelp} />
+      </div>
       <Button
         variant={projection === "mercator" ? "default" : "ghost"}
         size="sm"
