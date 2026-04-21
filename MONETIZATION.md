@@ -6,6 +6,60 @@ idomap sits between geojson.io (too basic) and Felt (too expensive/enterprise). 
 
 No direct competitor at this price point for this use case.
 
+## Cost Analysis
+
+Current infrastructure costs at moderate traffic (~100-500 active users):
+
+| Service | Plan | Cost |
+|---|---|---|
+| Convex | Free (Database 512MB, File Storage 20GB, Bandwidth 1GB) | 0€ |
+| Vercel | Free (100GB bandwidth, serverless) | 0€ |
+| Domain | idomap.com (annual) | ~12€/year (~1€/month) |
+| **Total** | | **~1€/month** |
+
+Scaling thresholds:
+- **Convex Pro** ($25/month) — needed when Database Bandwidth exceeds 1GB or File Storage exceeds 20GB
+- **Vercel Pro** ($20/month) — needed when bandwidth exceeds 100GB (unlikely before thousands of daily visitors)
+
+Costs scale linearly with **active editors** (each editing session = reactive queries + file uploads), not with viewers (one-shot queries, cached). A single 30-min editing session on a large map uses ~5-10 MB of bandwidth after Phase 1 optimizations.
+
+**Conclusion**: at moderate traffic, the site costs ~50-60€/month worst case. Free tier is viable for a long time.
+
+## Launch Strategy
+
+**Phase 0 — Launch 100% free.** All current features available to everyone. No pricing page, no feature gates, no Stripe.
+
+Why:
+- Current costs don't justify pricing
+- Need users before revenue — pricing too early kills acquisition
+- 1-2% conversion rate on a small user base = ~0 revenue anyway
+- Better to learn what users actually value before deciding what to charge for
+
+**When to add pricing** — trigger on any of these signals:
+- Approaching 80% of a Convex free plan quota
+- Enough active users that some are asking for more (more maps, exports, collaboration)
+- A clear premium feature emerges from user feedback
+- Monthly costs exceed ~100€
+
+When triggered, move to the tier structure below.
+
+## Existing Cost Guardrails
+
+The free tier is sustainable because hard limits prevent abuse:
+
+| Limit | Value | Effect |
+|---|---|---|
+| `TIER_LIMITS.free` | 5 maps | Max 5 maps per free user |
+| `TIER_LIMITS.paid` | 50 maps | Max 50 maps per paid user |
+| `MAX_MAP_PAYLOAD` | 5 MB | Max data size per map (file storage) |
+| `MAX_FEATURES` | 10,000 | Max features per map |
+| `MAX_LAYERS` | 100 | Max layers per map |
+| `MAX_GROUPS` | 1,000 | Max groups per map |
+| Convex file upload | 20 MB | Hard platform limit per file |
+
+Worst case per user: 5 maps × 5 MB = 25 MB (free), 50 maps × 5 MB = 250 MB (paid).
+It would take ~80 maxed-out paid users to fill the 20 GB free File Storage quota.
+
 ## Tier Structure
 
 ### Free — Try the tool
@@ -98,7 +152,11 @@ Separate from tiers. Attributed manually on request for universities/institution
 ## Validation Before Payment
 
 Before implementing Stripe:
-1. Add "Upgrade to Pro" buttons in the UI (account page + feature gates)
-2. Link to a Typeform or waitlist (collect email + desired feature)
-3. Track clicks to measure demand
-4. If conversion > 2-3% of active users clicking, proceed with Stripe
+1. Launch fully free (Phase 0) and acquire users
+2. Monitor Convex dashboard for cost signals (bandwidth, storage)
+3. Add "Upgrade to Pro" buttons in the UI (account page + feature gates)
+4. Link to a Typeform or waitlist (collect email + desired feature)
+5. Track clicks to measure demand
+6. If conversion > 2-3% of active users clicking, proceed with Stripe
+
+Be realistic: 500 active users is itself a big milestone. At 1-2% conversion that's 5-10 paying users. Pricing only makes sense when the user base justifies the implementation effort.
