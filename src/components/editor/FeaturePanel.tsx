@@ -212,7 +212,7 @@ export default function FeaturePanel() {
           })}
           {drag.dragOverGap === `top-${items.length}` && <DropBar />}
           <div
-            className="flex-1 min-h-8"
+            className="min-h-8"
             onDragOver={drag.onTailDragOver}
             onDrop={drag.onTailDrop}
           />
@@ -309,17 +309,17 @@ const GroupRow = React.memo(function GroupRow({
       <span className="text-[10px] text-muted-foreground">{childCount}</span>
       <button
         onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-        className="text-muted-foreground hover:text-foreground shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        className="text-muted-foreground hover:text-foreground shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Duplicate group"
       >
-        <FaCopy className="w-3 h-3" />
+        <FaCopy className="w-2.5 h-2.5" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        className="text-muted-foreground hover:text-destructive shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Delete group"
       >
-        <FaTrash className="w-3 h-3" />
+        <FaTrash className="w-2.5 h-2.5" />
       </button>
     </div>
   );
@@ -364,26 +364,28 @@ const FeatureRow = React.memo(function FeatureRow({
       onClick={onSelect}
       className={`group/row flex items-center gap-2 py-1.5 cursor-grab text-sm border-b last:border-b-0 ${
         indent ? "pl-6 pr-3" : "px-3"
-      } ${isSelected ? "bg-accent text-accent-foreground" : "hover:bg-muted text-foreground"
+      } ${isSelected
+        ? "bg-accent text-accent-foreground"
+        : "hover:bg-muted hover:ring-1 hover:ring-primary/40 text-foreground"
       }`}
     >
-      <FeatureSwatch feature={resolved} width={44} height={28} />
-      <span className="flex-1 truncate">
+      <FeatureSwatch feature={resolved} width={36} height={22} />
+      <span className="flex-1 truncate text-xs">
         {feature.label || <span className="text-muted-foreground italic">Untitled</span>}
       </span>
       <button
         onClick={(e) => { e.stopPropagation(); onDuplicate(); }}
-        className="text-muted-foreground hover:text-foreground shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        className="text-muted-foreground hover:text-foreground shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Duplicate feature"
       >
-        <FaCopy className="w-3 h-3" />
+        <FaCopy className="w-2.5 h-2.5" />
       </button>
       <button
         onClick={(e) => { e.stopPropagation(); onDelete(); }}
-        className="text-muted-foreground hover:text-destructive shrink-0 p-1.5 opacity-0 group-hover/row:opacity-100 transition-opacity"
+        className="text-muted-foreground hover:text-destructive shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
         title="Delete feature"
       >
-        <FaTrash className="w-3 h-3" />
+        <FaTrash className="w-2.5 h-2.5" />
       </button>
     </div>
   );
