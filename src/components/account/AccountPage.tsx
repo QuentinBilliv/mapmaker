@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import { TIER_LIMITS } from "@convex/shared";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import Link from "next/link";
@@ -62,9 +63,7 @@ export default function AccountPage() {
           </p>
         </div>
       </div>
-      <Link href="/dashboard" className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3">
-        See my maps ({maps?.length ?? 0})
-      </Link>
+      <MapQuota count={maps?.length ?? 0} tier={me.tier ?? "free"} />
       <div className="mt-8 pt-6 border-t flex items-center gap-4">
         <Link href="/terms" className="text-xs text-muted-foreground hover:text-foreground transition-colors">
           Terms of Service
@@ -73,6 +72,38 @@ export default function AccountPage() {
           Privacy Policy
         </Link>
       </div>
+    </div>
+  );
+}
+
+function MapQuota({ count, tier }: { count: number; tier: string }) {
+  const limit = TIER_LIMITS[tier] ?? TIER_LIMITS.free;
+  const isUnlimited = !Number.isFinite(limit);
+  const ratio = isUnlimited ? 0 : Math.min(count / limit, 1);
+  const barColor = ratio >= 0.95 ? "bg-destructive" : ratio >= 0.8 ? "bg-amber-500" : "bg-primary";
+
+  return (
+    <div className="space-y-2 max-w-xs">
+      <div className="flex items-baseline justify-between">
+        <span className="text-sm font-medium">
+          {isUnlimited ? `${count} maps` : `${count} / ${limit} maps`}
+        </span>
+        {isUnlimited && <span className="text-xs text-muted-foreground">Unlimited</span>}
+      </div>
+      {!isUnlimited && (
+        <div className="h-1.5 rounded-full bg-muted overflow-hidden">
+          <div
+            className={`h-full rounded-full transition-all ${barColor}`}
+            style={{ width: `${ratio * 100}%` }}
+          />
+        </div>
+      )}
+      <Link
+        href="/dashboard"
+        className="inline-flex items-center justify-center rounded-md text-sm font-medium border border-input bg-background hover:bg-accent hover:text-accent-foreground h-8 px-3"
+      >
+        See my maps →
+      </Link>
     </div>
   );
 }

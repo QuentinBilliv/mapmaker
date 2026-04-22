@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import Link from "next/link";
-import { XIcon, LockIcon, LinkIcon, GlobeIcon, ChevronDownIcon, Share2Icon, CheckIcon } from "lucide-react";
+import { XIcon, LockIcon, LinkIcon, GlobeIcon, ChevronDownIcon, Share2Icon, CheckIcon, EyeIcon, PencilIcon } from "lucide-react";
 import MapThumbnail from "./MapThumbnail";
 import { Button } from "@/components/ui/button";
 import {
@@ -148,34 +148,50 @@ export default function MapCard({
         </div>
       </div>
       {onDelete && (
-        <Dialog>
-          <DialogTrigger asChild>
-            <button className="absolute top-2 right-2 size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer md:opacity-0 md:group-hover:opacity-100 transition-opacity">
-              <XIcon className="size-3.5" />
-            </button>
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>Delete map</DialogTitle>
-              <DialogDescription>
-                Are you sure you want to delete &quot;{title}&quot;? This action
-                cannot be undone.
-              </DialogDescription>
-            </DialogHeader>
-            <DialogFooter className="mt-4">
-              <DialogClose asChild>
-                <Button variant="outline" size="sm">
-                  Cancel
-                </Button>
-              </DialogClose>
-              <DialogClose asChild>
-                <Button variant="destructive" size="sm" onClick={onDelete}>
-                  Delete
-                </Button>
-              </DialogClose>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
+        <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
+          <Link
+            href={`/maps/${id}`}
+            title="View"
+            className="size-6 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center"
+          >
+            <EyeIcon className="size-3.5" />
+          </Link>
+          <Link
+            href={cardHref}
+            title="Edit"
+            className="size-6 rounded-full bg-black/40 hover:bg-black/70 text-white flex items-center justify-center"
+          >
+            <PencilIcon className="size-3.5" />
+          </Link>
+          <Dialog>
+            <DialogTrigger asChild>
+              <button title="Delete" className="size-6 rounded-full bg-destructive/40 hover:bg-destructive/70 text-white flex items-center justify-center cursor-pointer">
+                <XIcon className="size-3.5" />
+              </button>
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Delete map</DialogTitle>
+                <DialogDescription>
+                  Are you sure you want to delete &quot;{title}&quot;? This action
+                  cannot be undone.
+                </DialogDescription>
+              </DialogHeader>
+              <DialogFooter className="mt-4">
+                <DialogClose asChild>
+                  <Button variant="outline" size="sm">
+                    Cancel
+                  </Button>
+                </DialogClose>
+                <DialogClose asChild>
+                  <Button variant="destructive" size="sm" onClick={onDelete}>
+                    Delete
+                  </Button>
+                </DialogClose>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
       )}
     </div>
   );
