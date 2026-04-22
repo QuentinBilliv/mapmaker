@@ -22,6 +22,7 @@ export default defineSchema({
     title: v.string(),
     description: v.string(),
     tags: v.array(v.string()),
+    license: v.optional(v.string()),
     center: v.array(v.number()),
     zoom: v.number(),
     baseMapId: v.string(),
