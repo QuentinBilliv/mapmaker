@@ -1,22 +1,24 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { CreateEntryDialog, EditEntryDialog } from "@/components/ui/legend-display";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
 import { Button } from "@/components/ui/button";
-import { FaTrash, FaPen, FaListUl } from "react-icons/fa6";
+import { FaTrash, FaListUl } from "react-icons/fa6";
 import { useHighlight } from "@/lib/highlight-context";
 import HelpHint from "@/components/ui/HelpHint";
 import LegendHelp from "@/components/help/Legend";
 
 export default function LegendPanel() {
   const { legendEntries } = useEditorData();
-  const { addLegendEntry, updateLegendEntry, deleteLegendEntry } = useEditorActions();
+  const { addLegendEntry, updateLegendEntry, deleteLegendEntry, reorderLegendEntries } = useEditorActions();
   const { setHoveredLegendEntryId } = useHighlight();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [dragOverGap, setDragOverGap] = useState<number | null>(null);
+  const draggedIdRef = useRef<string | null>(null);
 
   const onLegendMouseMove = useCallback((e: React.MouseEvent) => {
     const el = (e.target as HTMLElement).closest<HTMLElement>("[data-legend-id]");
@@ -35,6 +37,31 @@ export default function LegendPanel() {
 
   const sorted = [...legendEntries].sort((a, b) => a.order - b.order);
   const editingEntry = editingId ? legendEntries.find((e) => e.id === editingId) : null;
+
+  function onRowDragOver(e: React.DragEvent, gapBefore: number, gapAfter: number) {
+    e.preventDefault();
+    if (!draggedIdRef.current) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    setDragOverGap(e.clientY < midY ? gapBefore : gapAfter);
+  }
+
+  function onRowDrop(e: React.DragEvent, gapBefore: number, gapAfter: number) {
+    const id = draggedIdRef.current;
+    draggedIdRef.current = null;
+    setDragOverGap(null);
+    if (!id) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const midY = rect.top + rect.height / 2;
+    const insertIdx = e.clientY < midY ? gapBefore : gapAfter;
+    const orderedIds = sorted.map((x) => x.id);
+    const fromIdx = orderedIds.indexOf(id);
+    if (fromIdx === -1) return;
+    orderedIds.splice(fromIdx, 1);
+    const adj = insertIdx > fromIdx ? insertIdx - 1 : insertIdx;
+    orderedIds.splice(adj, 0, id);
+    reorderLegendEntries(orderedIds);
+  }
 
   return (
     <div className="border-t flex flex-col">
@@ -59,30 +86,32 @@ export default function LegendPanel() {
         </p>
       ) : (
         <div className="overflow-y-auto max-h-48" onMouseMove={onLegendMouseMove} onMouseLeave={onLegendMouseLeave}>
-          {sorted.map((entry) => (
-            <div
-              key={entry.id}
-              data-legend-id={entry.id}
-              className="group/row flex items-center gap-2 px-3 py-1.5 text-sm border-b last:border-b-0 hover:bg-muted hover:ring-1 hover:ring-primary/40 hover:rounded"
-            >
-              <FeatureSwatch feature={legendEntryToSyntheticFeature(entry)} width={36} height={22} />
-              <span className="flex-1 truncate text-xs">{entry.label || "Untitled"}</span>
-              <button
+          {sorted.map((entry, i) => (
+            <div key={entry.id}>
+              {dragOverGap === i && <div className="h-0.5 bg-primary" />}
+              <div
+                data-legend-id={entry.id}
+                draggable
+                onDragStart={() => { draggedIdRef.current = entry.id; }}
+                onDragOver={(e) => onRowDragOver(e, i, i + 1)}
+                onDrop={(e) => onRowDrop(e, i, i + 1)}
+                onDragEnd={() => { draggedIdRef.current = null; setDragOverGap(null); }}
                 onClick={() => setEditingId(entry.id)}
-                className="text-muted-foreground hover:text-foreground shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
-                title="Edit"
+                className="group/row flex items-center gap-2 px-3 py-1.5 cursor-grab text-sm border-b last:border-b-0 hover:bg-muted hover:ring-1 hover:ring-primary/40"
               >
-                <FaPen className="w-2.5 h-2.5" />
-              </button>
-              <button
-                onClick={() => deleteLegendEntry(entry.id)}
-                className="text-muted-foreground hover:text-destructive shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
-                title="Delete"
-              >
-                <FaTrash className="w-2.5 h-2.5" />
-              </button>
+                <FeatureSwatch feature={legendEntryToSyntheticFeature(entry)} width={36} height={22} />
+                <span className="flex-1 truncate text-xs">{entry.label || "Untitled"}</span>
+                <button
+                  onClick={(e) => { e.stopPropagation(); deleteLegendEntry(entry.id); }}
+                  className="text-muted-foreground hover:text-destructive shrink-0 p-1 opacity-0 group-hover/row:opacity-100 transition-opacity"
+                  title="Delete"
+                >
+                  <FaTrash className="w-2.5 h-2.5" />
+                </button>
+              </div>
             </div>
           ))}
+          {dragOverGap === sorted.length && <div className="h-0.5 bg-primary" />}
         </div>
       )}
       <CreateEntryDialog

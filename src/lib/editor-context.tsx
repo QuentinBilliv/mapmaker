@@ -105,6 +105,7 @@ interface EditorActions {
   addLegendEntry: (entry: NewLegendEntry) => string;
   updateLegendEntry: (id: string, updates: Partial<LegendEntry>) => void;
   deleteLegendEntry: (id: string) => void;
+  reorderLegendEntries: (orderedIds: string[]) => void;
   assignLegendEntry: (featureId: string, legendEntryId: string | null) => void;
   deduceLegendEntryFromFeature: (featureId: string, label: string) => void;
   setActiveBaseMap: (baseMap: BaseMap) => void;
@@ -422,6 +423,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const {
     addLegendEntry, updateLegendEntry, deleteLegendEntry,
     assignLegendEntry, deduceLegendEntryFromFeature,
+    reorderLegendEntries,
   } = useLegendActions({
     featuresRef, legendEntriesRef,
     setFeatures, setLegendEntries,
@@ -629,7 +631,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       reorderItems, reorderGroupChildren,
       addFeatureToGroup, removeFeatureFromGroup,
       moveGroup, rotateGroup,
-      addLegendEntry, updateLegendEntry, deleteLegendEntry,
+      addLegendEntry, updateLegendEntry, deleteLegendEntry, reorderLegendEntries,
       assignLegendEntry, deduceLegendEntryFromFeature,
       setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
@@ -657,7 +659,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       reorderItems, reorderGroupChildren,
       addFeatureToGroup, removeFeatureFromGroup,
       moveGroup, rotateGroup,
-      addLegendEntry, updateLegendEntry, deleteLegendEntry,
+      addLegendEntry, updateLegendEntry, deleteLegendEntry, reorderLegendEntries,
       assignLegendEntry, deduceLegendEntryFromFeature,
       setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,

@@ -64,8 +64,22 @@ export function useLegendActions({
     );
   }, [featuresRef, legendEntriesRef, setFeatures, setLegendEntries, recordSnapshot]);
 
+  const reorderLegendEntries = useCallback((orderedIds: string[]) => {
+    recordSnapshot();
+    setLegendEntries((prev) => {
+      const byId = new Map(prev.map((e) => [e.id, e]));
+      return orderedIds
+        .map((id, idx) => {
+          const e = byId.get(id);
+          return e ? { ...e, order: idx } as LegendEntry : null;
+        })
+        .filter((e): e is LegendEntry => e !== null);
+    });
+  }, [setLegendEntries, recordSnapshot]);
+
   return {
     addLegendEntry, updateLegendEntry, deleteLegendEntry,
     assignLegendEntry, deduceLegendEntryFromFeature,
+    reorderLegendEntries,
   };
 }
