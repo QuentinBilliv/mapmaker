@@ -211,6 +211,205 @@ export function LegendDisplay({
   );
 }
 
+type StyleUpdate = Partial<{
+  label: string;
+  color: string;
+  opacity: number;
+  size: number;
+  shape: PointShape;
+  customSvg: string | undefined;
+  borderColor: string;
+  borderWidth: number;
+  smoothing: number;
+  strokeWidth: number;
+  lineStyle: LineStyle;
+  arrowStyle: ArrowStyle;
+  lineDecoration: LineDecoration;
+  decorationSpacing: number;
+  fillPattern: FillPattern;
+  fontSize: number;
+  fontFamily: TextFont;
+  bold: boolean;
+  italic: boolean;
+  textBorderEnabled: boolean;
+  textBorderColor: string;
+  textBorderWidth: number;
+}>;
+
+function ColorOpacityFields({ color, opacity, onChange }: { color: string; opacity: number; onChange: (u: StyleUpdate) => void }) {
+  return (
+    <div className="flex gap-3">
+      <Field label="Color" className="flex-1">
+        <ColorInput value={color} onChange={(e) => onChange({ color: (e.target as HTMLInputElement).value })} />
+      </Field>
+      <Field label={`Opacity (${Math.round(opacity * 100)}%)`} className="flex-1">
+        <SliderField value={opacity} onChange={(v) => onChange({ opacity: v })} min={0} max={100} step={5} scale={100} className="mt-2" />
+      </Field>
+    </div>
+  );
+}
+
+function PointStyleFields({ entry, onChange }: { entry: Omit<import("@/lib/types").PointLegendEntry, "id" | "order">; onChange: (u: StyleUpdate) => void }) {
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
+  const SelectedIcon = useCatalogIcon(catalogIconId);
+
+  return (
+    <>
+      <Field label="Marker">
+        <div className="flex gap-1 flex-wrap">
+          {POINT_SHAPES.map((s) => (
+            <Button
+              key={s.value}
+              variant={!entry.customSvg && entry.shape === s.value ? "default" : "outline"}
+              size="icon-sm"
+              onClick={() => { onChange({ shape: s.value, customSvg: undefined }); setCatalogIconId(null); }}
+              title={s.label}
+            >
+              <ShapePreview shape={s.value} />
+            </Button>
+          ))}
+          {SelectedIcon && (
+            <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
+              <SelectedIcon size={14} />
+            </Button>
+          )}
+          <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>
+            More icons
+          </Button>
+        </div>
+        <IconPickerDialog
+          open={pickerOpen}
+          onOpenChange={setPickerOpen}
+          selected={catalogIconId ?? undefined}
+          onSelect={async (i) => {
+            const svg = await resolveIconToSvg(i);
+            if (svg) { onChange({ customSvg: svg, shape: "circle" }); setCatalogIconId(i); }
+          }}
+        />
+      </Field>
+      <Field label={`Size (${Math.round(entry.size * 100)}%)`}>
+        <SliderField value={entry.size} onChange={(v) => onChange({ size: v })} min={10} max={300} step={5} scale={100} />
+      </Field>
+      {!entry.customSvg && (
+        <div className="flex gap-3">
+          <Field label="Border color" className="flex-1">
+            <ColorInput value={entry.borderColor} onChange={(e) => onChange({ borderColor: (e.target as HTMLInputElement).value })} />
+          </Field>
+          <Field label={`Width (${entry.borderWidth}px)`} className="flex-1">
+            <SliderField value={entry.borderWidth} onChange={(v) => onChange({ borderWidth: v })} min={0} max={12} step={1} className="mt-2" />
+          </Field>
+        </div>
+      )}
+    </>
+  );
+}
+
+function StrokeStyleFields({ entry, onChange }: { entry: { strokeWidth: number; lineStyle: LineStyle; lineDecoration: LineDecoration; decorationSpacing: number; smoothing: number }; onChange: (u: StyleUpdate) => void }) {
+  return (
+    <>
+      <div className="flex gap-3">
+        <Field label={`Stroke (${entry.strokeWidth}px)`} className="flex-1">
+          <SliderField value={entry.strokeWidth} onChange={(v) => onChange({ strokeWidth: v })} min={0} max={10} step={1} className="mt-2" />
+        </Field>
+        <Field label="Line style" className="flex-1">
+          <Select value={entry.lineStyle} onValueChange={(v) => onChange({ lineStyle: v as LineStyle })}>
+            <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+            <SelectContent>{LINE_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+          </Select>
+        </Field>
+      </div>
+      <Field label="Line decoration">
+        <Select value={entry.lineDecoration} onValueChange={(v) => onChange({ lineDecoration: v as LineDecoration })}>
+          <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+          <SelectContent>{LINE_DECORATIONS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+        </Select>
+      </Field>
+      {entry.lineDecoration !== "none" && (
+        <Field label={`Decoration spacing (${entry.decorationSpacing}px)`}>
+          <SliderField value={entry.decorationSpacing} onChange={(v) => onChange({ decorationSpacing: v })} min={5} max={200} step={5} />
+        </Field>
+      )}
+      <Field label={`Smoothing (${Math.round(entry.smoothing * 100)}%)`}>
+        <SliderField value={entry.smoothing} onChange={(v) => onChange({ smoothing: v })} min={0} max={100} step={5} scale={100} />
+      </Field>
+    </>
+  );
+}
+
+function ArrowField({ value, onChange }: { value: ArrowStyle; onChange: (u: StyleUpdate) => void }) {
+  return (
+    <Field label="Arrows">
+      <Select value={value} onValueChange={(v) => onChange({ arrowStyle: v as ArrowStyle })}>
+        <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+        <SelectContent>{ARROW_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
+      </Select>
+    </Field>
+  );
+}
+
+function FillPatternField({ value, onChange }: { value: FillPattern; onChange: (u: StyleUpdate) => void }) {
+  return (
+    <Field label="Fill pattern">
+      <div className="flex gap-1 flex-wrap">
+        {FILL_PATTERNS.map((p) => (
+          <Button key={p.value} variant={value === p.value ? "default" : "outline"} size="xs" onClick={() => onChange({ fillPattern: p.value })}>
+            {p.label}
+          </Button>
+        ))}
+      </div>
+    </Field>
+  );
+}
+
+function TextStyleFields({ entry, onChange }: { entry: Omit<import("@/lib/types").TextLegendEntry, "id" | "order">; onChange: (u: StyleUpdate) => void }) {
+  return (
+    <>
+      <div className="flex gap-3 items-end">
+        <Field label={`Font size (${entry.fontSize}px)`} className="flex-1">
+          <SliderField value={entry.fontSize} onChange={(v) => onChange({ fontSize: v })} min={8} max={72} step={1} className="mt-2" />
+        </Field>
+        <div className="flex gap-1 pb-0.5">
+          <Button type="button" variant={entry.bold ? "default" : "outline"} size="icon-sm" onClick={() => onChange({ bold: !entry.bold })} title="Bold">
+            <span className="font-bold text-xs">B</span>
+          </Button>
+          <Button type="button" variant={entry.italic ? "default" : "outline"} size="icon-sm" onClick={() => onChange({ italic: !entry.italic })} title="Italic">
+            <span className="italic text-xs">I</span>
+          </Button>
+        </div>
+      </div>
+      <div className="flex gap-3">
+        <Field label="Outline color" className="flex-1">
+          <ColorInput value={entry.textBorderColor} onChange={(e) => onChange({ textBorderColor: (e.target as HTMLInputElement).value })} />
+        </Field>
+        <Field label={`Outline (${entry.textBorderWidth}px)`} className="flex-1">
+          <SliderField value={entry.textBorderWidth} onChange={(v) => onChange({ textBorderWidth: v, textBorderEnabled: v > 0 })} min={0} max={8} step={1} className="mt-2" />
+        </Field>
+      </div>
+    </>
+  );
+}
+
+function EntryStyleFields({ entry, onChange }: { entry: NewLegendEntry; onChange: (u: StyleUpdate) => void }) {
+  return (
+    <>
+      <ColorOpacityFields color={entry.color} opacity={entry.opacity} onChange={onChange} />
+      {entry.featureType === "point" && <PointStyleFields entry={entry} onChange={onChange} />}
+      {(entry.featureType === "polyline" || entry.featureType === "polygon") && <StrokeStyleFields entry={entry} onChange={onChange} />}
+      {entry.featureType === "polyline" && <ArrowField value={entry.arrowStyle} onChange={onChange} />}
+      {entry.featureType === "polygon" && <FillPatternField value={entry.fillPattern} onChange={onChange} />}
+      {entry.featureType === "text" && <TextStyleFields entry={entry} onChange={onChange} />}
+    </>
+  );
+}
+
+const CREATE_DEFAULTS: Record<LegendFeatureType, NewLegendEntry> = {
+  point: { featureType: "point", label: "", color: COLORS.primary, opacity: 1, size: 1, shape: "circle", customSvg: undefined, borderColor: COLORS.white, borderWidth: DEFAULT_BORDER_WIDTH },
+  polyline: { featureType: "polyline", label: "", color: COLORS.primary, opacity: 1, smoothing: 0, strokeWidth: 3, lineStyle: "solid", arrowStyle: "none", lineDecoration: "none", decorationSpacing: 50 },
+  polygon: { featureType: "polygon", label: "", color: COLORS.primary, opacity: 1, smoothing: 0, strokeWidth: 3, lineStyle: "solid", lineDecoration: "none", decorationSpacing: 50, fillPattern: "none" },
+  text: { featureType: "text", label: "", color: COLORS.primary, opacity: 1, fontSize: 16, fontFamily: "sans", bold: false, italic: false, textBorderEnabled: true, textBorderColor: COLORS.white, textBorderWidth: 2 },
+};
+
 export function CreateEntryDialog({
   open,
   onOpenChange,
@@ -221,112 +420,31 @@ export function CreateEntryDialog({
   onSubmit: (entry: NewLegendEntry) => void;
 }) {
   const [step, setStep] = useState<"type" | "style">("type");
-  const [featureType, setFeatureType] = useState<LegendFeatureType>("point");
-  const [label, setLabel] = useState("");
-  const [color, setColor] = useState(COLORS.primary);
-  const [opacity, setOpacity] = useState(1);
-  const [size, setSize] = useState(1);
-  const [shape, setShape] = useState<PointShape>("circle");
-  const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
-  const [customSvg, setCustomSvg] = useState<string | undefined>();
-  const SelectedIcon = useCatalogIcon(catalogIconId);
-  const [borderColor, setBorderColor] = useState(COLORS.white);
-  const [borderWidth, setBorderWidth] = useState(DEFAULT_BORDER_WIDTH);
-  const [strokeWidth, setStrokeWidth] = useState(3);
-  const [smoothing, setSmoothing] = useState(0);
-  const [lineStyle, setLineStyle] = useState<LineStyle>("solid");
-  const [arrowStyle, setArrowStyle] = useState<ArrowStyle>("none");
-  const [lineDecoration, setLineDecoration] = useState<LineDecoration>("none");
-  const [decorationSpacing, setDecorationSpacing] = useState(50);
-  const [fillPattern, setFillPattern] = useState<FillPattern>("none");
-  const [fontSize, setFontSize] = useState(16);
-  const [fontFamily, setFontFamily] = useState<TextFont>("sans");
-  const [bold, setBold] = useState(false);
-  const [italic, setItalic] = useState(false);
-  const [textBorderColor, setTextBorderColor] = useState(COLORS.white);
-  const [textBorderWidth, setTextBorderWidth] = useState(2);
-  const [pickerOpen, setPickerOpen] = useState(false);
+  const [entry, setEntry] = useState<NewLegendEntry>(CREATE_DEFAULTS.point);
 
-  function reset() {
+  const reset = () => {
     setStep("type");
-    setLabel("");
-    setColor(COLORS.primary);
-    setOpacity(1);
-    setSize(1);
-    setShape("circle");
-    setCatalogIconId(null);
-    setCustomSvg(undefined);
-    setBorderColor(COLORS.white);
-    setBorderWidth(DEFAULT_BORDER_WIDTH);
-    setStrokeWidth(3);
-    setSmoothing(0);
-    setLineStyle("solid");
-    setArrowStyle("none");
-    setLineDecoration("none");
-    setDecorationSpacing(50);
-    setFillPattern("none");
-    setFontSize(16);
-    setFontFamily("sans");
-    setBold(false);
-    setItalic(false);
-    setTextBorderColor(COLORS.white);
-    setTextBorderWidth(2);
-  }
+    setEntry(CREATE_DEFAULTS.point);
+  };
 
-  function handleCreate() {
-    const base = { label: label || "New entry", color, opacity };
-    if (featureType === "point") {
-      onSubmit({
-        ...base,
-        featureType: "point",
-        size,
-        shape: customSvg ? undefined : shape,
-        customSvg,
-        borderColor,
-        borderWidth,
-      });
-    } else if (featureType === "polyline") {
-      onSubmit({
-        ...base,
-        featureType: "polyline",
-        smoothing,
-        strokeWidth,
-        lineStyle,
-        arrowStyle,
-        lineDecoration,
-        decorationSpacing,
-      });
-    } else if (featureType === "polygon") {
-      onSubmit({
-        ...base,
-        featureType: "polygon",
-        smoothing,
-        strokeWidth,
-        lineStyle,
-        lineDecoration,
-        decorationSpacing,
-        fillPattern,
-      });
-    } else {
-      onSubmit({
-        ...base,
-        featureType: "text",
-        fontSize,
-        fontFamily,
-        bold,
-        italic,
-        textBorderEnabled: textBorderWidth > 0,
-        textBorderColor,
-        textBorderWidth,
-      });
-    }
-    reset();
-  }
-
-  function handleCancel() {
+  const handleCancel = () => {
     reset();
     onOpenChange(false);
-  }
+  };
+
+  const handleTypeChange = (t: LegendFeatureType) => {
+    setEntry((prev) => ({ ...CREATE_DEFAULTS[t], label: prev.label, color: prev.color, opacity: prev.opacity }));
+  };
+
+  const handleChange = (u: StyleUpdate) => {
+    setEntry((prev) => ({ ...prev, ...u }) as NewLegendEntry);
+  };
+
+  const handleCreate = () => {
+    const finalEntry = { ...entry, label: entry.label || "New entry" } as NewLegendEntry;
+    onSubmit(finalEntry);
+    reset();
+  };
 
   return (
     <Dialog
@@ -350,8 +468,8 @@ export function CreateEntryDialog({
                 <Button
                   key={t}
                   size="sm"
-                  variant={featureType === t ? "default" : "outline"}
-                  onClick={() => setFeatureType(t)}
+                  variant={entry.featureType === t ? "default" : "outline"}
+                  onClick={() => handleTypeChange(t)}
                   className="flex-1"
                 >
                   {t === "point" ? "Point" : t === "polyline" ? "Line" : t === "polygon" ? "Polygon" : "Text"}
@@ -359,12 +477,8 @@ export function CreateEntryDialog({
               ))}
             </div>
             <DialogFooter>
-              <Button size="sm" variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={() => setStep("style")}>
-                Next
-              </Button>
+              <Button size="sm" variant="outline" onClick={handleCancel}>Cancel</Button>
+              <Button size="sm" onClick={() => setStep("style")}>Next</Button>
             </DialogFooter>
           </div>
         ) : (
@@ -372,264 +486,18 @@ export function CreateEntryDialog({
             <Field label="Label">
               <Input
                 autoFocus
-                value={label}
-                onChange={(e) => setLabel(e.target.value)}
+                value={entry.label}
+                onChange={(e) => handleChange({ label: e.target.value })}
                 placeholder="e.g. Naval bases"
                 className="h-8 text-sm"
                 maxLength={50}
               />
             </Field>
-            <div className="flex gap-3">
-              <Field label="Color" className="flex-1">
-                <ColorInput
-                  value={color}
-                  onChange={(e) =>
-                    setColor((e.target as HTMLInputElement).value)
-                  }
-                />
-              </Field>
-              <Field
-                label={`Opacity (${Math.round(opacity * 100)}%)`}
-                className="flex-1"
-              >
-                <SliderField
-                  value={opacity}
-                  onChange={setOpacity}
-                  min={0}
-                  max={100}
-                  step={5}
-                  scale={100}
-                  className="mt-2"
-                />
-              </Field>
-            </div>
-            {featureType === "point" && (
-              <>
-                <Field label="Marker">
-                  <div className="flex gap-1 flex-wrap">
-                    {POINT_SHAPES.map((s) => (
-                      <Button
-                        key={s.value}
-                        variant={
-                          !customSvg && shape === s.value ? "default" : "outline"
-                        }
-                        size="icon-sm"
-                        onClick={() => {
-                          setShape(s.value);
-                          setCatalogIconId(null);
-                          setCustomSvg(undefined);
-                        }}
-                        title={s.label}
-                      >
-                        <ShapePreview shape={s.value} />
-                      </Button>
-                    ))}
-                    {SelectedIcon && (
-                      <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
-                        <SelectedIcon size={14} />
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      size="xs"
-                      onClick={() => setPickerOpen(true)}
-                    >
-                      More icons
-                    </Button>
-                  </div>
-                  <IconPickerDialog
-                    open={pickerOpen}
-                    onOpenChange={setPickerOpen}
-                    selected={catalogIconId ?? undefined}
-                    onSelect={async (i) => {
-                      const svg = await resolveIconToSvg(i);
-                      if (svg) {
-                        setCustomSvg(svg);
-                        setShape("circle");
-                        setCatalogIconId(i);
-                      }
-                    }}
-                  />
-                </Field>
-                <Field label={`Size (${Math.round(size * 100)}%)`}>
-                  <SliderField
-                    value={size}
-                    onChange={setSize}
-                    min={10}
-                    max={300}
-                    step={5}
-                    scale={100}
-                  />
-                </Field>
-                {!customSvg && <div className="flex gap-3">
-                  <Field label="Border color" className="flex-1">
-                    <ColorInput
-                      value={borderColor}
-                      onChange={(e) =>
-                        setBorderColor((e.target as HTMLInputElement).value)
-                      }
-                    />
-                  </Field>
-                  <Field label={`Width (${borderWidth}px)`} className="flex-1">
-                    <SliderField
-                      value={borderWidth}
-                      onChange={setBorderWidth}
-                      min={0}
-                      max={12}
-                      step={1}
-                      className="mt-2"
-                    />
-                  </Field>
-                </div>}
-              </>
-            )}
-            {(featureType === "polyline" || featureType === "polygon") && (
-              <>
-                <div className="flex gap-3">
-                  <Field label={`Stroke (${strokeWidth}px)`} className="flex-1">
-                    <SliderField
-                      value={strokeWidth}
-                      onChange={setStrokeWidth}
-                      min={0}
-                      max={10}
-                      step={1}
-                      className="mt-2"
-                    />
-                  </Field>
-                  <Field label="Line style" className="flex-1">
-                    <Select
-                      value={lineStyle}
-                      onValueChange={(v) => setLineStyle(v as LineStyle)}
-                    >
-                      <SelectTrigger className="w-full">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {LINE_STYLES.map((s) => (
-                          <SelectItem key={s.value} value={s.value}>
-                            {s.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </Field>
-                </div>
-                <Field label="Line decoration">
-                  <Select
-                    value={lineDecoration}
-                    onValueChange={(v) =>
-                      setLineDecoration(v as LineDecoration)
-                    }
-                  >
-                    <SelectTrigger className="w-full">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {LINE_DECORATIONS.map((d) => (
-                        <SelectItem key={d.value} value={d.value}>
-                          {d.label}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </Field>
-                {lineDecoration !== "none" && (
-                  <Field label={`Decoration spacing (${decorationSpacing}px)`}>
-                    <SliderField
-                      value={decorationSpacing}
-                      onChange={setDecorationSpacing}
-                      min={5}
-                      max={200}
-                      step={5}
-                    />
-                  </Field>
-                )}
-                <Field label={`Smoothing (${Math.round(smoothing * 100)}%)`}>
-                  <SliderField
-                    value={smoothing}
-                    onChange={setSmoothing}
-                    min={0}
-                    max={100}
-                    step={5}
-                    scale={100}
-                  />
-                </Field>
-              </>
-            )}
-            {featureType === "polyline" && (
-              <Field label="Arrows">
-                <Select
-                  value={arrowStyle}
-                  onValueChange={(v) => setArrowStyle(v as ArrowStyle)}
-                >
-                  <SelectTrigger className="w-full">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ARROW_STYLES.map((s) => (
-                      <SelectItem key={s.value} value={s.value}>
-                        {s.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </Field>
-            )}
-            {featureType === "polygon" && (
-              <Field label="Fill pattern">
-                <div className="flex gap-1 flex-wrap">
-                  {FILL_PATTERNS.map((p) => (
-                    <Button
-                      key={p.value}
-                      variant={fillPattern === p.value ? "default" : "outline"}
-                      size="xs"
-                      onClick={() => setFillPattern(p.value)}
-                    >
-                      {p.label}
-                    </Button>
-                  ))}
-                </div>
-              </Field>
-            )}
-            {featureType === "text" && (
-              <>
-                <div className="flex gap-3 items-end">
-                  <Field label={`Font size (${fontSize}px)`} className="flex-1">
-                    <SliderField value={fontSize} onChange={setFontSize} min={8} max={72} step={1} className="mt-2" />
-                  </Field>
-                  <div className="flex gap-1 pb-0.5">
-                    <Button type="button" variant={bold ? "default" : "outline"} size="icon-sm" onClick={() => setBold(!bold)} title="Bold">
-                      <span className="font-bold text-xs">B</span>
-                    </Button>
-                    <Button type="button" variant={italic ? "default" : "outline"} size="icon-sm" onClick={() => setItalic(!italic)} title="Italic">
-                      <span className="italic text-xs">I</span>
-                    </Button>
-                  </div>
-                </div>
-                <div className="flex gap-3">
-                  <Field label="Outline color" className="flex-1">
-                    <ColorInput value={textBorderColor} onChange={(e) => setTextBorderColor((e.target as HTMLInputElement).value)} />
-                  </Field>
-                  <Field label={`Outline (${textBorderWidth}px)`} className="flex-1">
-                    <SliderField value={textBorderWidth} onChange={setTextBorderWidth} min={0} max={8} step={1} className="mt-2" />
-                  </Field>
-                </div>
-              </>
-            )}
+            <EntryStyleFields entry={entry} onChange={handleChange} />
             <DialogFooter>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={() => setStep("type")}
-              >
-                Back
-              </Button>
-              <Button size="sm" variant="outline" onClick={handleCancel}>
-                Cancel
-              </Button>
-              <Button size="sm" onClick={handleCreate}>
-                Create
-              </Button>
+              <Button size="sm" variant="outline" onClick={() => setStep("type")}>Back</Button>
+              <Button size="sm" variant="outline" onClick={handleCancel}>Cancel</Button>
+              <Button size="sm" onClick={handleCreate}>Create</Button>
             </DialogFooter>
           </div>
         )}
@@ -649,11 +517,6 @@ export function EditEntryDialog({
   entry: LegendEntry;
   onUpdate: (updates: Partial<LegendEntry>) => void;
 }) {
-  const [pickerOpen, setPickerOpen] = useState(false);
-  const [catalogIconId, setCatalogIconId] = useState<string | null>(null);
-  const SelectedIcon = useCatalogIcon(catalogIconId);
-  const isStroke = entry.featureType === "polyline" || entry.featureType === "polygon";
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-md">
@@ -664,120 +527,7 @@ export function EditEntryDialog({
           <Field label="Label">
             <Input value={entry.label} onChange={(e) => onUpdate({ label: e.target.value })} className="h-8 text-sm" maxLength={50} />
           </Field>
-          <div className="flex gap-3">
-            <Field label="Color" className="flex-1">
-              <ColorInput value={entry.color} onChange={(e) => onUpdate({ color: (e.target as HTMLInputElement).value })} />
-            </Field>
-            <Field label={`Opacity (${Math.round(entry.opacity * 100)}%)`} className="flex-1">
-              <SliderField value={entry.opacity} onChange={(v) => onUpdate({ opacity: v })} min={0} max={100} step={5} scale={100} className="mt-2" />
-            </Field>
-          </div>
-          {entry.featureType === "point" && (
-            <>
-              <Field label="Marker">
-                <div className="flex gap-1 flex-wrap">
-                  {POINT_SHAPES.map((s) => (
-                    <Button key={s.value} variant={!entry.customSvg && entry.shape === s.value ? "default" : "outline"} size="icon-sm" onClick={() => { onUpdate({ shape: s.value, customSvg: undefined }); setCatalogIconId(null); }} title={s.label}>
-                      <ShapePreview shape={s.value} />
-                    </Button>
-                  ))}
-                  {SelectedIcon && (
-                    <Button variant="default" size="icon-sm" onClick={() => setPickerOpen(true)}>
-                      <SelectedIcon size={14} />
-                    </Button>
-                  )}
-                  <Button variant="outline" size="xs" onClick={() => setPickerOpen(true)}>More icons</Button>
-                </div>
-                <IconPickerDialog open={pickerOpen} onOpenChange={setPickerOpen} selected={catalogIconId ?? undefined} onSelect={async (i) => { const svg = await resolveIconToSvg(i); if (svg) { onUpdate({ customSvg: svg, shape: "circle" }); setCatalogIconId(i); } }} />
-              </Field>
-              <Field label={`Size (${Math.round(entry.size * 100)}%)`}>
-                <SliderField value={entry.size} onChange={(v) => onUpdate({ size: v })} min={10} max={300} step={5} scale={100} />
-              </Field>
-              {!entry.customSvg && (
-                <div className="flex gap-3">
-                  <Field label="Border color" className="flex-1">
-                    <ColorInput value={entry.borderColor} onChange={(e) => onUpdate({ borderColor: (e.target as HTMLInputElement).value })} />
-                  </Field>
-                  <Field label={`Width (${entry.borderWidth}px)`} className="flex-1">
-                    <SliderField value={entry.borderWidth} onChange={(v) => onUpdate({ borderWidth: v })} min={0} max={12} step={1} className="mt-2" />
-                  </Field>
-                </div>
-              )}
-            </>
-          )}
-          {isStroke && (
-            <>
-              <div className="flex gap-3">
-                <Field label={`Stroke (${entry.strokeWidth}px)`} className="flex-1">
-                  <SliderField value={entry.strokeWidth} onChange={(v) => onUpdate({ strokeWidth: v })} min={0} max={10} step={1} className="mt-2" />
-                </Field>
-                <Field label="Line style" className="flex-1">
-                  <Select value={entry.lineStyle} onValueChange={(v) => onUpdate({ lineStyle: v as LineStyle })}>
-                    <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                    <SelectContent>{LINE_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-                  </Select>
-                </Field>
-              </div>
-              <Field label="Line decoration">
-                <Select value={entry.lineDecoration} onValueChange={(v) => onUpdate({ lineDecoration: v as LineDecoration })}>
-                  <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                  <SelectContent>{LINE_DECORATIONS.map((d) => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
-                </Select>
-              </Field>
-              {entry.lineDecoration !== "none" && (
-                <Field label={`Decoration spacing (${entry.decorationSpacing}px)`}>
-                  <SliderField value={entry.decorationSpacing} onChange={(v) => onUpdate({ decorationSpacing: v })} min={5} max={200} step={5} />
-                </Field>
-              )}
-              <Field label={`Smoothing (${Math.round(entry.smoothing * 100)}%)`}>
-                <SliderField value={entry.smoothing} onChange={(v) => onUpdate({ smoothing: v })} min={0} max={100} step={5} scale={100} />
-              </Field>
-            </>
-          )}
-          {entry.featureType === "polyline" && (
-            <Field label="Arrows">
-              <Select value={entry.arrowStyle} onValueChange={(v) => onUpdate({ arrowStyle: v as ArrowStyle })}>
-                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
-                <SelectContent>{ARROW_STYLES.map((s) => <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>)}</SelectContent>
-              </Select>
-            </Field>
-          )}
-          {entry.featureType === "polygon" && (
-            <Field label="Fill pattern">
-              <div className="flex gap-1 flex-wrap">
-                {FILL_PATTERNS.map((p) => (
-                  <Button key={p.value} variant={entry.fillPattern === p.value ? "default" : "outline"} size="xs" onClick={() => onUpdate({ fillPattern: p.value })}>
-                    {p.label}
-                  </Button>
-                ))}
-              </div>
-            </Field>
-          )}
-          {entry.featureType === "text" && (
-            <>
-              <div className="flex gap-3 items-end">
-                <Field label={`Font size (${entry.fontSize}px)`} className="flex-1">
-                  <SliderField value={entry.fontSize} onChange={(v) => onUpdate({ fontSize: v })} min={8} max={72} step={1} className="mt-2" />
-                </Field>
-                <div className="flex gap-1 pb-0.5">
-                  <Button type="button" variant={entry.bold ? "default" : "outline"} size="icon-sm" onClick={() => onUpdate({ bold: !entry.bold })} title="Bold">
-                    <span className="font-bold text-xs">B</span>
-                  </Button>
-                  <Button type="button" variant={entry.italic ? "default" : "outline"} size="icon-sm" onClick={() => onUpdate({ italic: !entry.italic })} title="Italic">
-                    <span className="italic text-xs">I</span>
-                  </Button>
-                </div>
-              </div>
-              <div className="flex gap-3">
-                <Field label="Outline color" className="flex-1">
-                  <ColorInput value={entry.textBorderColor} onChange={(e) => onUpdate({ textBorderColor: (e.target as HTMLInputElement).value })} />
-                </Field>
-                <Field label={`Outline (${entry.textBorderWidth}px)`} className="flex-1">
-                  <SliderField value={entry.textBorderWidth} onChange={(v) => onUpdate({ textBorderWidth: v, textBorderEnabled: v > 0 })} min={0} max={8} step={1} className="mt-2" />
-                </Field>
-              </div>
-            </>
-          )}
+          <EntryStyleFields entry={entry} onChange={(u) => onUpdate(u as Partial<LegendEntry>)} />
           <DialogFooter>
             <Button size="sm" onClick={() => onOpenChange(false)}>Done</Button>
           </DialogFooter>
