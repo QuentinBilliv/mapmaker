@@ -30,6 +30,7 @@ import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { legendEntryToSyntheticFeature } from "@/lib/resolve-style";
 import Field from "@/components/ui/Field";
 import PanelHeader from "@/components/ui/PanelHeader";
+import SafeSvg from "@/components/ui/SafeSvg";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -557,9 +558,9 @@ function MarkerSelect() {
               size="icon-sm"
               onClick={() => setSvgDialogOpen(true)}
             >
-              <span
+              <SafeSvg
                 className="w-3.5 h-3.5 block overflow-hidden [&>svg]:w-full [&>svg]:h-full"
-                dangerouslySetInnerHTML={{ __html: customSvg }}
+                svg={customSvg}
               />
             </Button>
           )}
