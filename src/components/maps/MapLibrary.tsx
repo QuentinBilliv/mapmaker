@@ -52,8 +52,9 @@ export default function MapLibrary() {
   const hasFilters = search || ownerFilter;
 
   return (
-    <div className="max-w-4xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
+    <div className="flex-1 overflow-y-auto w-full">
+      <div className="max-w-4xl mx-auto p-6">
+        <div className="flex items-center justify-between mb-6">
         <h1 className="text-lg font-semibold">Public Maps</h1>
         <Input
           type="text"
@@ -118,6 +119,7 @@ export default function MapLibrary() {
           )}
         </>
       )}
+      </div>
     </div>
   );
 }
