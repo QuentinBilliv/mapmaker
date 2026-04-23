@@ -16,6 +16,7 @@ function sanitizeLabel(raw: unknown): string {
 import PanelHeader from "@/components/ui/PanelHeader";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import toast from "react-hot-toast";
 
 type Mode = "idomap" | "geojson";
 
@@ -55,6 +56,9 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
         setError(null);
         internalUpdate.current = true;
         importMapData(data);
+        if (data.droppedFeatureCount > 0) {
+          toast(`${data.droppedFeatureCount} feature${data.droppedFeatureCount > 1 ? "s" : ""} skipped (invalid format)`);
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Invalid format");
       }

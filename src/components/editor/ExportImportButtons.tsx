@@ -7,6 +7,7 @@ import { geometryTypeToFeatureType } from "@/lib/geojson";
 import { Button } from "@/components/ui/button";
 import { FaDownload, FaUpload } from "react-icons/fa6";
 import ImportDialog from "@/components/editor/ImportDialog";
+import toast from "react-hot-toast";
 
 const MAX_IMPORT_FEATURES = 500;
 const MAX_LABEL_LENGTH = 200;
@@ -41,6 +42,9 @@ export default function ExportImportButtons() {
         await migrateIconsToSvg(data);
         importMapData(data);
         setStatus({ message: "Map imported", error: false });
+        if (data.droppedFeatureCount > 0) {
+          toast(`${data.droppedFeatureCount} feature${data.droppedFeatureCount > 1 ? "s" : ""} skipped (invalid format)`);
+        }
       } catch (err) {
         console.error("idomap import error:", err);
         setStatus({ message: err instanceof Error ? err.message : "Invalid file", error: true });

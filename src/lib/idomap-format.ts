@@ -284,6 +284,7 @@ export interface DeserializedMap {
   groups: GroupData[];
   legendEntries: LegendEntry[];
   pendingIconMigrations: { featureIndex: number; iconId: string }[];
+  droppedFeatureCount: number;
 }
 
 export function deserialize(raw: string): DeserializedMap {
@@ -299,19 +300,24 @@ export function deserialize(raw: string): DeserializedMap {
   const knownBaseMap = findBaseMap(result.idomap.baseMap);
 
   const pendingIconMigrations: { featureIndex: number; iconId: string }[] = [];
+  let droppedFeatureCount = 0;
 
   const features: FeatureWithoutId[] = result.features.flatMap((f, idx): FeatureWithoutId[] => {
     const p = f.properties;
     const declaredType = p["idomap:type"];
     const geoType = geometryTypeToFeatureType(f.geometry.type);
     const typeMatches = declaredType === "text" ? geoType === "point" : geoType === declaredType;
-    if (!typeMatches) return [];
+    if (!typeMatches) {
+      droppedFeatureCount++;
+      return [];
+    }
 
     let customSvg = p["idomap:customSvg"];
     if (customSvg) {
       try {
         customSvg = sanitizeSvg(customSvg);
       } catch {
+        droppedFeatureCount++;
         return [];
       }
     }
@@ -406,6 +412,7 @@ export function deserialize(raw: string): DeserializedMap {
     groups: result.idomap.groups,
     legendEntries: (result.idomap.legendEntries ?? []) as LegendEntry[],
     pendingIconMigrations,
+    droppedFeatureCount,
   };
 }
 
