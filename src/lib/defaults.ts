@@ -11,7 +11,7 @@ export const COLORS: Record<string, string> = {
 };
 
 export const DEFAULT_BORDER_WIDTH = 6;
-export const FEATURE_LIMIT = 50;
+export const FEATURE_LIMIT = 150;
 export const ANONYMOUS_FEATURE_LIMIT = 5;
 export const MAX_MAP_PAYLOAD = 5_000_000;
 
