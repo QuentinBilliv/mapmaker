@@ -373,7 +373,7 @@ function StyleFields() {
           type="url"
           {...register("imageUrl")}
           placeholder="https://example.com/photo.jpg"
-          maxLength={2000}
+          maxLength={500}
         />
       </Field>
       {!hasLegendEntry && (

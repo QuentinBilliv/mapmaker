@@ -26,7 +26,7 @@ const idomapProps = z
     "idomap:layerId": z.string().max(100),
     "idomap:label": z.string().max(MAX_LABEL).default(""),
     "idomap:description": z.string().max(MAX_STRING).default(""),
-    "idomap:imageUrl": z.string().url().max(2000).refine(
+    "idomap:imageUrl": z.string().url().max(500).refine(
       (v) => /^https?:\/\//i.test(v),
       "Only http and https URLs are allowed"
     ).optional(),

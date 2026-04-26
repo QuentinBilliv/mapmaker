@@ -1,0 +1,1974 @@
+{
+  "type": "FeatureCollection",
+  "idomap": {
+    "version": 1,
+    "map": {
+      "title": "Pompeii — the lost Roman city",
+      "description": "An interactive plan of the archaeological site of Pompeii, destroyed by the eruption of Mount Vesuvius on 24 August 79 AD and rediscovered in 1748. Each marker links a building to its story.",
+      "tags": [
+        "pompeii",
+        "rome",
+        "archaeology",
+        "heritage",
+        "museum"
+      ],
+      "license": "CC BY",
+      "center": [
+        14.488,
+        40.751
+      ],
+      "zoom": 17
+    },
+    "baseMap": "satellite",
+    "styleOptions": {},
+    "choropleth": {
+      "enabled": false,
+      "tileLayer": "countries",
+      "mode": "discrete",
+      "categories": [],
+      "assignments": {},
+      "gradientColors": [
+        "#22c55e",
+        "#3b82f6"
+      ],
+      "gradientLabel": "",
+      "values": {},
+      "opacity": 0.7
+    },
+    "layers": [
+      {
+        "id": "default",
+        "name": "Main layer",
+        "visible": true,
+        "order": 0
+      }
+    ],
+    "groups": [
+      {
+        "id": "grp-forum",
+        "label": "Forum & civic center",
+        "order": 3
+      },
+      {
+        "id": "grp-temples",
+        "label": "Temples",
+        "order": 4
+      },
+      {
+        "id": "grp-baths",
+        "label": "Baths",
+        "order": 5
+      },
+      {
+        "id": "grp-ent",
+        "label": "Theaters & entertainment",
+        "order": 6
+      },
+      {
+        "id": "grp-houses",
+        "label": "Houses & villas",
+        "order": 7
+      },
+      {
+        "id": "grp-gates",
+        "label": "City gates",
+        "order": 8
+      },
+      {
+        "id": "grp-necro",
+        "label": "Necropolis",
+        "order": 9
+      },
+      {
+        "id": "6672914d-17ad-46b2-8450-41fab5d8a5cb",
+        "label": "north south",
+        "order": 0
+      },
+      {
+        "id": "4f929f19-5fcd-471a-b4d1-987e26fc7c76",
+        "label": "east west",
+        "order": 1
+      }
+    ],
+    "legendEntries": [
+      {
+        "id": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39",
+        "label": "Forum & civic center",
+        "order": 0,
+        "featureType": "point",
+        "color": "#b45309",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "square",
+        "borderColor": "#ffffff",
+        "borderWidth": 4
+      },
+      {
+        "id": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb",
+        "label": "Temple",
+        "order": 1,
+        "featureType": "point",
+        "color": "#ca8a04",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "circle",
+        "borderColor": "#ffffff",
+        "borderWidth": 4,
+        "customSvg": "<svg stroke=\"currentColor\" fill=\"currentColor\" stroke-width=\"0\" viewBox=\"0 0 512 512\" height=\"128\" width=\"128\" xmlns=\"http://www.w3.org/2000/svg\"><path d=\"M256 26.2L52 135h408L256 26.2zM73 153v14h366v-14H73zm16 32v206h30V185H89zm101.334 0v206h30V185h-30zm101.332 0v206h30V185h-30zM393 185v206h30V185h-30zM73 409v30h366v-30H73zm-32 48v30h430v-30H41z\"></path></svg>"
+      },
+      {
+        "id": "09ebd059-754f-57ac-948f-2c20ac394317",
+        "label": "Bath complex",
+        "order": 2,
+        "featureType": "point",
+        "color": "#0369a1",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "circle",
+        "borderColor": "#ffffff",
+        "borderWidth": 4
+      },
+      {
+        "id": "9f50846e-47fe-543d-8cb8-f9b45befcf97",
+        "label": "Entertainment",
+        "order": 3,
+        "featureType": "point",
+        "color": "#b91c1c",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "star",
+        "borderColor": "#ffffff",
+        "borderWidth": 4
+      },
+      {
+        "id": "2c90b136-602f-5e08-be26-f46a19a649dd",
+        "label": "House / villa",
+        "order": 4,
+        "featureType": "point",
+        "color": "#6d28d9",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "diamond",
+        "borderColor": "#ffffff",
+        "borderWidth": 4
+      },
+      {
+        "id": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f",
+        "label": "City gate",
+        "order": 5,
+        "featureType": "point",
+        "color": "#78350f",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "hexagon",
+        "borderColor": "#ffffff",
+        "borderWidth": 4
+      },
+      {
+        "id": "3487a634-2014-55b8-8991-1e2e098798f3",
+        "label": "Necropolis",
+        "order": 6,
+        "featureType": "point",
+        "color": "#525252",
+        "opacity": 1,
+        "size": 0.15,
+        "shape": "cross",
+        "borderColor": "#ffffff",
+        "borderWidth": 4
+      },
+      {
+        "id": "0bf11c49-1a65-5331-859f-712cb6bc2189",
+        "label": "City walls",
+        "order": 10,
+        "featureType": "polygon",
+        "color": "#78350f",
+        "opacity": 0.08,
+        "smoothing": 0.2,
+        "strokeWidth": 6,
+        "lineStyle": "dash-medium",
+        "lineDecoration": "none",
+        "decorationSpacing": 50,
+        "fillPattern": "none"
+      },
+      {
+        "label": "East-West axis (decumanus)",
+        "color": "#d78484",
+        "opacity": 0.6,
+        "featureType": "polyline",
+        "smoothing": 0,
+        "strokeWidth": 8,
+        "lineStyle": "solid",
+        "arrowStyle": "none",
+        "lineDecoration": "none",
+        "decorationSpacing": 50,
+        "id": "2eadbda7-c566-4f04-a69e-e6f4a840e03d",
+        "order": 11
+      },
+      {
+        "label": "North-South axis (Cardo)",
+        "color": "#d11faa",
+        "opacity": 0.6,
+        "featureType": "polyline",
+        "smoothing": 0,
+        "strokeWidth": 8,
+        "lineStyle": "solid",
+        "arrowStyle": "none",
+        "lineDecoration": "none",
+        "decorationSpacing": 50,
+        "id": "0e1c250c-fe15-42f4-a3f6-a120ee96da70",
+        "order": 12
+      }
+    ]
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [
+          [
+            [
+              14.48309,
+              40.74851
+            ],
+            [
+              14.482836923804967,
+              40.74921478643205
+            ],
+            [
+              14.483692728533583,
+              40.749644659568446
+            ],
+            [
+              14.482399156489095,
+              40.751124316287815
+            ],
+            [
+              14.480812631959822,
+              40.75186038900645
+            ],
+            [
+              14.482154207549911,
+              40.75245939889595
+            ],
+            [
+              14.4841,
+              40.75338
+            ],
+            [
+              14.4872,
+              40.754
+            ],
+            [
+              14.4908,
+              40.75372
+            ],
+            [
+              14.493,
+              40.7534
+            ],
+            [
+              14.49442,
+              40.75281
+            ],
+            [
+              14.494849246619935,
+              40.752822625194824
+            ],
+            [
+              14.495864636697235,
+              40.751693641260545
+            ],
+            [
+              14.496354675827263,
+              40.750944797285115
+            ],
+            [
+              14.494652007201125,
+              40.75000516423313
+            ],
+            [
+              14.49344,
+              40.74951
+            ],
+            [
+              14.4918,
+              40.74875
+            ],
+            [
+              14.48996,
+              40.74833
+            ],
+            [
+              14.48890196970089,
+              40.74797242280016
+            ],
+            [
+              14.487816292438225,
+              40.74812096166883
+            ],
+            [
+              14.486650106096846,
+              40.7479172994621
+            ],
+            [
+              14.485890238866546,
+              40.74776164149668
+            ],
+            [
+              14.484588660551879,
+              40.74815773527408
+            ],
+            [
+              14.483290386603642,
+              40.74789642148346
+            ],
+            [
+              14.48309,
+              40.74851
+            ]
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polygon",
+        "idomap:layerId": "default",
+        "idomap:label": "City walls of Pompeii",
+        "idomap:description": "The defensive walls of Pompeii, built in successive phases from the 6th century BC onwards. About 3.2 km long, punctuated by seven gates and reinforced by a dozen towers, they defined the city until its destruction on 24 August 79 AD.",
+        "idomap:order": 2,
+        "idomap:legendEntryId": "0bf11c49-1a65-5331-859f-712cb6bc2189"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48485,
+          40.74933
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Forum",
+        "idomap:description": "The heart of Pompeii, a rectangular plaza about 38 × 142 m at the junction of the city's main axes. Surrounded by the city's most important civic, religious and commercial buildings. Closed to chariot traffic and paved in travertine slabs.",
+        "idomap:order": 1,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48451,
+          40.74995
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Capitolium (Temple of Jupiter)",
+        "idomap:description": "The main temple of Pompeii, standing on a tall podium at the north end of the Forum with the Vesuvius rising dramatically behind it. Originally dedicated to the Capitoline triad — Jupiter, Juno and Minerva — after Pompeii became a Roman colony in 80 BC.",
+        "idomap:order": 2,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48448,
+          40.74874
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Basilica",
+        "idomap:description": "The city's main courthouse and business exchange, built around 120 BC. One of the oldest known Roman basilicas and an architectural prototype for the later Christian basilicas of late antiquity.",
+        "idomap:order": 3,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48512,
+          40.75007
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Macellum",
+        "idomap:description": "The covered food market of Pompeii, opening onto the east side of the Forum. Stalls sold fish, meat and produce; a central tholos held a fish-scaling basin whose drain is still visible.",
+        "idomap:order": 4,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48559,
+          40.74942
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Building of Eumachia",
+        "idomap:description": "A grand portico built by the priestess Eumachia, patroness of the fullers (launderers) guild. Its monumental marble doorframe is decorated with exquisite acanthus scrolls.",
+        "idomap:order": 5,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48422,
+          40.74964
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Horrea (Forum granaries)",
+        "idomap:description": "Large public warehouses on the west side of the Forum. Today they display thousands of artefacts recovered from the excavations, as well as several plaster casts of victims of the eruption.",
+        "idomap:order": 6,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48442,
+          40.74921
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Temple of Apollo",
+        "idomap:description": "One of the oldest sanctuaries in Pompeii, dating to the 6th century BC, with clear Etruscan and Greek influences. Famous bronze statues of Apollo and Diana as archers once stood facing each other across the courtyard.",
+        "idomap:order": 7,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48372,
+          40.74842
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Temple of Venus",
+        "idomap:description": "Dedicated to Venus Pompeiana, patron goddess of the Roman colony founded by Sulla in 80 BC. Overlooks the sea to the south; largely destroyed by the earthquake of 62 AD and still under reconstruction when Vesuvius erupted.",
+        "idomap:order": 8,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48827,
+          40.74918
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Temple of Isis",
+        "idomap:description": "A small but richly decorated temple devoted to the Egyptian goddess Isis, whose cult was popular in Pompeii. One of the first buildings to be fully restored after the 62 AD earthquake. Its rediscovery in 1764 fascinated Mozart, who may have drawn inspiration from it for The Magic Flute.",
+        "idomap:order": 9,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48446,
+          40.75073
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Temple of Fortuna Augusta",
+        "idomap:description": "A small marble temple built at private expense by the magistrate Marcus Tullius in honor of the goddess Fortuna and the deified Emperor Augustus.",
+        "idomap:order": 10,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48862,
+          40.74931
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Temple of Asclepius",
+        "idomap:description": "A small temple sometimes identified as a shrine to Zeus Meilichios. Features a terracotta altar and painted cult statues unusually well preserved.",
+        "idomap:order": 11,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48412,
+          40.75034
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Forum Baths",
+        "idomap:description": "Built shortly after the foundation of the Roman colony in 80 BC, with separate sections for men and women. Famous for its well-preserved stucco decoration and the vivid frescoes of the tepidarium.",
+        "idomap:order": 12,
+        "idomap:groupId": "grp-baths",
+        "idomap:legendEntryId": "09ebd059-754f-57ac-948f-2c20ac394317"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48756,
+          40.74999
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Stabian Baths",
+        "idomap:description": "The oldest and largest bath complex in Pompeii, built in the 4th century BC and repeatedly renovated. Features a palaestra, swimming pool and richly stuccoed ceilings in the changing rooms.",
+        "idomap:order": 13,
+        "idomap:groupId": "grp-baths",
+        "idomap:legendEntryId": "09ebd059-754f-57ac-948f-2c20ac394317"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48678,
+          40.75155
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Central Baths",
+        "idomap:description": "An enormous new bath complex still under construction at the time of the eruption. Designed with large glass windows — a luxurious novelty — but never finished.",
+        "idomap:order": 14,
+        "idomap:groupId": "grp-baths",
+        "idomap:legendEntryId": "09ebd059-754f-57ac-948f-2c20ac394317"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48278,
+          40.74868
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Suburban Baths",
+        "idomap:description": "A private bath complex built into the city walls just outside the Porta Marina. Famous for its erotic frescoes in the changing room, the only known visual depiction of several sexual practices from Roman daily life.",
+        "idomap:order": 15,
+        "idomap:groupId": "grp-baths",
+        "idomap:legendEntryId": "09ebd059-754f-57ac-948f-2c20ac394317"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.495149329238108,
+          40.751340835834526
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Amphitheatre",
+        "idomap:description": "The oldest surviving permanent stone amphitheatre in the Roman world, built around 70 BC — nearly 150 years before the Colosseum in Rome. Site of the infamous riot of 59 AD between Pompeians and visitors from nearby Nuceria, which led to a ten-year ban on gladiatorial games.",
+        "idomap:order": 0,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.488669329238109,
+          40.75124083947509
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Large Theatre",
+        "idomap:description": "Built in the 2nd century BC in the Greek tradition, carved into the natural slope of a hill. Seated about 5,000 spectators for open-air plays and musical performances.",
+        "idomap:order": 1,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.489289329238108,
+          40.75125083911104
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Small Theatre (Odeon)",
+        "idomap:description": "A covered theatre of about 1,500 seats, built around 80 BC and used for music recitals, poetry readings and small performances.",
+        "idomap:order": 2,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.489149329238108,
+          40.75077085658566
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Quadriporticus of the Theatres",
+        "idomap:description": "A large rectangular colonnade behind the theatres, originally a foyer for spectators. After the 62 AD earthquake it was converted into a barracks for gladiators — 18 of whom were found here, still wearing their ornate bronze armor.",
+        "idomap:order": 3,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.494159329238109,
+          40.75316076957475
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Great Palaestra",
+        "idomap:description": "A vast 141 × 107 m exercise ground next to the amphitheatre, ringed by a colonnade. Plane trees planted along the perimeter have been regrown in their original post-holes. A swimming pool filled the center.",
+        "idomap:order": 4,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.488219329238108,
+          40.75145083182986
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Samnite Palaestra",
+        "idomap:description": "An older, smaller exercise ground from the pre-Roman Samnite period, used for athletic training by Pompeian youth.",
+        "idomap:order": 5,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.488409329238108,
+          40.750930850760795
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Triangular Forum",
+        "idomap:description": "A triangular colonnaded plaza built around an ancient Doric temple from the 6th century BC. A quiet, contemplative space offering views towards the sea.",
+        "idomap:order": 6,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.487059329238107,
+          40.7527107859579
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Lupanar",
+        "idomap:description": "The largest and most famous brothel of Pompeii, a two-story building with ten small stone-bed cubicles and explicit erotic frescoes advertising the services on offer. Graffiti left by clients cover the walls.",
+        "idomap:order": 7,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48454,
+          40.75137
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Faun",
+        "idomap:description": "The largest and most luxurious house in Pompeii, covering an entire city block of nearly 3,000 m². Named after a bronze statue of a dancing faun found in its atrium. Home of the extraordinary Alexander Mosaic, now in the Naples Archaeological Museum.",
+        "idomap:order": 24,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48457,
+          40.75209
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Vettii",
+        "idomap:description": "The residence of two wealthy freedmen brothers, Aulus Vettius Restitutus and Aulus Vettius Conviva. Famous for its exuberant Fourth-Style frescoes depicting mythological scenes and winged cupids, recently restored in 2023.",
+        "idomap:order": 25,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48378,
+          40.75075
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Tragic Poet",
+        "idomap:description": "A modest but finely decorated house featured in Bulwer-Lytton's 1834 novel The Last Days of Pompeii. Its entrance hall has the famous 'Cave Canem' ('Beware of the Dog') mosaic.",
+        "idomap:order": 26,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48999,
+          40.74979
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Menander",
+        "idomap:description": "A large and richly decorated house belonging to a relative of the Empress Poppaea. Named for a fresco of the Greek playwright Menander in its peristyle. A secret storeroom held a spectacular hoard of silverware, now in the Naples Museum.",
+        "idomap:order": 27,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48498,
+          40.75226
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Golden Cupids",
+        "idomap:description": "An elegant aristocratic residence named after the gold-leaf decorations of its peristyle, where cupids were engraved in gold leaf on glass medallions. A private shrine to Isis reveals its owner's devotion to the Egyptian cult.",
+        "idomap:order": 28,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48258,
+          40.75119
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Sallust",
+        "idomap:description": "One of the oldest houses in Pompeii, dating to the 4th century BC, with a grand atrium in the Samnite tradition. Partially destroyed by a bomb in 1943 during Allied air raids on the site.",
+        "idomap:order": 29,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48186,
+          40.75162
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Surgeon",
+        "idomap:description": "A 4th-century BC Samnite house where bronze surgical instruments were found in 1771 — among the earliest archaeological evidence of ancient Roman surgical practice.",
+        "idomap:order": 30,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4837,
+          40.75177
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Dioscuri",
+        "idomap:description": "A large aristocratic dwelling named after the frescoes of Castor and Pollux — the twin Dioscuri — that adorned its entrance.",
+        "idomap:order": 31,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48967,
+          40.75013
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Cryptoporticus",
+        "idomap:description": "Features a rare underground cryptoporticus, a covered passage originally decorated with frescoes depicting scenes from the Iliad.",
+        "idomap:order": 32,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48801,
+          40.75292
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Lucretius Fronto",
+        "idomap:description": "A small but exquisite house whose frescoes are considered among the finest examples of the Third Pompeian style, with delicate miniature landscapes.",
+        "idomap:order": 33,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.49278,
+          40.75181
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Venus in the Shell",
+        "idomap:description": "A large residence on the Via dell'Abbondanza named after a large fresco in its garden of the goddess Venus reclining in a seashell, floating among cupids and dolphins.",
+        "idomap:order": 34,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.47753,
+          40.75372
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Villa of the Mysteries",
+        "idomap:description": "A grand suburban villa outside the city walls, famous worldwide for the 'Dionysiac Frieze' — a series of life-sized figures painted around 60–50 BC depicting the initiation rites of the cult of Dionysus. One of the finest and most enigmatic paintings to survive from antiquity.",
+        "idomap:order": 35,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.47865,
+          40.75239
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Villa of Diomedes",
+        "idomap:description": "A large suburban villa outside the Porta Ercolano. Eighteen victims of the eruption were found huddled in its cellar, including the owner's family still holding their jewelry and household keys.",
+        "idomap:order": 36,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48912,
+          40.75029
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Fullonica of Stephanus",
+        "idomap:description": "A fullery (Roman laundry) where togas and tunics were cleaned using urine collected from public basins. The process — trodden underfoot in large tubs — is illustrated in frescoes on the walls.",
+        "idomap:order": 37,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48309,
+          40.74851
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta Marina",
+        "idomap:description": "The western gate of the city, facing the sea. Its steep ramp gives access to the Forum area. The main entrance used by visitors today.",
+        "idomap:order": 38,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48111,
+          40.75183
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta Ercolano (Herculaneum Gate)",
+        "idomap:description": "The northwestern gate on the road to Herculaneum, lined on both sides by an elaborate necropolis of funerary monuments.",
+        "idomap:order": 39,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4841,
+          40.75338
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta del Vesuvio",
+        "idomap:description": "The northern gate, looking directly up the slopes of Mount Vesuvius. The city's main water castellum, which distributed aqueduct water throughout Pompeii, stood just inside.",
+        "idomap:order": 40,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4908,
+          40.75372
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta di Nola",
+        "idomap:description": "The northeastern gate on the road to the ancient town of Nola, with a well-preserved inscription in the Oscan language above its arch.",
+        "idomap:order": 41,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.49442,
+          40.75281
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta di Sarno",
+        "idomap:description": "The eastern gate on the road toward the Sarno river, whose valley was the agricultural hinterland that made Pompeii prosperous.",
+        "idomap:order": 42,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.49344,
+          40.74951
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta di Nocera",
+        "idomap:description": "The southeastern gate leading toward the town of Nuceria, whose inhabitants clashed with Pompeians in the deadly amphitheatre riot of 59 AD.",
+        "idomap:order": 43,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48996,
+          40.74833
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Porta di Stabia",
+        "idomap:description": "The southern gate on the road to the port of Stabiae, where Pliny the Elder died during the 79 AD eruption while attempting to rescue survivors.",
+        "idomap:order": 44,
+        "idomap:groupId": "grp-gates",
+        "idomap:legendEntryId": "98e4ff6f-9f18-5ab7-a84d-6dce4b27583f"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48006,
+          40.75234
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Necropolis of Porta Ercolano",
+        "idomap:description": "An elaborate city of the dead lining both sides of the road outside the Herculaneum Gate, with tombs ranging from modest altars to grand funerary monuments of the wealthiest Pompeian families.",
+        "idomap:order": 45,
+        "idomap:groupId": "grp-necro",
+        "idomap:legendEntryId": "3487a634-2014-55b8-8991-1e2e098798f3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48408,
+          40.75375
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Necropolis of Porta Vesuvio",
+        "idomap:description": "A funerary area outside the Vesuvius Gate, containing tombs from the Samnite and Roman periods, including the monumental tomb of the priestess Mamia.",
+        "idomap:order": 46,
+        "idomap:groupId": "grp-necro",
+        "idomap:legendEntryId": "3487a634-2014-55b8-8991-1e2e098798f3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.49389,
+          40.7493
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Necropolis of Porta Nocera",
+        "idomap:description": "The largest necropolis of Pompeii, lining the road towards Nuceria. Its long row of tombs includes the monumental sepulchre of Eumachia.",
+        "idomap:order": 47,
+        "idomap:groupId": "grp-necro",
+        "idomap:legendEntryId": "3487a634-2014-55b8-8991-1e2e098798f3"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.492849329238108,
+          40.75195081362685
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Garden of the Fugitives",
+        "idomap:description": "A vineyard inside the city where thirteen plaster casts of victims of the eruption are displayed exactly where they fell. Among the most haunting sights of Pompeii, showing families huddled together as they tried to flee the advancing pyroclastic flow.",
+        "idomap:order": 8,
+        "idomap:groupId": "grp-ent",
+        "idomap:legendEntryId": "9f50846e-47fe-543d-8cb8-f9b45befcf97"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.484235837413507,
+            40.75072841485647
+          ],
+          [
+            14.486169549950404,
+            40.75162066423039
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "via della Fortuna",
+        "idomap:description": "",
+        "idomap:order": 1,
+        "idomap:groupId": "4f929f19-5fcd-471a-b4d1-987e26fc7c76",
+        "idomap:legendEntryId": "2eadbda7-c566-4f04-a69e-e6f4a840e03d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.486167698740559,
+            40.75161953776015
+          ],
+          [
+            14.489875647348583,
+            40.75331989629345
+          ],
+          [
+            14.49075075126359,
+            40.75368438679129
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "via di Nola",
+        "idomap:description": "",
+        "idomap:order": 0,
+        "idomap:groupId": "4f929f19-5fcd-471a-b4d1-987e26fc7c76",
+        "idomap:legendEntryId": "2eadbda7-c566-4f04-a69e-e6f4a840e03d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.483196842979027,
+            40.75021697839773
+          ],
+          [
+            14.483568060447624,
+            40.75040966619676
+          ],
+          [
+            14.484236512418647,
+            40.75072908541054
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "via delle Terme",
+        "idomap:description": "",
+        "idomap:order": 2,
+        "idomap:groupId": "4f929f19-5fcd-471a-b4d1-987e26fc7c76",
+        "idomap:legendEntryId": "2eadbda7-c566-4f04-a69e-e6f4a840e03d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.483407824246797,
+            40.74861516824717
+          ],
+          [
+            14.484403909543687,
+            40.74888682911282
+          ],
+          [
+            14.485453119389263,
+            40.74916855032029
+          ],
+          [
+            14.48757810135777,
+            40.749681682309244
+          ],
+          [
+            14.48813152667509,
+            40.749966821496145
+          ],
+          [
+            14.4911285758931,
+            40.75132800992526
+          ],
+          [
+            14.492577837126362,
+            40.75200292278839
+          ],
+          [
+            14.494316200883418,
+            40.7527708361624
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "via dell' Abbondanza",
+        "idomap:description": "",
+        "idomap:order": 3,
+        "idomap:groupId": "4f929f19-5fcd-471a-b4d1-987e26fc7c76",
+        "idomap:legendEntryId": "2eadbda7-c566-4f04-a69e-e6f4a840e03d"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.482898698570324,
+            40.752738859058155
+          ],
+          [
+            14.484723691743255,
+            40.74994309023867
+          ],
+          [
+            14.485788271094322,
+            40.74818415346047
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "",
+        "idomap:description": "",
+        "idomap:order": 1,
+        "idomap:groupId": "6672914d-17ad-46b2-8450-41fab5d8a5cb",
+        "idomap:legendEntryId": "0e1c250c-fe15-42f4-a3f6-a120ee96da70"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.484271750853452,
+            40.753202015045105
+          ],
+          [
+            14.486148728580758,
+            40.751630023510955
+          ],
+          [
+            14.4880856706219,
+            40.74994364447946
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "via di Stabia",
+        "idomap:description": "",
+        "idomap:order": 2,
+        "idomap:groupId": "6672914d-17ad-46b2-8450-41fab5d8a5cb",
+        "idomap:legendEntryId": "0e1c250c-fe15-42f4-a3f6-a120ee96da70"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.488084212721134,
+            40.749944145761674
+          ],
+          [
+            14.48992565527638,
+            40.74836486425684
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "Via Stabianna",
+        "idomap:description": "",
+        "idomap:order": 0,
+        "idomap:groupId": "6672914d-17ad-46b2-8450-41fab5d8a5cb",
+        "idomap:legendEntryId": "0e1c250c-fe15-42f4-a3f6-a120ee96da70"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            14.490306601871225,
+            40.753499428523895
+          ],
+          [
+            14.49178374655935,
+            40.75160530459229
+          ],
+          [
+            14.493507082028742,
+            40.74943136662455
+          ]
+        ]
+      },
+      "properties": {
+        "idomap:type": "polyline",
+        "idomap:layerId": "default",
+        "idomap:label": "",
+        "idomap:description": "",
+        "idomap:order": 3,
+        "idomap:groupId": "6672914d-17ad-46b2-8450-41fab5d8a5cb",
+        "idomap:legendEntryId": "0e1c250c-fe15-42f4-a3f6-a120ee96da70"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48876,
+          40.74989
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Citharist",
+        "idomap:description": "Among the largest houses in Pompeii (Regio I, insula 4), named after a bronze statue of Apollo playing the cithara found in one of its three peristyles. Owned by the influential Popidii family, it reflects the wealth of Pompeian aristocracy before 79 AD.",
+        "idomap:order": 48,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48955,
+          40.75054
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Paquius Proculus",
+        "idomap:description": "A domus famous for its mosaic entrance showing a chained guard dog under the inscription 'cave canem' — 'beware of the dog'. The atrium floor features an elaborate marine mosaic with fish and birds.",
+        "idomap:order": 49,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.49244,
+          40.75177
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Octavius Quartio",
+        "idomap:description": "Also known as the House of Loreius Tiburtinus. Notable for its elaborate garden with a long canal (euripus) and two biclinia for outdoor dining, imitating the grand villa style within the city walls.",
+        "idomap:order": 50,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.49335,
+          40.75203
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Praedia of Julia Felix",
+        "idomap:description": "A sprawling complex owned by Julia Felix, daughter of Spurius. After the 62 AD earthquake she rented parts of her estate — including baths, shops and an inn — as shown by a painted rental notice still visible on the facade.",
+        "idomap:order": 51,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48615,
+          40.75199
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Caecilius Iucundus",
+        "idomap:description": "Home of a prominent Pompeian banker and auctioneer. His financial archive — 154 waxed wooden tablets recording transactions — was found here, providing a vivid window into the commercial life of the city.",
+        "idomap:order": 52,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48655,
+          40.7525
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Silver Wedding",
+        "idomap:description": "Named in 1893 in honour of the silver wedding anniversary of King Umberto I and Queen Margherita of Italy. One of the most imposing houses of Pompeii, with a monumental Tuscan atrium and a large colonnaded peristyle.",
+        "idomap:order": 53,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48846,
+          40.75284
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Gladiators",
+        "idomap:description": "Served as a gladiators' barracks and training school in the last years of the city. Excavated painted inscriptions record the names and victories of the fighters who lived and trained here.",
+        "idomap:order": 54,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48331,
+          40.75083
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Pansa",
+        "idomap:description": "An entire insula-sized domus (about 2,800 m²), originally built in the Samnite period. Its owner rented out shops and apartments along the facade, showing how even the largest houses doubled as income properties.",
+        "idomap:order": 55,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48343,
+          40.75238
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Meleager",
+        "idomap:description": "Named after a painting of Meleager and Atalanta found near the entrance. The house is notable for its elegant peristyle with a marble basin, a rare example of refined late-Republican decoration.",
+        "idomap:order": 56,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48522,
+          40.75229
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Orpheus",
+        "idomap:description": "Named after a large wall painting depicting Orpheus charming the animals with his lyre. The house preserves elaborate Fourth Style frescoes in its main reception rooms.",
+        "idomap:order": 57,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48633,
+          40.75063
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Bear",
+        "idomap:description": "Takes its name from the mosaic in the fauces entryway showing a wounded bear. A modest but finely decorated house, typical of the middle-class dwellings of Regio VII.",
+        "idomap:order": 58,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48596,
+          40.74883
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Cornelius Rufus",
+        "idomap:description": "A domus remarkable for the marble herm of its owner — inscribed 'Cornelius Rufus' — still standing in the atrium where it was found, one of the rare in-situ portrait busts at Pompeii.",
+        "idomap:order": 59,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48798,
+          40.75208
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of the Centenary",
+        "idomap:description": "One of Pompeii's largest houses, discovered in 1879 on the 18th centenary of the eruption — hence the name. Features a private bath suite, a nymphaeum, and a famous fresco showing Vesuvius as a single-peaked mountain covered in vines, next to Bacchus draped in grapes — one of the only known depictions of the volcano before 79 AD.",
+        "idomap:order": 60,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48725,
+          40.75083
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Inn of Sittius",
+        "idomap:description": "A commercial inn (caupona) marked by a painted elephant sign and the Latin motto 'Sittius restituit elepantu[m]'. It offered rooms and meals to travellers arriving from the nearby Stabian gate.",
+        "idomap:order": 61,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48687,
+          40.75098
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "House of Gaius Rufus",
+        "idomap:description": "A middle-sized atrium house in Regio VII, still partially unexcavated. Belongs to the dense residential quarter surrounding the Stabian Baths.",
+        "idomap:order": 62,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48821,
+          40.75029
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Tannery",
+        "idomap:description": "A workshop where hides were soaked, scraped and tanned in a series of large masonry vats still visible on site — one of the best-preserved Roman tanneries known. The process was smelly and relegated to the city's edge.",
+        "idomap:order": 63,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48723,
+          40.75093
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Bakery",
+        "idomap:description": "One of Pompeii's 33 identified bakeries, equipped with lava-stone millstones turned by donkeys and a domed oven. Carbonised loaves were found still inside some Pompeii ovens at the time of excavation.",
+        "idomap:order": 64,
+        "idomap:groupId": "grp-houses",
+        "idomap:legendEntryId": "2c90b136-602f-5e08-be26-f46a19a649dd"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48519,
+          40.7496
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Temple of Vespasian",
+        "idomap:description": "A small imperial-cult temple on the east side of the Forum, dedicated to the worship of the emperor Vespasian. Its marble altar — still in place — is carved with a relief of a bull being led to sacrifice.",
+        "idomap:order": 65,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48502,
+          40.74975
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Sanctuary of the Public Lares",
+        "idomap:description": "An open-air precinct on the east side of the Forum, dedicated to the protective household gods of the Roman state. Built shortly after the 62 AD earthquake as a thanksgiving for the city's survival.",
+        "idomap:order": 66,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48799,
+          40.74829
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Doric Temple",
+        "idomap:description": "The oldest temple in Pompeii, built in the 6th century BC within the Triangular Forum. Originally dedicated to Hercules and Athena, only the base and a few column fragments survive today.",
+        "idomap:order": 67,
+        "idomap:groupId": "grp-temples",
+        "idomap:legendEntryId": "a6b69053-7b1c-58e3-8f4e-7c76e5f87adb"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48465,
+          40.749
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Curia",
+        "idomap:description": "One of three civic halls at the southern end of the Forum, where the city council (ordo decurionum) of Pompeii held its meetings. Paved in coloured marble, it was still unfinished when Vesuvius erupted.",
+        "idomap:order": 68,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48494,
+          40.74927
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Tabularium",
+        "idomap:description": "The municipal archive building, where Pompeii's legal and administrative records were stored. Stands in a row with the Curia and the office of the Duumvirs at the south end of the Forum.",
+        "idomap:order": 69,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.4845,
+          40.7489
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Office of the Duumvirs",
+        "idomap:description": "Seat of the two duumviri, the elected chief magistrates of Pompeii. Together with the Curia and the Tabularium, it formed the civic government quarter on the south side of the Forum.",
+        "idomap:order": 70,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48416,
+          40.75322
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Castellum Aquae",
+        "idomap:description": "The city's main water distribution point, where the aqueduct from Serino entered Pompeii at its highest point next to the Vesuvius gate. From here lead pipes fed the public fountains, baths and private houses below.",
+        "idomap:order": 71,
+        "idomap:groupId": "grp-forum",
+        "idomap:legendEntryId": "bf0f0a84-c997-5acd-8dea-934b7b9b8b39"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [
+          14.48541,
+          40.74808
+        ]
+      },
+      "properties": {
+        "idomap:type": "point",
+        "idomap:layerId": "default",
+        "idomap:label": "Sarno Baths",
+        "idomap:description": "A large multi-level bath complex perched on Pompeii's southern slope, with panoramic terraces overlooking the Sarno river plain. Built late in the city's life, it was still being finished at the time of the eruption.",
+        "idomap:order": 72,
+        "idomap:groupId": "grp-baths",
+        "idomap:legendEntryId": "09ebd059-754f-57ac-948f-2c20ac394317"
+      }
+    }
+  ]
+}

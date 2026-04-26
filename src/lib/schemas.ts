@@ -21,7 +21,7 @@ export const featureSchema = z.object({
   description: z.string().max(500, "Description is too long").optional(),
   imageUrl: z
     .string()
-    .max(2000, "URL is too long")
+    .max(500, "URL is too long")
     .url("Must be a valid URL")
     .refine((v) => /^https?:\/\//i.test(v), "Only http and https URLs are allowed")
     .or(z.literal(""))
