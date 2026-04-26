@@ -270,7 +270,9 @@ const FONT_MAP: Record<string, string> = {
 function drawText(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "text" }, w: number, h: number) {
   const fontSize = Math.min(h * 0.7, 24);
   const font = FONT_MAP[f.fontFamily] ?? "sans-serif";
-  ctx.font = `${fontSize}px ${font}`;
+  const style = f.italic ? "italic" : "normal";
+  const weight = f.bold ? "bold" : "normal";
+  ctx.font = `${style} ${weight} ${fontSize}px ${font}`;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
   ctx.globalAlpha = f.opacity;
