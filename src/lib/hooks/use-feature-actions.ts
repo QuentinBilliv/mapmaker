@@ -31,6 +31,7 @@ interface Deps {
   featuresRef: React.RefObject<FeatureData[]>;
   drawingRef: React.RefObject<DrawingState>;
   drawModeRef: React.RefObject<DrawMode>;
+  holeTargetIdRef: React.MutableRefObject<string | null>;
   setFeatures: React.Dispatch<React.SetStateAction<FeatureData[]>>;
   setSelectedFeatureIds: React.Dispatch<React.SetStateAction<string[]>>;
   dispatchDrawing: React.Dispatch<{ type: "RESET_AFTER_ADD"; isText: boolean }>;
@@ -40,7 +41,7 @@ interface Deps {
 }
 
 export function useFeatureActions({
-  featuresRef, drawingRef, drawModeRef,
+  featuresRef, drawingRef, drawModeRef, holeTargetIdRef,
   setFeatures, setSelectedFeatureIds, dispatchDrawing,
   recordSnapshot, featureLimit, onFeatureAdded,
 }: Deps) {
@@ -53,6 +54,33 @@ export function useFeatureActions({
   }, [setSelectedFeatureIds]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
+    const holeTargetId = holeTargetIdRef.current;
+    if (holeTargetId && (geometry.type === "Polygon" || geometry.type === "MultiPolygon")) {
+      holeTargetIdRef.current = null;
+      const target = featuresRef.current!.find((f) => f.id === holeTargetId) as PolygonFeature | undefined;
+      if (!target || target.type !== "polygon") return;
+      if (target.geometry.type !== "Polygon" && target.geometry.type !== "MultiPolygon") return;
+      const fc = featureCollection([
+        turfFeature(target.geometry),
+        turfFeature(geometry),
+      ]);
+      const result = difference(fc);
+      if (!result) {
+        toast.error("The hole covers the polygon entirely");
+        return;
+      }
+      recordSnapshot();
+      setFeatures((prev) =>
+        prev.map((f) =>
+          f.id === holeTargetId
+            ? ({ ...f, geometry: result.geometry, shapeOrigin: undefined } as FeatureData)
+            : f
+        )
+      );
+      setSelectedFeatureIds([holeTargetId]);
+      dispatchDrawing({ type: "RESET_AFTER_ADD", isText: false });
+      return;
+    }
     if (featureLimit !== Infinity && featuresRef.current!.length >= featureLimit) return;
     recordSnapshot();
     const s = drawingRef.current!;
@@ -120,7 +148,7 @@ export function useFeatureActions({
     setSelectedFeatureIds([newFeature.id]);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
     onFeatureAdded?.(featuresRef.current!.length + 1);
-  }, [featuresRef, drawingRef, drawModeRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit, onFeatureAdded]);
+  }, [featuresRef, drawingRef, drawModeRef, holeTargetIdRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit, onFeatureAdded]);
 
   const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string) => {
     if (featureLimit !== Infinity && featuresRef.current!.length >= featureLimit) return;
@@ -212,37 +240,6 @@ export function useFeatureActions({
     setSelectedFeatureIds([]);
   }, [setFeatures, setSelectedFeatureIds, recordSnapshot]);
 
-  const subtractPolygons = useCallback((targetId: string, subtractorId: string) => {
-    const target = featuresRef.current!.find((f) => f.id === targetId) as PolygonFeature | undefined;
-    const subtractor = featuresRef.current!.find((f) => f.id === subtractorId) as PolygonFeature | undefined;
-    if (!target || !subtractor || target.type !== "polygon" || subtractor.type !== "polygon") {
-      toast.error("Subtract requires two polygons");
-      return;
-    }
-    if (target.geometry.type !== "Polygon" && target.geometry.type !== "MultiPolygon") return;
-    if (subtractor.geometry.type !== "Polygon" && subtractor.geometry.type !== "MultiPolygon") return;
-    const fc = featureCollection([
-      turfFeature(target.geometry),
-      turfFeature(subtractor.geometry),
-    ]);
-    const result = difference(fc);
-    if (!result) {
-      toast.error("Subtractor covers the target entirely");
-      return;
-    }
-    recordSnapshot();
-    setFeatures((prev) =>
-      prev
-        .filter((f) => f.id !== subtractorId)
-        .map((f) =>
-          f.id === targetId
-            ? ({ ...f, geometry: result.geometry, shapeOrigin: undefined } as FeatureData)
-            : f
-        )
-    );
-    setSelectedFeatureIds([targetId]);
-  }, [featuresRef, setFeatures, setSelectedFeatureIds, recordSnapshot]);
-
   const clearAllFeatures = useCallback(() => {
     recordSnapshot();
     setFeatures([]);
@@ -266,7 +263,6 @@ export function useFeatureActions({
     selectFeature, selectFeatures,
     addFeature, addBankFeature, updateFeature,
     duplicateFeature, addLabelToFeature, deleteFeature,
-    subtractPolygons,
     clearAllFeatures, reorderFeatures,
   };
 }

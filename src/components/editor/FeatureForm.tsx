@@ -182,59 +182,39 @@ function buildFeatureUpdate(
   }
 }
 
-function MultiSelectPanel() {
+function GroupForm() {
   const { selectedFeatureIds, features, groups } = useEditorData();
-  const { updateGroup, dissolveGroup, selectFeatures, subtractPolygons } = useEditorActions();
+  const { updateGroup, dissolveGroup, selectFeatures } = useEditorActions();
 
-  const selected = selectedFeatureIds.map((id) => features.find((f) => f.id === id)).filter((f): f is FeatureData => !!f);
-  const firstFeature = selected[0];
-  const group = firstFeature?.groupId ? groups.find((g) => g.id === firstFeature.groupId) ?? null : null;
-  const canSubtract = selected.length === 2 && selected.every((f) => f.type === "polygon");
-  if (!group && !canSubtract) return null;
+  const firstFeature = features.find((f) => f.id === selectedFeatureIds[0]);
+  const group = firstFeature?.groupId
+    ? groups.find((g) => g.id === firstFeature.groupId)
+    : null;
+  if (!group) return null;
 
   return (
     <div className="absolute left-3 top-16 right-3 z-20 bg-popover rounded-lg shadow-lg overflow-hidden md:left-16 md:top-3 md:right-auto md:w-72">
-      <PanelHeader title={group ? "Group" : "Selection"} onClose={() => selectFeatures([])} />
+      <PanelHeader title="Group" onClose={() => selectFeatures([])} />
       <div className="p-3 space-y-3">
-        {group && (
-          <>
-            <Field label="Group label">
-              <Input
-                type="text"
-                value={group.label}
-                onChange={(e) => updateGroup(group.id, { label: e.target.value })}
-                placeholder="e.g. Legend block"
-                maxLength={100}
-              />
-            </Field>
-            <div className="text-xs text-muted-foreground">
-              {selectedFeatureIds.length} features in group
-            </div>
-          </>
-        )}
-        {canSubtract && (
-          <div className="space-y-2">
-            <p className="text-xs text-muted-foreground">
-              Subtract the second polygon from the first to punch a hole.
-            </p>
-            <Button
-              variant="outline"
-              className="w-full"
-              onClick={() => subtractPolygons(selectedFeatureIds[0], selectedFeatureIds[1])}
-            >
-              Subtract
-            </Button>
-          </div>
-        )}
+        <Field label="Group label">
+          <Input
+            type="text"
+            value={group.label}
+            onChange={(e) => updateGroup(group.id, { label: e.target.value })}
+            placeholder="e.g. Legend block"
+            maxLength={100}
+          />
+        </Field>
+        <div className="text-xs text-muted-foreground">
+          {selectedFeatureIds.length} features in group
+        </div>
         <div className="flex gap-2 pt-1">
           <Button onClick={() => selectFeatures([])} className="flex-1">
             OK
           </Button>
-          {group && (
-            <Button variant="outline" onClick={() => dissolveGroup(group.id)}>
-              Ungroup
-            </Button>
-          )}
+          <Button variant="outline" onClick={() => dissolveGroup(group.id)}>
+            Ungroup
+          </Button>
         </div>
       </div>
     </div>
@@ -284,7 +264,7 @@ export default function FeatureForm() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedFeature?.id, selectedFeature?.type, updateFeature]);
 
-  if (selectedFeatureIds.length > 1) return <MultiSelectPanel />;
+  if (selectedFeatureIds.length > 1) return <GroupForm />;
   if (!selectedFeature) return null;
 
   const handleCancel = () => {
@@ -310,6 +290,9 @@ export default function FeatureForm() {
           )}
           {selectedFeature.type !== "text" && (
             <AddLabelButton featureId={selectedFeature.id} />
+          )}
+          {selectedFeature.type === "polygon" && (
+            <PunchHoleButton featureId={selectedFeature.id} />
           )}
         </div>
         <FormActions
@@ -990,6 +973,21 @@ function AddLabelButton({ featureId }: { featureId: string }) {
       onClick={() => addLabelToFeature(featureId)}
     >
       Add label on map
+    </Button>
+  );
+}
+
+function PunchHoleButton({ featureId }: { featureId: string }) {
+  const { startPunchHole } = useEditorActions();
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="w-full"
+      onClick={() => startPunchHole(featureId)}
+    >
+      Punch hole
     </Button>
   );
 }
