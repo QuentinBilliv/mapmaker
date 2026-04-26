@@ -61,7 +61,7 @@ export function useFeatureTooltip(
       }
 
       const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
-        ? `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" style="display:block;width:100%;max-height:140px;object-fit:cover;border-radius:4px;margin-bottom:4px" onerror="this.style.display='none'" />`
+        ? `<img class="idomap-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
         : "";
       const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
       const descHtml = description ? `<div style="margin-top:2px;opacity:0.85">${escapeHtml(description)}</div>` : "";
