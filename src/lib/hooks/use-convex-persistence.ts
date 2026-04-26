@@ -34,6 +34,7 @@ export function useConvexPersistence(mapId: string) {
   const pendingSaveRef = useRef<(() => Promise<void>) | null>(null);
   const lastSavedHashRef = useRef<string | null>(null);
   const lastMetadataHashRef = useRef<string | null>(null);
+  const lastFullMetadataHashRef = useRef<string | null>(null);
   const [saveError, setSaveError] = useState<string | null>(null);
   const savePausedRef = useRef(false);
   const [fileData, setFileData] = useState<MapFileData | null>(null);
@@ -83,7 +84,6 @@ export function useConvexPersistence(mapId: string) {
       const serializedChoropleth = serializeChoropleth(state.choropleth);
       const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth });
       const payloadHash = hashString(payload);
-      if (payloadHash === lastSavedHashRef.current) return;
       const metadata = {
         mapId: mapId as Id<"maps">,
         title: state.map.title,
@@ -96,6 +96,8 @@ export function useConvexPersistence(mapId: string) {
         zoomLocked: state.map.zoomLocked,
         panLocked: state.map.panLocked,
       };
+      const fullMetadataHash = hashString(JSON.stringify(metadata));
+      if (payloadHash === lastSavedHashRef.current && fullMetadataHash === lastFullMetadataHashRef.current) return;
       const metadataHash = hashString(`${state.map.title}|${state.map.description}`);
 
       const doSave = async () => {
@@ -119,6 +121,7 @@ export function useConvexPersistence(mapId: string) {
 
           await saveMapMutation({ ...metadata, dataFileId: storageId });
           lastSavedHashRef.current = payloadHash;
+          lastFullMetadataHashRef.current = fullMetadataHash;
           if (lastMetadataHashRef.current !== null && lastMetadataHashRef.current !== metadataHash) {
             void fetch("/api/revalidate-og", {
               method: "POST",
