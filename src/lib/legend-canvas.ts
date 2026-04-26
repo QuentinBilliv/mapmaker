@@ -268,7 +268,7 @@ const FONT_MAP: Record<string, string> = {
 };
 
 function drawText(ctx: CanvasRenderingContext2D, f: FeatureData & { type: "text" }, w: number, h: number) {
-  const fontSize = Math.min(h * 0.7, 24);
+  const fontSize = Math.max(8, Math.min(f.fontSize, h * 0.8));
   const font = FONT_MAP[f.fontFamily] ?? "sans-serif";
   const style = f.italic ? "italic" : "normal";
   const weight = f.bold ? "bold" : "normal";
