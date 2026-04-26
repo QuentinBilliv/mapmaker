@@ -6,7 +6,7 @@ const sharedCsp = [
   "default-src 'self'",
   `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""}`,
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
-  "img-src 'self' blob: data: https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://raw.githubusercontent.com https://*.tile.opentopomap.org https://*.convex.cloud https://tiles.openfreemap.org",
+  "img-src 'self' blob: data: https:",
   "font-src 'self' data: https://fonts.gstatic.com",
   "connect-src 'self' https://*.convex.cloud wss://*.convex.cloud https://*.convex.site https://www.geoboundaries.org https://raw.githubusercontent.com https://tile.openstreetmap.org https://*.tile.openstreetmap.org https://*.basemaps.cartocdn.com https://server.arcgisonline.com https://*.tile.opentopomap.org https://demotiles.maplibre.org https://nominatim.openstreetmap.org https://tiles.openfreemap.org",
   "worker-src 'self' blob:",
