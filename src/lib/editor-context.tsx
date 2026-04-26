@@ -89,6 +89,7 @@ interface EditorActions {
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   duplicateFeature: (id: string) => void;
+  subtractPolygons: (targetId: string, subtractorId: string) => void;
   addLabelToFeature: (id: string) => void;
   duplicateGroup: (groupId: string) => void;
   deleteGroup: (groupId: string) => void;
@@ -402,6 +403,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     selectFeature, selectFeatures,
     addFeature, addBankFeature, updateFeature,
     duplicateFeature, addLabelToFeature, deleteFeature,
+    subtractPolygons,
     clearAllFeatures, reorderFeatures,
   } = useFeatureActions({
     featuresRef, drawingRef, drawModeRef,
@@ -499,7 +501,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       selectFeature, selectFeatures,
       addFeature, addBankFeature, updateFeature,
       duplicateFeature, addLabelToFeature, duplicateGroup,
-      deleteFeature, deleteGroup, clearAllFeatures, reorderFeatures,
+      deleteFeature, deleteGroup, subtractPolygons, clearAllFeatures, reorderFeatures,
       createGroup, dissolveGroup, updateGroup,
       reorderItems, reorderGroupChildren,
       addFeatureToGroup, removeFeatureFromGroup,
@@ -527,7 +529,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       selectFeature, selectFeatures,
       addFeature, addBankFeature, updateFeature,
       duplicateFeature, addLabelToFeature, duplicateGroup,
-      deleteFeature, deleteGroup, clearAllFeatures, reorderFeatures,
+      deleteFeature, deleteGroup, subtractPolygons, clearAllFeatures, reorderFeatures,
       createGroup, dissolveGroup, updateGroup,
       reorderItems, reorderGroupChildren,
       addFeatureToGroup, removeFeatureFromGroup,

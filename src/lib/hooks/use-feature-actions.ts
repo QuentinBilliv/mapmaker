@@ -1,10 +1,13 @@
 import { useCallback } from "react";
 import { v4 as uuid } from "uuid";
+import toast from "react-hot-toast";
+import difference from "@turf/difference";
+import { featureCollection, feature as turfFeature } from "@turf/helpers";
 import type { DrawMode } from "../draw-engine";
 import { geometryTypeToFeatureType } from "../geojson";
 import { COLORS, DEFAULT_BORDER_WIDTH } from "../defaults";
 import { nextOrder, shiftGeometry } from "../geometry-transforms";
-import type { FeatureData, FeatureUpdate } from "../types";
+import type { FeatureData, FeatureUpdate, PolygonFeature } from "../types";
 import type { DrawingState } from "../drawing-state";
 
 const DUPLICATE_OFFSET_LNG = 0.005;
@@ -209,6 +212,37 @@ export function useFeatureActions({
     setSelectedFeatureIds([]);
   }, [setFeatures, setSelectedFeatureIds, recordSnapshot]);
 
+  const subtractPolygons = useCallback((targetId: string, subtractorId: string) => {
+    const target = featuresRef.current!.find((f) => f.id === targetId) as PolygonFeature | undefined;
+    const subtractor = featuresRef.current!.find((f) => f.id === subtractorId) as PolygonFeature | undefined;
+    if (!target || !subtractor || target.type !== "polygon" || subtractor.type !== "polygon") {
+      toast.error("Subtract requires two polygons");
+      return;
+    }
+    if (target.geometry.type !== "Polygon" && target.geometry.type !== "MultiPolygon") return;
+    if (subtractor.geometry.type !== "Polygon" && subtractor.geometry.type !== "MultiPolygon") return;
+    const fc = featureCollection([
+      turfFeature(target.geometry),
+      turfFeature(subtractor.geometry),
+    ]);
+    const result = difference(fc);
+    if (!result) {
+      toast.error("Subtractor covers the target entirely");
+      return;
+    }
+    recordSnapshot();
+    setFeatures((prev) =>
+      prev
+        .filter((f) => f.id !== subtractorId)
+        .map((f) =>
+          f.id === targetId
+            ? ({ ...f, geometry: result.geometry, shapeOrigin: undefined } as FeatureData)
+            : f
+        )
+    );
+    setSelectedFeatureIds([targetId]);
+  }, [featuresRef, setFeatures, setSelectedFeatureIds, recordSnapshot]);
+
   const clearAllFeatures = useCallback(() => {
     recordSnapshot();
     setFeatures([]);
@@ -232,6 +266,7 @@ export function useFeatureActions({
     selectFeature, selectFeatures,
     addFeature, addBankFeature, updateFeature,
     duplicateFeature, addLabelToFeature, deleteFeature,
+    subtractPolygons,
     clearAllFeatures, reorderFeatures,
   };
 }
