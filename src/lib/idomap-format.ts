@@ -26,6 +26,10 @@ const idomapProps = z
     "idomap:layerId": z.string().max(100),
     "idomap:label": z.string().max(MAX_LABEL).default(""),
     "idomap:description": z.string().max(MAX_STRING).default(""),
+    "idomap:imageUrl": z.string().url().max(2000).refine(
+      (v) => /^https?:\/\//i.test(v),
+      "Only http and https URLs are allowed"
+    ).optional(),
     "idomap:showInLegend": z.boolean().default(false),
     "idomap:color": colorSchema.default("#1a1a1a"),
     "idomap:opacity": z.number().min(0).max(1).default(1),
@@ -218,6 +222,7 @@ export function serialize(
         "idomap:description": f.description,
         "idomap:order": f.order,
       };
+      if (f.imageUrl) props["idomap:imageUrl"] = f.imageUrl;
       if (!hasEntry) {
         props["idomap:color"] = f.color;
         props["idomap:opacity"] = f.opacity;
@@ -325,6 +330,7 @@ export function deserialize(raw: string): DeserializedMap {
     const base = {
       label: p["idomap:label"],
       description: p["idomap:description"] ?? "",
+      imageUrl: p["idomap:imageUrl"],
       color: p["idomap:color"],
       opacity: p["idomap:opacity"],
       order: p["idomap:order"] ?? idx,

@@ -112,6 +112,7 @@ function featureToFormValues(f: FeatureData): FeatureFormValues {
     ...FORM_DEFAULTS,
     label: f.label,
     description: f.description ?? "",
+    imageUrl: f.imageUrl ?? "",
     color: f.color,
     opacity: f.opacity,
   };
@@ -134,6 +135,7 @@ function buildFeatureUpdate(
   const base: FeatureUpdate = {
     label: v.label,
     description: v.description ?? "",
+    imageUrl: v.imageUrl?.trim() ? v.imageUrl.trim() : undefined,
     color: v.color,
     opacity: v.opacity,
   };
@@ -364,6 +366,14 @@ function StyleFields() {
           placeholder="Visible on hover"
           className="resize-y"
           maxLength={500}
+        />
+      </Field>
+      <Field label="Image URL" error={errors.imageUrl?.message}>
+        <Input
+          type="url"
+          {...register("imageUrl")}
+          placeholder="https://example.com/photo.jpg"
+          maxLength={2000}
         />
       </Field>
       {!hasLegendEntry && (

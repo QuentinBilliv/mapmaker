@@ -36,12 +36,14 @@ export function useFeatureTooltip(
 
       let label = "";
       let description = "";
+      let imageUrl = "";
 
       if (featureLayers.length > 0) {
         const hits = map.queryRenderedFeatures(e.point, { layers: featureLayers });
         if (hits.length > 0) {
           label = hits[0].properties?.label || "";
           description = hits[0].properties?.description || "";
+          imageUrl = hits[0].properties?.imageUrl || "";
         }
       }
 
@@ -52,17 +54,20 @@ export function useFeatureTooltip(
           description = choroHits[0].properties?._tooltip_desc || "";
         }
       }
-      if (!label && !description) {
+      if (!label && !description && !imageUrl) {
         popup.remove();
         map.getCanvas().style.cursor = "";
         return;
       }
 
+      const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
+        ? `<img src="${escapeHtml(imageUrl)}" alt="" loading="lazy" style="display:block;width:100%;max-height:140px;object-fit:cover;border-radius:4px;margin-bottom:4px" onerror="this.style.display='none'" />`
+        : "";
       const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
       const descHtml = description ? `<div style="margin-top:2px;opacity:0.85">${escapeHtml(description)}</div>` : "";
       popup
         .setLngLat(e.lngLat)
-        .setHTML(`${labelHtml}${descHtml}`)
+        .setHTML(`${imgHtml}${labelHtml}${descHtml}`)
         .addTo(map);
     };
 

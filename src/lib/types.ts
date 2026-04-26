@@ -173,6 +173,7 @@ interface FeatureBase {
   id: string;
   label: string;
   description: string;
+  imageUrl?: string;
   color: string;
   opacity: number;
   order: number;

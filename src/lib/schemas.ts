@@ -19,6 +19,13 @@ const TEXT_FONT_VALUES = ["sans", "serif", "mono"] as const;
 export const featureSchema = z.object({
   label: z.string().max(100, "Label is too long"),
   description: z.string().max(500, "Description is too long").optional(),
+  imageUrl: z
+    .string()
+    .max(2000, "URL is too long")
+    .url("Must be a valid URL")
+    .refine((v) => /^https?:\/\//i.test(v), "Only http and https URLs are allowed")
+    .or(z.literal(""))
+    .optional(),
   color: hexColor,
   opacity: z.number().min(0).max(1),
   size: z.number().min(0.5).max(3),
