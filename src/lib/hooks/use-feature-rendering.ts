@@ -446,6 +446,7 @@ function buildGeoJSONSorted(
             id: f.id,
             label: "",
             description: f.description ?? "",
+            imageUrl: f.imageUrl ?? "",
             color: f.color,
             opacity: f.opacity,
             order: f.order,
