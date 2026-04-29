@@ -20,56 +20,56 @@ const layerSchema = z.object({
   order: z.number().int().min(0).max(1000),
 });
 
-const idomapProps = z
+const idomapsProps = z
   .object({
-    "idomap:type": z.enum(["polygon", "polyline", "point", "text"]),
-    "idomap:layerId": z.string().max(100),
-    "idomap:label": z.string().max(MAX_LABEL).default(""),
-    "idomap:description": z.string().max(MAX_STRING).default(""),
-    "idomap:imageUrl": z.string().url().max(500).refine(
+    "idomaps:type": z.enum(["polygon", "polyline", "point", "text"]),
+    "idomaps:layerId": z.string().max(100),
+    "idomaps:label": z.string().max(MAX_LABEL).default(""),
+    "idomaps:description": z.string().max(MAX_STRING).default(""),
+    "idomaps:imageUrl": z.string().url().max(500).refine(
       (v) => /^https?:\/\//i.test(v),
       "Only http and https URLs are allowed"
     ).optional(),
-    "idomap:showInLegend": z.boolean().default(false),
-    "idomap:color": colorSchema.default("#1a1a1a"),
-    "idomap:opacity": z.number().min(0).max(1).default(1),
-    "idomap:size": z.number().min(0.1).max(20).optional(),
-    "idomap:shape": z
+    "idomaps:showInLegend": z.boolean().default(false),
+    "idomaps:color": colorSchema.default("#1a1a1a"),
+    "idomaps:opacity": z.number().min(0).max(1).default(1),
+    "idomaps:size": z.number().min(0.1).max(20).optional(),
+    "idomaps:shape": z
       .enum(["circle", "triangle", "square", "diamond", "star", "cross", "pentagon", "hexagon"])
       .optional(),
-    "idomap:icon": z.string().max(200).optional(),
-    "idomap:customSvg": z.string().max(MAX_SVG).optional(),
-    "idomap:borderColor": colorSchema.optional(),
-    "idomap:borderWidth": z.number().min(0).max(50).optional(),
-    "idomap:smoothing": z.number().min(0).max(1).default(0),
-    "idomap:strokeWidth": z.number().min(0).max(50).default(3),
-    "idomap:lineStyle": z
+    "idomaps:icon": z.string().max(200).optional(),
+    "idomaps:customSvg": z.string().max(MAX_SVG).optional(),
+    "idomaps:borderColor": colorSchema.optional(),
+    "idomaps:borderWidth": z.number().min(0).max(50).optional(),
+    "idomaps:smoothing": z.number().min(0).max(1).default(0),
+    "idomaps:strokeWidth": z.number().min(0).max(50).default(3),
+    "idomaps:lineStyle": z
       .enum(["solid", "dotted", "dash-short", "dash-medium", "dash-long"])
       .default("solid"),
-    "idomap:arrowStyle": z.enum(["none", "forward", "both"]).default("none"),
-    "idomap:lineDecoration": z
+    "idomaps:arrowStyle": z.enum(["none", "forward", "both"]).default("none"),
+    "idomaps:lineDecoration": z
       .enum(["none", "crosses", "crosses-free", "ticks", "triangles-up", "triangles-down", "arrows-down", "arrows-up", "railway"])
       .default("none"),
-    "idomap:decorationSpacing": z.number().min(5).max(200).default(50),
-    "idomap:fillPattern": z
+    "idomaps:decorationSpacing": z.number().min(5).max(200).default(50),
+    "idomaps:fillPattern": z
       .enum(["none", "stripes-diagonal", "stripes-horizontal", "stripes-vertical", "crosshatch", "dots"])
       .default("none"),
-    "idomap:rotation": z.number().optional(),
-    "idomap:shapeOrigin": z.enum(["rectangle", "circle"]).optional(),
-    "idomap:textContent": z.string().max(MAX_LABEL).optional(),
-    "idomap:fontSize": z.number().min(8).max(72).optional(),
-    "idomap:fontFamily": z.enum(["sans", "serif", "mono"]).optional(),
-    "idomap:bold": z.boolean().optional(),
-    "idomap:italic": z.boolean().optional(),
-    "idomap:textBorderEnabled": z.boolean().optional(),
-    "idomap:textBorderColor": colorSchema.optional(),
-    "idomap:textBorderWidth": z.number().min(0).max(5).optional(),
-    "idomap:order": z.number().int().min(0).max(100_000).optional(),
-    "idomap:groupId": z.string().max(100).optional(),
-    "idomap:legendEntryId": z.string().max(100).optional(),
-    "idomap:choroplethCategoryId": z.string().max(100).optional(),
-    "idomap:sourceText": z.string().max(MAX_STRING).default(""),
-    "idomap:sourceUrl": z.string().url().max(MAX_STRING).refine(
+    "idomaps:rotation": z.number().optional(),
+    "idomaps:shapeOrigin": z.enum(["rectangle", "circle"]).optional(),
+    "idomaps:textContent": z.string().max(MAX_LABEL).optional(),
+    "idomaps:fontSize": z.number().min(8).max(72).optional(),
+    "idomaps:fontFamily": z.enum(["sans", "serif", "mono"]).optional(),
+    "idomaps:bold": z.boolean().optional(),
+    "idomaps:italic": z.boolean().optional(),
+    "idomaps:textBorderEnabled": z.boolean().optional(),
+    "idomaps:textBorderColor": colorSchema.optional(),
+    "idomaps:textBorderWidth": z.number().min(0).max(5).optional(),
+    "idomaps:order": z.number().int().min(0).max(100_000).optional(),
+    "idomaps:groupId": z.string().max(100).optional(),
+    "idomaps:legendEntryId": z.string().max(100).optional(),
+    "idomaps:choroplethCategoryId": z.string().max(100).optional(),
+    "idomaps:sourceText": z.string().max(MAX_STRING).default(""),
+    "idomaps:sourceUrl": z.string().url().max(MAX_STRING).refine(
       (v) => /^https?:\/\//i.test(v),
       "Only http and https URLs are allowed"
     ).optional(),
@@ -90,7 +90,7 @@ export const geometrySchema = z.discriminatedUnion("type", [
 const featureSchema = z.object({
   type: z.literal("Feature"),
   geometry: geometrySchema,
-  properties: idomapProps,
+  properties: idomapsProps,
 });
 
 const groupSchema = z.object({
@@ -128,7 +128,7 @@ const legendEntrySchema = z.object({
   textBorderWidth: z.number().min(0).max(5).optional(),
 });
 
-const idomapMeta = z.object({
+const idomapsMeta = z.object({
   version: z.literal(1),
   map: z.object({
     title: z.string().max(500).default("New map"),
@@ -170,7 +170,7 @@ const idomapMeta = z.object({
 
 const documentSchema = z.object({
   type: z.literal("FeatureCollection"),
-  idomap: idomapMeta,
+  idomaps: idomapsMeta,
   features: z.array(featureSchema).max(10_000),
 });
 
@@ -185,7 +185,7 @@ export function serialize(
 ): string {
   const doc = {
     type: "FeatureCollection" as const,
-    idomap: {
+    idomaps: {
       version: 1 as const,
       map: {
         title: map.title,
@@ -216,55 +216,55 @@ export function serialize(
     features: features.map((f) => {
       const hasEntry = !!f.legendEntryId;
       const props: Record<string, unknown> = {
-        "idomap:type": f.type,
-        "idomap:layerId": "default",
-        "idomap:label": f.label,
-        "idomap:description": f.description,
-        "idomap:order": f.order,
+        "idomaps:type": f.type,
+        "idomaps:layerId": "default",
+        "idomaps:label": f.label,
+        "idomaps:description": f.description,
+        "idomaps:order": f.order,
       };
-      if (f.imageUrl) props["idomap:imageUrl"] = f.imageUrl;
+      if (f.imageUrl) props["idomaps:imageUrl"] = f.imageUrl;
       if (!hasEntry) {
-        props["idomap:color"] = f.color;
-        props["idomap:opacity"] = f.opacity;
+        props["idomaps:color"] = f.color;
+        props["idomaps:opacity"] = f.opacity;
       }
-      if (f.rotation !== undefined) props["idomap:rotation"] = f.rotation;
-      if (f.groupId) props["idomap:groupId"] = f.groupId;
-      if (f.legendEntryId) props["idomap:legendEntryId"] = f.legendEntryId;
-      if (f.choroplethCategoryId) props["idomap:choroplethCategoryId"] = f.choroplethCategoryId;
-      if (f.type === "text") props["idomap:textContent"] = f.textContent;
+      if (f.rotation !== undefined) props["idomaps:rotation"] = f.rotation;
+      if (f.groupId) props["idomaps:groupId"] = f.groupId;
+      if (f.legendEntryId) props["idomaps:legendEntryId"] = f.legendEntryId;
+      if (f.choroplethCategoryId) props["idomaps:choroplethCategoryId"] = f.choroplethCategoryId;
+      if (f.type === "text") props["idomaps:textContent"] = f.textContent;
       if (!hasEntry) switch (f.type) {
         case "polygon":
-          props["idomap:smoothing"] = f.smoothing;
-          props["idomap:strokeWidth"] = f.strokeWidth;
-          props["idomap:lineStyle"] = f.lineStyle;
-          props["idomap:lineDecoration"] = f.lineDecoration;
-          props["idomap:decorationSpacing"] = f.decorationSpacing;
-          props["idomap:fillPattern"] = f.fillPattern;
-          if (f.shapeOrigin) props["idomap:shapeOrigin"] = f.shapeOrigin;
+          props["idomaps:smoothing"] = f.smoothing;
+          props["idomaps:strokeWidth"] = f.strokeWidth;
+          props["idomaps:lineStyle"] = f.lineStyle;
+          props["idomaps:lineDecoration"] = f.lineDecoration;
+          props["idomaps:decorationSpacing"] = f.decorationSpacing;
+          props["idomaps:fillPattern"] = f.fillPattern;
+          if (f.shapeOrigin) props["idomaps:shapeOrigin"] = f.shapeOrigin;
           break;
         case "polyline":
-          props["idomap:smoothing"] = f.smoothing;
-          props["idomap:strokeWidth"] = f.strokeWidth;
-          props["idomap:lineStyle"] = f.lineStyle;
-          props["idomap:arrowStyle"] = f.arrowStyle;
-          props["idomap:lineDecoration"] = f.lineDecoration;
-          props["idomap:decorationSpacing"] = f.decorationSpacing;
+          props["idomaps:smoothing"] = f.smoothing;
+          props["idomaps:strokeWidth"] = f.strokeWidth;
+          props["idomaps:lineStyle"] = f.lineStyle;
+          props["idomaps:arrowStyle"] = f.arrowStyle;
+          props["idomaps:lineDecoration"] = f.lineDecoration;
+          props["idomaps:decorationSpacing"] = f.decorationSpacing;
           break;
         case "point":
-          props["idomap:size"] = f.size;
-          if (f.shape) props["idomap:shape"] = f.shape;
-          if (f.customSvg) props["idomap:customSvg"] = f.customSvg;
-          props["idomap:borderColor"] = f.borderColor;
-          props["idomap:borderWidth"] = f.borderWidth;
+          props["idomaps:size"] = f.size;
+          if (f.shape) props["idomaps:shape"] = f.shape;
+          if (f.customSvg) props["idomaps:customSvg"] = f.customSvg;
+          props["idomaps:borderColor"] = f.borderColor;
+          props["idomaps:borderWidth"] = f.borderWidth;
           break;
         case "text":
-          props["idomap:fontSize"] = f.fontSize;
-          props["idomap:fontFamily"] = f.fontFamily;
-          if (f.bold) props["idomap:bold"] = f.bold;
-          if (f.italic) props["idomap:italic"] = f.italic;
-          props["idomap:textBorderEnabled"] = f.textBorderEnabled;
-          props["idomap:textBorderColor"] = f.textBorderColor;
-          props["idomap:textBorderWidth"] = f.textBorderWidth;
+          props["idomaps:fontSize"] = f.fontSize;
+          props["idomaps:fontFamily"] = f.fontFamily;
+          if (f.bold) props["idomaps:bold"] = f.bold;
+          if (f.italic) props["idomaps:italic"] = f.italic;
+          props["idomaps:textBorderEnabled"] = f.textBorderEnabled;
+          props["idomaps:textBorderColor"] = f.textBorderColor;
+          props["idomaps:textBorderWidth"] = f.textBorderWidth;
           break;
       }
       return { type: "Feature" as const, geometry: f.geometry, properties: props };
@@ -302,14 +302,14 @@ export function deserialize(raw: string): DeserializedMap {
 
   const result = documentSchema.parse(parsed);
 
-  const knownBaseMap = findBaseMap(result.idomap.baseMap);
+  const knownBaseMap = findBaseMap(result.idomaps.baseMap);
 
   const pendingIconMigrations: { featureIndex: number; iconId: string }[] = [];
   let droppedFeatureCount = 0;
 
   const features: FeatureWithoutId[] = result.features.flatMap((f, idx): FeatureWithoutId[] => {
     const p = f.properties;
-    const declaredType = p["idomap:type"];
+    const declaredType = p["idomaps:type"];
     const geoType = geometryTypeToFeatureType(f.geometry.type);
     const typeMatches = declaredType === "text" ? geoType === "point" : geoType === declaredType;
     if (!typeMatches) {
@@ -317,7 +317,7 @@ export function deserialize(raw: string): DeserializedMap {
       return [];
     }
 
-    let customSvg = p["idomap:customSvg"];
+    let customSvg = p["idomaps:customSvg"];
     if (customSvg) {
       try {
         customSvg = sanitizeSvg(customSvg);
@@ -328,34 +328,34 @@ export function deserialize(raw: string): DeserializedMap {
     }
 
     const base = {
-      label: p["idomap:label"],
-      description: p["idomap:description"] ?? "",
-      imageUrl: p["idomap:imageUrl"],
-      color: p["idomap:color"],
-      opacity: p["idomap:opacity"],
-      order: p["idomap:order"] ?? idx,
-      rotation: p["idomap:rotation"],
-      groupId: p["idomap:groupId"],
-      legendEntryId: p["idomap:legendEntryId"],
-      choroplethCategoryId: p["idomap:choroplethCategoryId"],
+      label: p["idomaps:label"],
+      description: p["idomaps:description"] ?? "",
+      imageUrl: p["idomaps:imageUrl"],
+      color: p["idomaps:color"],
+      opacity: p["idomaps:opacity"],
+      order: p["idomaps:order"] ?? idx,
+      rotation: p["idomaps:rotation"],
+      groupId: p["idomaps:groupId"],
+      legendEntryId: p["idomaps:legendEntryId"],
+      choroplethCategoryId: p["idomaps:choroplethCategoryId"],
       geometry: f.geometry,
     };
     switch (declaredType) {
       case "polygon":
-        return [{ ...base, type: "polygon" as const, shapeOrigin: p["idomap:shapeOrigin"], smoothing: p["idomap:smoothing"], strokeWidth: p["idomap:strokeWidth"], lineStyle: p["idomap:lineStyle"], lineDecoration: p["idomap:lineDecoration"], decorationSpacing: p["idomap:decorationSpacing"], fillPattern: p["idomap:fillPattern"] }];
+        return [{ ...base, type: "polygon" as const, shapeOrigin: p["idomaps:shapeOrigin"], smoothing: p["idomaps:smoothing"], strokeWidth: p["idomaps:strokeWidth"], lineStyle: p["idomaps:lineStyle"], lineDecoration: p["idomaps:lineDecoration"], decorationSpacing: p["idomaps:decorationSpacing"], fillPattern: p["idomaps:fillPattern"] }];
       case "polyline":
-        return [{ ...base, type: "polyline" as const, smoothing: p["idomap:smoothing"], strokeWidth: p["idomap:strokeWidth"], lineStyle: p["idomap:lineStyle"], arrowStyle: p["idomap:arrowStyle"], lineDecoration: p["idomap:lineDecoration"], decorationSpacing: p["idomap:decorationSpacing"] }];
+        return [{ ...base, type: "polyline" as const, smoothing: p["idomaps:smoothing"], strokeWidth: p["idomaps:strokeWidth"], lineStyle: p["idomaps:lineStyle"], arrowStyle: p["idomaps:arrowStyle"], lineDecoration: p["idomaps:lineDecoration"], decorationSpacing: p["idomaps:decorationSpacing"] }];
       case "point": {
-        const legacyIcon: string | undefined = !customSvg ? p["idomap:icon"] : undefined;
+        const legacyIcon: string | undefined = !customSvg ? p["idomaps:icon"] : undefined;
         if (legacyIcon) pendingIconMigrations.push({ featureIndex: idx, iconId: legacyIcon });
-        return [{ ...base, type: "point" as const, size: p["idomap:size"] ?? 1, shape: p["idomap:shape"], customSvg, borderColor: p["idomap:borderColor"] ?? "#ffffff", borderWidth: p["idomap:borderWidth"] ?? 0 }];
+        return [{ ...base, type: "point" as const, size: p["idomaps:size"] ?? 1, shape: p["idomaps:shape"], customSvg, borderColor: p["idomaps:borderColor"] ?? "#ffffff", borderWidth: p["idomaps:borderWidth"] ?? 0 }];
       }
       case "text":
-        return [{ ...base, type: "text" as const, textContent: p["idomap:textContent"] ?? "", fontSize: p["idomap:fontSize"] ?? 24, fontFamily: p["idomap:fontFamily"] ?? "sans", bold: p["idomap:bold"] ?? false, italic: p["idomap:italic"] ?? false, textBorderEnabled: p["idomap:textBorderEnabled"] ?? true, textBorderColor: p["idomap:textBorderColor"] ?? "#ffffff", textBorderWidth: p["idomap:textBorderWidth"] ?? 2 }];
+        return [{ ...base, type: "text" as const, textContent: p["idomaps:textContent"] ?? "", fontSize: p["idomaps:fontSize"] ?? 24, fontFamily: p["idomaps:fontFamily"] ?? "sans", bold: p["idomaps:bold"] ?? false, italic: p["idomaps:italic"] ?? false, textBorderEnabled: p["idomaps:textBorderEnabled"] ?? true, textBorderColor: p["idomaps:textBorderColor"] ?? "#ffffff", textBorderWidth: p["idomaps:textBorderWidth"] ?? 2 }];
     }
   });
 
-  const rawChoropleth = result.idomap.choropleth;
+  const rawChoropleth = result.idomaps.choropleth;
   let choropleth: ChoroplethData;
   const tileLayer = (rawChoropleth.tileLayer ?? "countries") as ChoroplethData["tileLayer"];
   if (rawChoropleth.categories && rawChoropleth.categories.length > 0) {
@@ -403,20 +403,20 @@ export function deserialize(raw: string): DeserializedMap {
 
   return {
     map: {
-      title: result.idomap.map.title,
-      description: result.idomap.map.description,
-      tags: result.idomap.map.tags,
-      center: result.idomap.map.center,
-      zoom: result.idomap.map.zoom,
-      zoomLocked: result.idomap.map.zoomLocked,
-      panLocked: result.idomap.map.panLocked,
+      title: result.idomaps.map.title,
+      description: result.idomaps.map.description,
+      tags: result.idomaps.map.tags,
+      center: result.idomaps.map.center,
+      zoom: result.idomaps.map.zoom,
+      zoomLocked: result.idomaps.map.zoomLocked,
+      panLocked: result.idomaps.map.panLocked,
     },
     baseMapId: knownBaseMap.id,
-    styleOptions: result.idomap.styleOptions ?? undefined,
+    styleOptions: result.idomaps.styleOptions ?? undefined,
     choropleth,
     features,
-    groups: result.idomap.groups,
-    legendEntries: (result.idomap.legendEntries ?? []) as LegendEntry[],
+    groups: result.idomaps.groups,
+    legendEntries: (result.idomaps.legendEntries ?? []) as LegendEntry[],
     pendingIconMigrations,
     droppedFeatureCount,
   };

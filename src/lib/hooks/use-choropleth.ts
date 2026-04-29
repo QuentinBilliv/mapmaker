@@ -32,7 +32,7 @@ export function useChoropleth(
     if (!id || !name) return;
     e.preventDefault();
     if (choro.mode === "gradient") {
-      window.dispatchEvent(new CustomEvent("idomap:country-clicked", { detail: { iso: id, name } }));
+      window.dispatchEvent(new CustomEvent("idomaps:country-clicked", { detail: { iso: id, name } }));
       return;
     }
     if (!choro.activeCategoryId) return;

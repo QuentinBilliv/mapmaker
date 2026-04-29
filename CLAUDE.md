@@ -1,4 +1,4 @@
-# idomap — Conventions
+# idomaps — Conventions
 
 ## Code style
 
@@ -25,6 +25,6 @@
 
 - Editor runs entirely client-side
 - GeoJSON format must stay clean and exportable independently of the platform
-- The `.idomap` export format (`idomap-format.ts`) must always serialize every field from `FeatureData`. When adding a new property to features, update both the export and import in `idomap-format.ts` so no data is lost on round-trip.
+- The `.idomaps` export format (`idomaps-format.ts`) must always serialize every field from `FeatureData`. When adding a new property to features, update both the export and import in `idomaps-format.ts` so no data is lost on round-trip.
 - UI is functional over pretty — editor ergonomics matter most
 - All user-facing text (labels, placeholders, tooltips) must be in English

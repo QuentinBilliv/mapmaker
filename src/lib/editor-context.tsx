@@ -32,7 +32,7 @@ import type {
   ChoroplethData,
 } from "./types";
 import { DEFAULT_CHOROPLETH } from "./types";
-import type { DeserializedMap } from "./idomap-format";
+import type { DeserializedMap } from "./idomaps-format";
 import { computeFeaturesBounds } from "./geojson";
 import { type DrawingState, type DrawingPayload, INITIAL_DRAWING_STATE, drawingReducer } from "./drawing-state";
 import { useUndoRedo } from "./hooks/use-undo-redo";
@@ -468,7 +468,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setSelectedFeatureIds([]);
     const bounds = computeFeaturesBounds(importedFeatures);
     if (bounds) {
-      setTimeout(() => window.dispatchEvent(new CustomEvent("idomap:fitbounds", { detail: { bounds } })), 100);
+      setTimeout(() => window.dispatchEvent(new CustomEvent("idomaps:fitbounds", { detail: { bounds } })), 100);
     }
   }, [recordSnapshot, featureLimit]);
 

@@ -220,7 +220,7 @@ function EmbedMapView({
         rel="noopener noreferrer"
         className="absolute bottom-2 right-2 z-10 px-2 py-1 rounded bg-white/80 backdrop-blur-sm border border-black/10 text-[10px] text-black/60 hover:text-black transition-colors no-underline"
       >
-        Open in idomap
+        Open in idomaps
       </a>
     </div>
   );

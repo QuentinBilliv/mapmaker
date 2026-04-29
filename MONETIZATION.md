@@ -2,7 +2,7 @@
 
 ## Positioning
 
-idomap sits between geojson.io (too basic) and Felt (too expensive/enterprise). The target is individuals, students, teachers, bloggers, and hobbyists who want to make thematic maps without coding or paying $200/month.
+idomaps sits between geojson.io (too basic) and Felt (too expensive/enterprise). The target is individuals, students, teachers, bloggers, and hobbyists who want to make thematic maps without coding or paying $200/month.
 
 No direct competitor at this price point for this use case.
 
@@ -14,7 +14,7 @@ Current infrastructure costs at moderate traffic (~100-500 active users):
 |---|---|---|
 | Convex | Free (Database 512MB, File Storage 20GB, Bandwidth 1GB) | 0€ |
 | Vercel | Free (100GB bandwidth, serverless) | 0€ |
-| Domain | idomap.com (annual) | ~12€/year (~1€/month) |
+| Domain | idomaps.com (annual) | ~12€/year (~1€/month) |
 | **Total** | | **~1€/month** |
 
 Scaling thresholds:
@@ -82,7 +82,7 @@ It would take ~80 maxed-out paid users to fill the 20 GB free File Storage quota
 | Features per map | 150 | 10,000 | 10,000 |
 | Base maps | OSM, Voyager, Light | All 7 | All 7 |
 | Visibility | All (public, unlisted, private) | All | All |
-| Export | `.idomap` only | `.idomap` + GeoJSON | All |
+| Export | `.idomaps` only | `.idomaps` + GeoJSON | All |
 | Point shapes | All 8 | All 8 | All 8 |
 | Fill patterns | Solid, Stripes diagonal | All | All |
 | Line styles | Solid, Dash | All | All |

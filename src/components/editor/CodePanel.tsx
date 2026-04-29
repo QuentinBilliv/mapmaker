@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
-import { serialize, deserialize, migrateIconsToSvg, geometrySchema } from "@/lib/idomap-format";
+import { serialize, deserialize, migrateIconsToSvg, geometrySchema } from "@/lib/idomaps-format";
 import { geometryTypeToFeatureType } from "@/lib/geojson";
 
 const MAX_IMPORT_SIZE = 5_000_000;
@@ -18,14 +18,14 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import toast from "react-hot-toast";
 
-type Mode = "idomap" | "geojson";
+type Mode = "idomaps" | "geojson";
 
 export default function CodePanel({ onClose }: { onClose: () => void }) {
   const { map, features, groups, legendEntries, choropleth, featureLimit } = useEditorData();
   const { activeBaseMap, styleOptions } = useDrawingState();
   const { importMapData, addBankFeature } = useEditorActions();
 
-  const [mode, setMode] = useState<Mode>("idomap");
+  const [mode, setMode] = useState<Mode>("idomaps");
   const [value, setValue] = useState("");
   const [geoValue, setGeoValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -39,7 +39,7 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       return;
     }
     setValue(serialize(map, features, activeBaseMap.id, groups, legendEntries, choropleth, styleOptions));
-    if (mode === "idomap") setError(null);
+    if (mode === "idomaps") setError(null);
   }, [map, features, groups, legendEntries, activeBaseMap, styleOptions, mode]);
 
   const handleIdomapChange = useCallback(
@@ -138,10 +138,10 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
   return (
     <div className="h-full flex flex-col">
       <PanelHeader
-        title={mode === "idomap" ? "idomap JSON" : "Import GeoJSON"}
+        title={mode === "idomaps" ? "idomaps JSON" : "Import GeoJSON"}
         onClose={onClose}
         action={
-          mode === "idomap" ? (
+          mode === "idomaps" ? (
             <Button variant="ghost" size="sm" className="text-xs h-6" onClick={handleCopy}>
               {copied ? "Copied" : "Copy"}
             </Button>
@@ -150,10 +150,10 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
       />
       <div className="flex border-b">
         <button
-          className={`flex-1 text-xs py-1.5 ${mode === "idomap" ? "bg-background font-medium" : "bg-muted text-muted-foreground"}`}
-          onClick={() => switchMode("idomap")}
+          className={`flex-1 text-xs py-1.5 ${mode === "idomaps" ? "bg-background font-medium" : "bg-muted text-muted-foreground"}`}
+          onClick={() => switchMode("idomaps")}
         >
-          idomap
+          idomaps
         </button>
         <button
           className={`flex-1 text-xs py-1.5 ${mode === "geojson" ? "bg-background font-medium" : "bg-muted text-muted-foreground"}`}
@@ -162,7 +162,7 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
           Import GeoJSON
         </button>
       </div>
-      {mode === "idomap" ? (
+      {mode === "idomaps" ? (
         <div className="flex-1 relative">
           <Textarea
             className="absolute inset-0 w-full h-full resize-none rounded-none border-0 shadow-none text-xs font-mono p-3 focus-visible:ring-0"

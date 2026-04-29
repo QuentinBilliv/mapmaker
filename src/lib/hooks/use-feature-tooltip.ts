@@ -19,7 +19,7 @@ export function useFeatureTooltip(
     const popup = new maplibregl.Popup({
       closeButton: false,
       closeOnClick: false,
-      className: "idomap-tooltip",
+      className: "idomaps-tooltip",
       maxWidth: "260px",
     });
     popupRef.current = popup;
@@ -61,7 +61,7 @@ export function useFeatureTooltip(
       }
 
       const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
-        ? `<img class="idomap-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
+        ? `<img class="idomaps-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
         : "";
       const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
       const descHtml = description ? `<div style="margin-top:2px;opacity:0.85">${escapeHtml(description)}</div>` : "";

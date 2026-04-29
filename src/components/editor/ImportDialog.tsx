@@ -36,7 +36,7 @@ export default function ImportDialog({
   };
 
   const submit = (raw: string, fileName: string) => {
-    const isIdomap = fileName.endsWith(".idomap");
+    const isIdomap = fileName.endsWith(".idomaps");
 
     if (isIdomap) {
       onImport(raw, true, "replace");
@@ -94,9 +94,9 @@ export default function ImportDialog({
         ) : (
           <>
             <FileDropZone
-              accept=".idomap,.geojson,.json"
+              accept=".idomaps,.geojson,.json"
               maxSizeKB={5000}
-              label="Drop a .idomap or .geojson file"
+              label="Drop a .idomaps or .geojson file"
               onFile={(content, fileName) => submit(content, fileName ?? "import.geojson")}
               onError={setError}
             />

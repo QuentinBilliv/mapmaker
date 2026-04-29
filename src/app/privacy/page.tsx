@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 export const metadata: Metadata = {
-  title: "Privacy Policy - idomap",
+  title: "Privacy Policy - idomaps",
 };
 
 export default function PrivacyPage() {
@@ -10,14 +10,14 @@ export default function PrivacyPage() {
     <div className="flex-1 overflow-y-auto bg-background">
       <div className="max-w-2xl mx-auto px-6 py-16">
         <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-          &larr; Back to idomap
+          &larr; Back to idomaps
         </Link>
         <h1 className="text-2xl font-bold mt-6 mb-8">Privacy Policy</h1>
         <div className="prose prose-sm dark:prose-invert space-y-6 text-sm text-muted-foreground leading-relaxed">
           <p>Last updated: April 18, 2026</p>
 
           <Section title="1. Data controller">
-            idomap is operated by Quentin Roudier, based in France. For any questions regarding your personal data, you can contact us at: <strong>contact@idomap.com</strong>
+            idomaps is operated by Quentin Roudier, based in France. For any questions regarding your personal data, you can contact us at: <strong>contact@idomaps.com</strong>
           </Section>
 
           <Section title="2. Data we collect">
@@ -34,7 +34,7 @@ export default function PrivacyPage() {
               <li><strong>Map data</strong>: to provide the core functionality of the Service (saving, editing, publishing maps).</li>
               <li><strong>Technical data</strong>: for security, abuse prevention, and debugging purposes.</li>
             </ul>
-            <p className="mt-2">Legal basis (GDPR Article 6): legitimate interest for the operation of the Service and performance of the contract you accept by using idomap.</p>
+            <p className="mt-2">Legal basis (GDPR Article 6): legitimate interest for the operation of the Service and performance of the contract you accept by using idomaps.</p>
           </Section>
 
           <Section title="4. Data sharing">
@@ -62,7 +62,7 @@ export default function PrivacyPage() {
               <li><strong>Access</strong> your personal data</li>
               <li><strong>Rectify</strong> inaccurate data</li>
               <li><strong>Delete</strong> your account and associated data</li>
-              <li><strong>Export</strong> your data (you can export your maps in .idomap format at any time)</li>
+              <li><strong>Export</strong> your data (you can export your maps in .idomaps format at any time)</li>
               <li><strong>Object</strong> to processing based on legitimate interest</li>
               <li><strong>Lodge a complaint</strong> with the CNIL (Commission Nationale de l&apos;Informatique et des Libertes) or your local data protection authority</li>
             </ul>
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
               <li><strong>Opt out</strong> of the sale of personal information — we do not sell your data</li>
               <li><strong>Non-discrimination</strong> for exercising your privacy rights</li>
             </ul>
-            <p className="mt-4">To exercise any of these rights, contact us at <strong>contact@idomap.com</strong>. We will respond within 30 days (GDPR) or 45 days (CCPA).</p>
+            <p className="mt-4">To exercise any of these rights, contact us at <strong>contact@idomaps.com</strong>. We will respond within 30 days (GDPR) or 45 days (CCPA).</p>
           </Section>
 
           <Section title="7. International data transfers">
@@ -82,11 +82,11 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="8. Cookies">
-            idomap uses only essential cookies required for authentication and session management. We do not use tracking cookies, advertising cookies, or analytics cookies. No cookie consent banner is required as we only use strictly necessary cookies.
+            idomaps uses only essential cookies required for authentication and session management. We do not use tracking cookies, advertising cookies, or analytics cookies. No cookie consent banner is required as we only use strictly necessary cookies.
           </Section>
 
           <Section title="9. Children">
-            idomap is not directed at children under 16 (or under 13 in the United States). We do not knowingly collect personal data from children. If you believe we have collected data from a child, please contact us and we will delete it promptly.
+            idomaps is not directed at children under 16 (or under 13 in the United States). We do not knowingly collect personal data from children. If you believe we have collected data from a child, please contact us and we will delete it promptly.
           </Section>
 
           <Section title="10. Changes to this policy">
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="11. Contact">
-            For any questions about this Privacy Policy or to exercise your rights, contact us at: <strong>contact@idomap.com</strong>
+            For any questions about this Privacy Policy or to exercise your rights, contact us at: <strong>contact@idomaps.com</strong>
           </Section>
         </div>
       </div>

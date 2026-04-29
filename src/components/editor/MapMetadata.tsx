@@ -125,7 +125,7 @@ function ViewControl({
           variant={isAuto ? "outline" : "default"}
           size="sm"
           className="flex-1 text-xs"
-          onClick={() => window.dispatchEvent(new Event("idomap:save-view"))}
+          onClick={() => window.dispatchEvent(new Event("idomaps:save-view"))}
         >
           Save current view
         </Button>

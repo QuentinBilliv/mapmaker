@@ -2,7 +2,7 @@
 
 import { useState, useCallback } from "react";
 import { useEditorData, useDrawingState, useEditorActions } from "@/lib/editor-context";
-import { serialize, deserialize, migrateIconsToSvg, geometrySchema } from "@/lib/idomap-format";
+import { serialize, deserialize, migrateIconsToSvg, geometrySchema } from "@/lib/idomaps-format";
 import { geometryTypeToFeatureType } from "@/lib/geojson";
 import { Button } from "@/components/ui/button";
 import { FaDownload, FaUpload } from "react-icons/fa6";
@@ -30,7 +30,7 @@ export default function ExportImportButtons() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `${(map.title || "map").replace(/[^a-zA-Z0-9_-]/g, "_")}.idomap`;
+    a.download = `${(map.title || "map").replace(/[^a-zA-Z0-9_-]/g, "_")}.idomaps`;
     a.click();
     URL.revokeObjectURL(url);
   }, [map, features, activeBaseMap, groups, legendEntries, choropleth]);
@@ -46,7 +46,7 @@ export default function ExportImportButtons() {
           toast(`${data.droppedFeatureCount} feature${data.droppedFeatureCount > 1 ? "s" : ""} skipped (invalid format)`);
         }
       } catch (err) {
-        console.error("idomap import error:", err);
+        console.error("idomaps import error:", err);
         setStatus({ message: err instanceof Error ? err.message : "Invalid file", error: true });
       }
       return;
@@ -111,7 +111,7 @@ export default function ExportImportButtons() {
         size="sm"
         className="text-xs bg-background/80 backdrop-blur-sm"
         onClick={handleExport}
-        title="Download .idomap"
+        title="Download .idomaps"
       >
         <FaDownload className="w-3 h-3 mr-1" />
         Export
@@ -121,7 +121,7 @@ export default function ExportImportButtons() {
         size="sm"
         className="text-xs bg-background/80 backdrop-blur-sm"
         onClick={() => setImportDialogOpen(true)}
-        title="Import .idomap or GeoJSON"
+        title="Import .idomaps or GeoJSON"
       >
         <FaUpload className="w-3 h-3 mr-1" />
         Import

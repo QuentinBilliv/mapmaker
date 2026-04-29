@@ -7,7 +7,7 @@ function ChoroplethDialog() {
         A choropleth colors each region of the map according to a value you assign to it —
         darker or brighter shades represent higher numbers.
       </p>
-      <p>In idomap you can either:</p>
+      <p>In idomaps you can either:</p>
       <ul className="list-disc pl-5 space-y-1">
         <li>
           <strong>Gradient</strong> — map a numeric value to each region (e.g. population, GDP).

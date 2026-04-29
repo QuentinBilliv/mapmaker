@@ -13,7 +13,7 @@ export interface ExportedMap {
     description: string;
     tags: string[];
     exportedAt: string;
-    generator: "idomap";
+    generator: "idomaps";
   };
   features: GeoJSON.Feature[];
 }

@@ -1,4 +1,4 @@
-# idomap — TODO
+# idomaps — TODO
 
 ## High priority — Acquisition & retention
 
@@ -89,7 +89,7 @@ threshold so every new save uses it. What's left:
       re-checking)
 
 ### What we explicitly do NOT need to do
-- Change the public API or `.idomap` export format — features stay
+- Change the public API or `.idomaps` export format — features stay
   exactly where they are on the wire to external consumers
 - Rewrite the editor state management — `features` already live in
   local state (`editor-context.tsx`), Convex just persists them
@@ -103,7 +103,7 @@ without safeguards, people can publish porn, hate content, spam, CSAM,
 or trademark/copyright infringement on a `/maps/[id]` URL that we host.
 A pricing wall does NOT solve this — it filters casual users but not
 malicious ones, who will happily pay. We need real guardrails before
-we push idomap publicly.
+we push idomaps publicly.
 
 The plan below is layered: each layer alone is insufficient, together
 they give us both legal cover (hosting safe-harbor) and practical
