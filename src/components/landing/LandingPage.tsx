@@ -98,7 +98,7 @@ function MapCarousel() {
           <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
           <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
           <div className="w-2.5 h-2.5 rounded-full bg-white/10" />
-          <span className="ml-3 text-[10px] text-white/20 tracking-wider">idomaps.com</span>
+          <span className="ml-3 text-[10px] text-white/20 tracking-wider">idomaps.app</span>
         </div>
         <div className="aspect-[16/9] bg-[#1a1a1a] relative overflow-hidden">
           {SHOWCASE_MAPS.map((m, i) => (

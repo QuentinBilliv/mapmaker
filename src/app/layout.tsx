@@ -17,7 +17,7 @@ const geistMono = localFont({
   weight: "100 900",
 });
 
-const SITE_URL = "https://idomaps.com";
+const SITE_URL = "https://idomaps.app";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),

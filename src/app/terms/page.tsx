@@ -50,7 +50,7 @@ export default function TermsPage() {
           </Section>
 
           <Section title="7. Copyright (DMCA and EU)">
-            idomaps respects intellectual property rights. If you believe that content on idomaps infringes your copyright, you may submit a takedown request to <strong>contact@idomaps.com</strong> including: identification of the copyrighted work, the URL of the infringing content, your contact information, and a statement of good faith. We act as a hosting provider under the U.S. Digital Millennium Copyright Act (DMCA), Article 6 of the French LCEN, and Article 14 of the EU e-Commerce Directive, and we process takedown requests expeditiously upon notification.
+            idomaps respects intellectual property rights. If you believe that content on idomaps infringes your copyright, you may submit a takedown request to <strong>contact@idomaps.app</strong> including: identification of the copyrighted work, the URL of the infringing content, your contact information, and a statement of good faith. We act as a hosting provider under the U.S. Digital Millennium Copyright Act (DMCA), Article 6 of the French LCEN, and Article 14 of the EU e-Commerce Directive, and we process takedown requests expeditiously upon notification.
           </Section>
 
           <Section title="8. Reporting">
@@ -66,7 +66,7 @@ export default function TermsPage() {
           </Section>
 
           <Section title="11. Contact">
-            For any questions regarding these Terms, reports of illegal content, or copyright takedown requests, please contact us at: <strong>contact@idomaps.com</strong>
+            For any questions regarding these Terms, reports of illegal content, or copyright takedown requests, please contact us at: <strong>contact@idomaps.app</strong>
           </Section>
 
           <Section title="12. Governing law">

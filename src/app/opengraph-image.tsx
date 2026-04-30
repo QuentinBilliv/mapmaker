@@ -74,7 +74,7 @@ export default function OGImage() {
             marginTop: "16px",
           }}
         >
-          idomaps.com
+          idomaps.app
         </span>
       </div>
     ),

@@ -8,7 +8,7 @@ export function EmbedButton({ mapId }: { mapId: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const snippet = `<iframe src="${typeof window !== "undefined" ? window.location.origin : "https://idomaps.com"}/embed/${mapId}" width="100%" height="450" style="border:none;border-radius:8px" allowfullscreen></iframe>`;
+  const snippet = `<iframe src="${typeof window !== "undefined" ? window.location.origin : "https://idomaps.app"}/embed/${mapId}" width="100%" height="450" style="border:none;border-radius:8px" allowfullscreen></iframe>`;
 
   function handleCopy() {
     navigator.clipboard.writeText(snippet);

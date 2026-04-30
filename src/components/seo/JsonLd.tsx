@@ -3,7 +3,7 @@ export function WebAppJsonLd() {
     "@context": "https://schema.org",
     "@type": "WebApplication",
     name: "idomaps",
-    url: "https://idomaps.com",
+    url: "https://idomaps.app",
     description:
       "Draw, style, and share thematic maps online. Free browser-based cartography tool with GeoJSON export.",
     applicationCategory: "DesignApplication",

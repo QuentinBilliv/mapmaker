@@ -93,7 +93,7 @@ export default async function OGImage({ params }: { params: { id: string } }) {
                 marginTop: 12,
               }}
             >
-              idomaps.com
+              idomaps.app
             </span>
           </div>
         </div>
@@ -160,7 +160,7 @@ export default async function OGImage({ params }: { params: { id: string } }) {
             marginTop: 16,
           }}
         >
-          idomaps.com
+          idomaps.app
         </span>
       </div>
     ),

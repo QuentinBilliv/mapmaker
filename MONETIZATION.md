@@ -14,7 +14,7 @@ Current infrastructure costs at moderate traffic (~100-500 active users):
 |---|---|---|
 | Convex | Free (Database 512MB, File Storage 20GB, Bandwidth 1GB) | 0€ |
 | Vercel | Free (100GB bandwidth, serverless) | 0€ |
-| Domain | idomaps.com (annual) | ~12€/year (~1€/month) |
+| Domain | idomaps.app (annual) | ~12€/year (~1€/month) |
 | **Total** | | **~1€/month** |
 
 Scaling thresholds:

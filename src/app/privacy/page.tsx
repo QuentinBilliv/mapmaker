@@ -17,7 +17,7 @@ export default function PrivacyPage() {
           <p>Last updated: April 18, 2026</p>
 
           <Section title="1. Data controller">
-            idomaps is operated by Quentin Roudier, based in France. For any questions regarding your personal data, you can contact us at: <strong>contact@idomaps.com</strong>
+            idomaps is operated by Quentin Roudier, based in France. For any questions regarding your personal data, you can contact us at: <strong>contact@idomaps.app</strong>
           </Section>
 
           <Section title="2. Data we collect">
@@ -74,7 +74,7 @@ export default function PrivacyPage() {
               <li><strong>Opt out</strong> of the sale of personal information — we do not sell your data</li>
               <li><strong>Non-discrimination</strong> for exercising your privacy rights</li>
             </ul>
-            <p className="mt-4">To exercise any of these rights, contact us at <strong>contact@idomaps.com</strong>. We will respond within 30 days (GDPR) or 45 days (CCPA).</p>
+            <p className="mt-4">To exercise any of these rights, contact us at <strong>contact@idomaps.app</strong>. We will respond within 30 days (GDPR) or 45 days (CCPA).</p>
           </Section>
 
           <Section title="7. International data transfers">
@@ -94,7 +94,7 @@ export default function PrivacyPage() {
           </Section>
 
           <Section title="11. Contact">
-            For any questions about this Privacy Policy or to exercise your rights, contact us at: <strong>contact@idomaps.com</strong>
+            For any questions about this Privacy Policy or to exercise your rights, contact us at: <strong>contact@idomaps.app</strong>
           </Section>
         </div>
       </div>
