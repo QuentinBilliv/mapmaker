@@ -106,6 +106,17 @@ export const browsePublicMaps = query({
   },
 });
 
+export const listPublicMapIds = query({
+  args: {},
+  handler: async (ctx) => {
+    const maps = await ctx.db
+      .query("maps")
+      .withIndex("by_visibility", (idx) => idx.eq("visibility", "public"))
+      .collect();
+    return maps.map((m) => ({ id: m._id, updatedAt: m.updatedAt }));
+  },
+});
+
 export const searchPublicMaps = query({
   args: {
     query: v.string(),
