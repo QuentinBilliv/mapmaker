@@ -2,6 +2,7 @@
 
 import React, { useMemo, useState } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
+import { FEATURE_SOFT_WARN } from "@/lib/defaults";
 import type { FeatureData, GroupData, LegendEntry } from "@/lib/types";
 import { FeatureSwatch } from "@/components/ui/feature-swatch";
 import { resolveFeatureStyle, type ChoroplethStyleSlice } from "@/lib/resolve-style";
@@ -134,11 +135,15 @@ export default function FeaturePanel() {
           <span className="text-xs text-muted-foreground">{features.length}</span>
         </div>
       </div>
-      {featureLimitReached && (
+      {featureLimitReached ? (
         <p className="px-3 py-1.5 text-xs text-destructive bg-destructive/10 border-b">
           Feature limit reached ({features.length}). Delete features to add more.
         </p>
-      )}
+      ) : features.length >= FEATURE_SOFT_WARN ? (
+        <p className="px-3 py-1.5 text-xs text-amber-700 bg-amber-100/80 dark:text-amber-300 dark:bg-amber-950/40 border-b">
+          {features.length} features. Performance may slow on large maps — consider splitting by theme.
+        </p>
+      ) : null}
       {features.length === 0 && groups.length === 0 ? (
         <p className="px-3 py-4 text-xs text-muted-foreground text-center">
           No features yet. Draw something on the map.

@@ -79,7 +79,7 @@ It would take ~80 maxed-out paid users to fill the 20 GB free File Storage quota
 | Feature | Free | Pro (29€ one-time) | Unlimited (5€/mois) |
 |---|---|---|---|
 | Maps | 3 | 50 | Unlimited |
-| Features per map | 150 | 10,000 | 10,000 |
+| Features per map | 500 | 10,000 | 10,000 |
 | Base maps | OSM, Voyager, Light | All 7 | All 7 |
 | Visibility | All (public, unlisted, private) | All | All |
 | Export | `.idomaps` only | `.idomaps` + GeoJSON | All |
@@ -94,7 +94,7 @@ It would take ~80 maxed-out paid users to fill the 20 GB free File Storage quota
 | Legend | Yes | Yes | Yes |
 | Smoothing | Yes | Yes | Yes |
 | Text border | Yes | Yes | Yes |
-| GeoJSON import | 150 features max | 500 features max | 500 features max |
+| GeoJSON import | 500 features max | 500 features max | 500 features max |
 | Templates | Yes | Yes | Yes |
 | Embed (iframe) | No | Yes | Yes |
 
