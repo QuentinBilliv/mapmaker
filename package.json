@@ -18,6 +18,8 @@
     "@turf/bezier-spline": "^7.3.4",
     "@turf/difference": "^7.3.5",
     "@turf/helpers": "^7.3.4",
+    "@vercel/analytics": "^2.0.1",
+    "@vercel/speed-insights": "^2.0.0",
     "autoprefixer": "^10.4.27",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

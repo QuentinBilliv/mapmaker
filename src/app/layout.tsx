@@ -5,6 +5,8 @@ import { cn } from "@/lib/utils";
 import { ConvexAuthNextjsServerProvider } from "@convex-dev/auth/nextjs/server";
 import ConvexClientProvider from "@/components/providers/ConvexClientProvider";
 import { WebAppJsonLd } from "@/components/seo/JsonLd";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const geistSans = localFont({
   src: "./fonts/GeistVF.woff",
@@ -107,6 +109,8 @@ export default function RootLayout({
         >
           <WebAppJsonLd />
           <ConvexClientProvider>{children}</ConvexClientProvider>
+          <Analytics />
+          <SpeedInsights />
         </body>
       </html>
     </ConvexAuthNextjsServerProvider>
