@@ -338,7 +338,7 @@ function syncPerFeatureLayersSorted(
               8, ["get", "fontSize"],
               12, ["*", ["get", "fontSize"], 1.5],
             ],
-            "text-font": ["literal", [fontVariant, "Arial Unicode MS Regular"]],
+            "text-font": ["literal", [fontVariant]],
             "text-allow-overlap": true,
             "text-anchor": "center",
             "text-max-width": 30,

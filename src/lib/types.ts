@@ -68,9 +68,9 @@ export type ShapeOrigin = "rectangle" | "circle";
 export type TextFont = "sans" | "serif" | "mono";
 
 export const TEXT_FONTS: { value: TextFont; label: string; stack: string[] }[] = [
-  { value: "sans", label: "Sans-serif", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
-  { value: "serif", label: "Serif", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
-  { value: "mono", label: "Monospace", stack: ["Noto Sans Regular", "Arial Unicode MS Regular"] },
+  { value: "sans", label: "Sans-serif", stack: ["Noto Sans Regular"] },
+  { value: "serif", label: "Serif", stack: ["Noto Sans Regular"] },
+  { value: "mono", label: "Monospace", stack: ["Noto Sans Regular"] },
 ];
 
 export interface ChoroplethCategory {
