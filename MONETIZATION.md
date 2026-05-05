@@ -78,7 +78,7 @@ It would take ~80 maxed-out paid users to fill the 20 GB free File Storage quota
 
 | Feature | Free | Pro (29€ one-time) | Unlimited (5€/mois) |
 |---|---|---|---|
-| Maps | 3 | 50 | Unlimited |
+| Maps | 5 | 50 | Unlimited |
 | Features per map | 500 | 10,000 | 10,000 |
 | Base maps | OSM, Voyager, Light | All 7 | All 7 |
 | Visibility | All (public, unlisted, private) | All | All |
