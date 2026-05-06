@@ -35,6 +35,7 @@ export function useFeatureTooltip(
         .map((l) => l.id);
 
       let label = "";
+      let subtitle = "";
       let description = "";
       let imageUrl = "";
 
@@ -51,23 +52,28 @@ export function useFeatureTooltip(
         const choroHits = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL] });
         if (choroHits.length > 0) {
           label = choroHits[0].properties?._tooltip_title || "";
+          subtitle = choroHits[0].properties?._tooltip_subtitle || "";
           description = choroHits[0].properties?._tooltip_desc || "";
+          imageUrl = choroHits[0].properties?._tooltip_image || "";
         }
       }
-      if (!label && !description && !imageUrl) {
+      if (!label && !subtitle && !description && !imageUrl) {
         popup.remove();
         map.getCanvas().style.cursor = "";
         return;
       }
 
+      popup.options.maxWidth = imageUrl ? "320px" : "260px";
+
       const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
         ? `<img class="idomaps-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
         : "";
       const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
-      const descHtml = description ? `<div style="margin-top:2px;opacity:0.85">${escapeHtml(description)}</div>` : "";
+      const subtitleHtml = subtitle ? `<div class="idomaps-tooltip-subtitle">${escapeHtml(subtitle)}</div>` : "";
+      const descHtml = description ? `<div style="margin-top:4px;opacity:0.85">${escapeHtml(description)}</div>` : "";
       popup
         .setLngLat(e.lngLat)
-        .setHTML(`${imgHtml}${labelHtml}${descHtml}`)
+        .setHTML(`${imgHtml}${labelHtml}${subtitleHtml}${descHtml}`)
         .addTo(map);
     };
 

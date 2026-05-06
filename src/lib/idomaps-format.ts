@@ -156,13 +156,15 @@ const idomapsMeta = z.object({
       order: z.number().int().min(0).max(1000),
     })).default([]),
     assignments: z.record(z.string(), z.string()).default({}),
+    descriptions: z.record(z.string(), z.string().max(500)).default({}),
+    imageUrls: z.record(z.string(), z.string().max(500)).default({}),
     gradientColors: z.tuple([z.string().max(30), z.string().max(30)]).default(["#22c55e", "#3b82f6"]),
     gradientLabel: z.string().max(200).default(""),
     values: z.record(z.string(), z.number()).default({}),
     opacity: z.number().min(0).max(1).default(0.7),
     entries: z.record(z.string(), z.object({ color: z.string().max(30), name: z.string().max(200) })).optional(),
     activeColor: z.string().max(30).optional(),
-  }).default({ enabled: false, tileLayer: "countries", mode: "discrete", categories: [], assignments: {}, gradientColors: ["#22c55e", "#3b82f6"], gradientLabel: "", values: {}, opacity: 0.7 }),
+  }).default({ enabled: false, tileLayer: "countries", mode: "discrete", categories: [], assignments: {}, descriptions: {}, imageUrls: {}, gradientColors: ["#22c55e", "#3b82f6"], gradientLabel: "", values: {}, opacity: 0.7 }),
   layers: z.array(layerSchema).min(1).max(100),
   groups: z.array(groupSchema).max(1000).default([]),
   legendEntries: z.array(legendEntrySchema).max(1000).default([]),
@@ -204,6 +206,8 @@ export function serialize(
         mode: choropleth.mode,
         categories: choropleth.categories.map(({ id, color, label, order }) => ({ id, color, label, order })),
         assignments: choropleth.assignments,
+        descriptions: choropleth.descriptions,
+        imageUrls: choropleth.imageUrls,
         gradientColors: choropleth.gradientColors,
         gradientLabel: choropleth.gradientLabel,
         values: choropleth.values,
@@ -358,6 +362,8 @@ export function deserialize(raw: string): DeserializedMap {
   const rawChoropleth = result.idomaps.choropleth;
   let choropleth: ChoroplethData;
   const tileLayer = (rawChoropleth.tileLayer ?? "countries") as ChoroplethData["tileLayer"];
+  const rawDescriptions = (rawChoropleth.descriptions as Record<string, string> | undefined) ?? {};
+  const rawImageUrls = (rawChoropleth.imageUrls as Record<string, string> | undefined) ?? {};
   if (rawChoropleth.categories && rawChoropleth.categories.length > 0) {
     choropleth = {
       enabled: rawChoropleth.enabled,
@@ -365,6 +371,8 @@ export function deserialize(raw: string): DeserializedMap {
       mode: rawChoropleth.mode ?? "discrete",
       categories: rawChoropleth.categories as ChoroplethCategory[],
       assignments: rawChoropleth.assignments ?? {},
+      descriptions: rawDescriptions,
+      imageUrls: rawImageUrls,
       gradientColors: (rawChoropleth.gradientColors as [string, string]) ?? ["#22c55e", "#3b82f6"],
       gradientLabel: (rawChoropleth.gradientLabel as string) ?? "",
       values: (rawChoropleth.values as Record<string, number>) ?? {},
@@ -378,6 +386,8 @@ export function deserialize(raw: string): DeserializedMap {
       mode: "gradient",
       categories: [],
       assignments: {},
+      descriptions: {},
+      imageUrls: {},
       gradientColors: (rawChoropleth.gradientColors as [string, string]) ?? ["#22c55e", "#3b82f6"],
       gradientLabel: (rawChoropleth.gradientLabel as string) ?? "",
       values: (rawChoropleth.values as Record<string, number>) ?? {},
@@ -393,6 +403,8 @@ export function deserialize(raw: string): DeserializedMap {
       mode: rawChoropleth.mode ?? "discrete",
       categories: [],
       assignments: {},
+      descriptions: rawDescriptions,
+      imageUrls: rawImageUrls,
       gradientColors: (rawChoropleth.gradientColors as [string, string]) ?? ["#22c55e", "#3b82f6"],
       gradientLabel: (rawChoropleth.gradientLabel as string) ?? "",
       values: (rawChoropleth.values as Record<string, number>) ?? {},
@@ -444,6 +456,8 @@ function migrateLegacyChoropleth(raw: { enabled: boolean; entries?: Record<strin
     mode: "discrete",
     categories,
     assignments,
+    descriptions: {},
+    imageUrls: {},
     gradientColors: ["#22c55e", "#3b82f6"] as [string, string],
     gradientLabel: "",
     values: {},

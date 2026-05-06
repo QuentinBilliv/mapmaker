@@ -3,7 +3,9 @@
 import { useState, useCallback, useEffect, useMemo } from "react";
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
-import { FaXmark, FaPlus, FaFileImport, FaTrash, FaCheck, FaRotateLeft, FaRotateRight } from "react-icons/fa6";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { FaXmark, FaPlus, FaFileImport, FaTrash, FaCheck, FaRotateLeft, FaRotateRight, FaArrowLeft } from "react-icons/fa6";
 import { TILE_LAYERS } from "@/lib/choropleth";
 import type { TileLayerId } from "@/lib/types";
 import { GradientContent } from "@/components/editor/ChoroplethGradient";
@@ -28,9 +30,20 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
     setChoropleth, addChoroplethCategory, updateChoroplethCategory,
     deleteChoroplethCategory, importChoroplethData,
     setGradientValue, removeGradientValue, importGradientData,
+    setCountryDetails, unassignCountry,
     undo, redo,
   } = useEditorActions();
   const [showImport, setShowImport] = useState(false);
+  const [editingRegion, setEditingRegion] = useState<{ iso: string; name: string } | null>(null);
+
+  useEffect(() => {
+    const handler = (e: Event) => {
+      const detail = (e as CustomEvent).detail as { iso: string; name: string };
+      if (detail?.iso) setEditingRegion({ iso: detail.iso, name: detail.name ?? detail.iso });
+    };
+    window.addEventListener("idomaps:choropleth-edit-region", handler);
+    return () => window.removeEventListener("idomaps:choropleth-edit-region", handler);
+  }, []);
 
   const sortedCategories = useMemo(
     () => [...choropleth.categories].sort((a, b) => a.order - b.order),
@@ -151,7 +164,26 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
                 className="w-full h-1.5 accent-primary"
               />
             </div>
-            {choropleth.mode === "discrete" ? (
+            {choropleth.mode === "discrete" && editingRegion ? (
+              <RegionDetailsView
+                iso={editingRegion.iso}
+                name={editingRegion.name}
+                onClose={() => setEditingRegion(null)}
+                categories={sortedCategories}
+                currentCategoryId={choropleth.assignments[editingRegion.iso] ?? null}
+                description={choropleth.descriptions[editingRegion.iso] ?? ""}
+                imageUrl={choropleth.imageUrls[editingRegion.iso] ?? ""}
+                onChangeCategory={(catId) => {
+                  if (catId === null) {
+                    unassignCountry(editingRegion.iso);
+                    setEditingRegion(null);
+                  } else {
+                    setChoropleth({ assignments: { ...choropleth.assignments, [editingRegion.iso]: catId } });
+                  }
+                }}
+                onSaveDetails={(updates) => setCountryDetails(editingRegion.iso, updates)}
+              />
+            ) : choropleth.mode === "discrete" ? (
               <DiscreteContent
                 sortedCategories={sortedCategories}
                 countByCategory={countByCategory}
@@ -253,6 +285,11 @@ function DiscreteContent({
           Click regions on the map to assign them to the selected category. Click again to remove.
         </p>
       )}
+      {!choropleth.activeCategoryId && sortedCategories.length > 0 && (
+        <p className="text-xs text-muted-foreground italic text-center">
+          Click an assigned region on the map to add a description or image.
+        </p>
+      )}
       {sortedCategories.length > 0 && (
         <Button variant="ghost" size="sm" className="w-full text-xs text-destructive" onClick={onClearAll}>
           Clear all
@@ -335,6 +372,107 @@ function CategoryRow({
       >
         <FaTrash className="w-3 h-3 text-destructive" />
       </Button>
+    </div>
+  );
+}
+
+function RegionDetailsView({
+  iso,
+  name,
+  onClose,
+  categories,
+  currentCategoryId,
+  description,
+  imageUrl,
+  onChangeCategory,
+  onSaveDetails,
+}: {
+  iso: string;
+  name: string;
+  onClose: () => void;
+  categories: { id: string; color: string; label: string; order: number }[];
+  currentCategoryId: string | null;
+  description: string;
+  imageUrl: string;
+  onChangeCategory: (catId: string | null) => void;
+  onSaveDetails: (updates: { description?: string; imageUrl?: string }) => void;
+}) {
+  const [descValue, setDescValue] = useState(description);
+  const [imgValue, setImgValue] = useState(imageUrl);
+
+  useEffect(() => { setDescValue(description); }, [description, iso]);
+  useEffect(() => { setImgValue(imageUrl); }, [imageUrl, iso]);
+
+  const isValidImg = !imgValue.trim() || /^https?:\/\//i.test(imgValue.trim());
+
+  const commit = () => {
+    onSaveDetails({ description: descValue, imageUrl: imgValue });
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2 -mx-1">
+        <Button variant="ghost" size="icon-xs" onClick={() => { commit(); onClose(); }} title="Back">
+          <FaArrowLeft className="w-3.5 h-3.5" />
+        </Button>
+        <span className="text-sm font-semibold flex-1 truncate" title={name}>{name}</span>
+        <span className="text-[10px] text-muted-foreground font-mono">{iso}</span>
+      </div>
+      <Field label="Category">
+        <select
+          value={currentCategoryId ?? ""}
+          onChange={(e) => onChangeCategory(e.target.value === "" ? null : e.target.value)}
+          className="w-full rounded-md border bg-transparent px-2 py-1.5 text-xs"
+        >
+          <option value="">— Unassigned —</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>{c.label}</option>
+          ))}
+        </select>
+      </Field>
+      <Field label="Description" help="Free text shown in the tooltip when hovering this region.">
+        <Textarea
+          value={descValue}
+          onChange={(e) => setDescValue(e.target.value)}
+          onBlur={commit}
+          rows={4}
+          maxLength={500}
+          placeholder="e.g. Les Misérables — Victor Hugo. Epic novel about poverty and redemption."
+          className="text-xs resize-y"
+        />
+      </Field>
+      <Field label="Image URL" error={!isValidImg ? "Must start with http:// or https://" : undefined}>
+        <Input
+          type="url"
+          value={imgValue}
+          onChange={(e) => setImgValue(e.target.value)}
+          onBlur={() => { if (isValidImg) commit(); }}
+          placeholder="https://..."
+          maxLength={500}
+          className="text-xs"
+        />
+      </Field>
+      {imgValue.trim() && isValidImg && (
+        <div className="rounded-md border overflow-hidden bg-muted">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={imgValue.trim()} alt="" className="w-full h-32 object-contain" referrerPolicy="no-referrer" />
+        </div>
+      )}
+      <div className="pt-1 flex gap-2">
+        <Button size="sm" variant="outline" className="flex-1 text-xs" onClick={() => { commit(); onClose(); }}>
+          Done
+        </Button>
+        <Button
+          size="sm"
+          variant="ghost"
+          className="text-xs text-destructive"
+          onClick={() => onChangeCategory(null)}
+          title="Remove this region from the choropleth"
+        >
+          <FaTrash className="w-3 h-3 mr-1" />
+          Unassign
+        </Button>
+      </div>
     </div>
   );
 }

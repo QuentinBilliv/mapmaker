@@ -25,5 +25,7 @@ export function deserializeChoropleth(raw: unknown): ChoroplethData | undefined 
   const values = Array.isArray(r.values)
     ? Object.fromEntries(r.values as Array<[string, number]>)
     : ((r.values as Record<string, number> | undefined) ?? {});
-  return { ...(r as ChoroplethData), assignments, values };
+  const descriptions = (r.descriptions as Record<string, string> | undefined) ?? {};
+  const imageUrls = (r.imageUrls as Record<string, string> | undefined) ?? {};
+  return { ...(r as ChoroplethData), assignments, values, descriptions, imageUrls };
 }

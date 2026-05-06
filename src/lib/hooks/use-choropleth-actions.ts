@@ -75,13 +75,21 @@ export function useChoroplethActions({
         ));
       }
       const assignments = { ...prev.assignments };
+      const descriptions = { ...prev.descriptions };
+      const imageUrls = { ...prev.imageUrls };
       for (const iso of Object.keys(assignments)) {
-        if (assignments[iso] === id) delete assignments[iso];
+        if (assignments[iso] === id) {
+          delete assignments[iso];
+          delete descriptions[iso];
+          delete imageUrls[iso];
+        }
       }
       return {
         ...prev,
         categories: prev.categories.filter((c) => c.id !== id),
         assignments,
+        descriptions,
+        imageUrls,
         activeCategoryId: prev.activeCategoryId === id ? null : prev.activeCategoryId,
       };
     });
@@ -100,24 +108,54 @@ export function useChoroplethActions({
     setChoroplethState((prev) => {
       const assignments = { ...prev.assignments };
       delete assignments[iso];
-      return { ...prev, assignments };
+      const descriptions = { ...prev.descriptions };
+      delete descriptions[iso];
+      const imageUrls = { ...prev.imageUrls };
+      delete imageUrls[iso];
+      return { ...prev, assignments, descriptions, imageUrls };
     });
   }, [recordSnapshot, setChoroplethState]);
 
-  const importChoroplethData = useCallback((data: { label: string; color: string; countries: string[] }[]) => {
+  const setCountryDetails = useCallback((iso: string, updates: { description?: string; imageUrl?: string }) => {
+    recordSnapshot();
+    setChoroplethState((prev) => {
+      const descriptions = { ...prev.descriptions };
+      const imageUrls = { ...prev.imageUrls };
+      if (updates.description !== undefined) {
+        const trimmed = updates.description.trim();
+        if (trimmed) descriptions[iso] = trimmed.slice(0, 500);
+        else delete descriptions[iso];
+      }
+      if (updates.imageUrl !== undefined) {
+        const trimmed = updates.imageUrl.trim();
+        if (trimmed) imageUrls[iso] = trimmed.slice(0, 500);
+        else delete imageUrls[iso];
+      }
+      return { ...prev, descriptions, imageUrls };
+    });
+  }, [recordSnapshot, setChoroplethState]);
+
+  const importChoroplethData = useCallback((data: { categories: { label: string; color: string; countries: string[] }[]; descriptions: Record<string, string>; imageUrls: Record<string, string> }) => {
     recordSnapshot();
     setChoroplethState((prev) => {
       const newCategories = [...prev.categories];
       const newAssignments = { ...prev.assignments };
       let maxOrder = newCategories.reduce((m, c) => Math.max(m, c.order), -1);
-      for (const item of data) {
+      for (const item of data.categories) {
         const id = uuid();
         newCategories.push({ id, color: item.color, label: item.label, order: ++maxOrder });
         for (const iso of item.countries) {
           newAssignments[iso] = id;
         }
       }
-      return { ...prev, categories: newCategories, assignments: newAssignments, enabled: true };
+      return {
+        ...prev,
+        categories: newCategories,
+        assignments: newAssignments,
+        descriptions: { ...prev.descriptions, ...data.descriptions },
+        imageUrls: { ...prev.imageUrls, ...data.imageUrls },
+        enabled: true,
+      };
     });
   }, [recordSnapshot, setChoroplethState]);
 
@@ -152,7 +190,7 @@ export function useChoroplethActions({
     setChoropleth,
     addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
     assignChoroplethCategory,
-    assignCountryToCategory, unassignCountry, importChoroplethData,
+    assignCountryToCategory, unassignCountry, setCountryDetails, importChoroplethData,
     setGradientValue, removeGradientValue, importGradientData,
   };
 }

@@ -119,7 +119,8 @@ interface EditorActions {
   assignChoroplethCategory: (featureId: string, categoryId: string | null) => void;
   assignCountryToCategory: (iso: string, name: string) => void;
   unassignCountry: (iso: string) => void;
-  importChoroplethData: (categories: { label: string; color: string; countries: string[] }[]) => void;
+  setCountryDetails: (iso: string, updates: { description?: string; imageUrl?: string }) => void;
+  importChoroplethData: (data: { categories: { label: string; color: string; countries: string[] }[]; descriptions: Record<string, string>; imageUrls: Record<string, string> }) => void;
   setGradientValue: (iso: string, value: number) => void;
   removeGradientValue: (iso: string) => void;
   importGradientData: (data: Record<string, number>) => void;
@@ -447,7 +448,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     setChoropleth,
     addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
     assignChoroplethCategory,
-    assignCountryToCategory, unassignCountry, importChoroplethData,
+    assignCountryToCategory, unassignCountry, setCountryDetails, importChoroplethData,
     setGradientValue, removeGradientValue, importGradientData,
   } = useChoroplethActions({ setFeatures, setChoroplethState, recordSnapshot });
 
@@ -519,7 +520,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
       assignChoroplethCategory,
-      assignCountryToCategory, unassignCountry, importChoroplethData,
+      assignCountryToCategory, unassignCountry, setCountryDetails, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
       finishDrawing, cancelDrawing, registerDrawingControls,
@@ -547,7 +548,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       setActiveBaseMap, setStyleOptions, setChoropleth,
       addChoroplethCategory, updateChoroplethCategory, deleteChoroplethCategory,
       assignChoroplethCategory,
-      assignCountryToCategory, unassignCountry, importChoroplethData,
+      assignCountryToCategory, unassignCountry, setCountryDetails, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
       finishDrawing, cancelDrawing, registerDrawingControls,

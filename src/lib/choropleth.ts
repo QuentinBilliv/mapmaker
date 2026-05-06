@@ -180,6 +180,8 @@ export function buildChoroplethGeoJSON(
   categories: ChoroplethCategory[],
   assignments: Record<string, string>,
   config: TileLayerConfig,
+  descriptions: Record<string, string> = {},
+  imageUrls: Record<string, string> = {},
 ): GeoJSON.FeatureCollection {
   const catMap = new Map(categories.map((c) => [c.id, c]));
   return {
@@ -199,7 +201,9 @@ export function buildChoroplethGeoJSON(
             _color: cat.color,
             _categoryId: cat.id,
             _tooltip_title: f.properties?.[config.nameProp] ?? id,
-            _tooltip_desc: cat.label,
+            _tooltip_subtitle: cat.label,
+            _tooltip_desc: descriptions[id] ?? "",
+            _tooltip_image: imageUrls[id] ?? "",
           },
         };
       }),
@@ -260,7 +264,14 @@ export function buildChoroplethGeoJSONFromData(
       config,
     );
   }
-  return buildChoroplethGeoJSON(regions, choropleth.categories ?? [], choropleth.assignments ?? {}, config);
+  return buildChoroplethGeoJSON(
+    regions,
+    choropleth.categories ?? [],
+    choropleth.assignments ?? {},
+    config,
+    choropleth.descriptions ?? {},
+    choropleth.imageUrls ?? {},
+  );
 }
 
 function hexToRgb(hex: string): [number, number, number] {

@@ -85,6 +85,12 @@
   background: none;
   animation: none;
 }
+.idomaps-tooltip-subtitle {
+  font-size: 0.7rem;
+  color: hsl(var(--muted-foreground));
+  margin-top: 1px;
+  letter-spacing: 0.02em;
+}
 @keyframes idomaps-shimmer {
   0% { background-position: 200% 0; }
   100% { background-position: -200% 0; }

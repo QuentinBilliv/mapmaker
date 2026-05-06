@@ -17,10 +17,20 @@ function buildIdLookup(validIds: Set<string>): (key: string) => string | null {
   return (key: string) => validIds.has(key) ? key : (byNorm.get(normalizeKey(key)) ?? null);
 }
 
+export interface ParsedChoroplethImport {
+  categories: { label: string; color: string; countries: string[] }[];
+  descriptions: Record<string, string>;
+  imageUrls: Record<string, string>;
+}
+
+function isHttpUrl(s: string): boolean {
+  return /^https?:\/\//i.test(s);
+}
+
 function parseImportData(
   raw: string,
   validIds: Set<string>,
-): { ok: true; data: { label: string; color: string; countries: string[] }[]; message: string } | { ok: false; error: string } {
+): { ok: true; data: ParsedChoroplethImport; message: string } | { ok: false; error: string } {
   let parsed: unknown;
   try {
     parsed = JSON.parse(raw);
@@ -28,17 +38,35 @@ function parseImportData(
     return { ok: false, error: "Invalid JSON" };
   }
   const resolve = buildIdLookup(validIds);
+  const descriptions: Record<string, string> = {};
+  const imageUrls: Record<string, string> = {};
   if (Array.isArray(parsed)) {
     const result: { label: string; color: string; countries: string[] }[] = [];
     for (const item of parsed) {
       if (!item.label || !item.color || !Array.isArray(item.countries)) {
         return { ok: false, error: "Each item needs label, color, and countries array" };
       }
-      const valid = item.countries.map((id: string) => resolve(id)).filter(Boolean) as string[];
+      const valid: string[] = [];
+      for (const entry of item.countries) {
+        let id: string | null = null;
+        let description: string | undefined;
+        let imageUrl: string | undefined;
+        if (typeof entry === "string") {
+          id = resolve(entry);
+        } else if (entry && typeof entry === "object" && typeof entry.id === "string") {
+          id = resolve(entry.id);
+          if (typeof entry.description === "string") description = entry.description.slice(0, 500);
+          if (typeof entry.imageUrl === "string" && isHttpUrl(entry.imageUrl)) imageUrl = entry.imageUrl.slice(0, 500);
+        }
+        if (!id) continue;
+        valid.push(id);
+        if (description) descriptions[id] = description;
+        if (imageUrl) imageUrls[id] = imageUrl;
+      }
       if (valid.length > 0) result.push({ label: item.label, color: item.color, countries: valid });
     }
     if (result.length === 0) return { ok: false, error: "No valid categories found" };
-    return { ok: true, data: result, message: `Imported ${result.length} ${result.length === 1 ? "category" : "categories"}` };
+    return { ok: true, data: { categories: result, descriptions, imageUrls }, message: `Imported ${result.length} ${result.length === 1 ? "category" : "categories"}` };
   }
   if (typeof parsed === "object" && parsed !== null) {
     const byColor = new Map<string, string[]>();
@@ -57,7 +85,7 @@ function parseImportData(
     byColor.forEach((ids, color) => {
       result.push({ label: `Category ${idx++}`, color, countries: ids });
     });
-    return { ok: true, data: result, message: `Imported ${count} ${count === 1 ? "region" : "regions"} in ${result.length} ${result.length === 1 ? "category" : "categories"}` };
+    return { ok: true, data: { categories: result, descriptions, imageUrls }, message: `Imported ${count} ${count === 1 ? "region" : "regions"} in ${result.length} ${result.length === 1 ? "category" : "categories"}` };
   }
   return { ok: false, error: "Expected a JSON array or object" };
 }
@@ -215,7 +243,7 @@ export function ImportDialog({
 }: {
   tileLayer: TileLayerId;
   onClose: () => void;
-  onImport: (data: { label: string; color: string; countries: string[] }[]) => void;
+  onImport: (data: ParsedChoroplethImport) => void;
 }) {
   const samples = SAMPLE_IDS[tileLayer] ?? SAMPLE_IDS.countries;
   const parse = useCallback((raw: string, validIds: Set<string>) => parseImportData(raw, validIds), []);
@@ -230,13 +258,16 @@ export function ImportDialog({
         return result;
       }}
       hint={<>
-        <p>Grouped format:</p>
+        <p>Grouped format. Each country can be a string, or an object with optional <code>description</code> and <code>imageUrl</code>:</p>
         <pre className="bg-muted p-2 rounded text-[10px] overflow-x-auto">
 {`[
   { "label": "Group A", "color": "#3b82f6",
-    "countries": ["${samples[0]}", "${samples[1]}"] },
-  { "label": "Group B", "color": "#ef4444",
-    "countries": ["..."] }
+    "countries": [
+      { "id": "${samples[0]}",
+        "description": "Optional text",
+        "imageUrl": "https://..." },
+      "${samples[1]}"
+    ] }
 ]`}
         </pre>
         <p>Or flat format (auto-groups by color):</p>

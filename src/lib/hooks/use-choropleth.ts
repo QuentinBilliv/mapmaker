@@ -35,7 +35,12 @@ export function useChoropleth(
       window.dispatchEvent(new CustomEvent("idomaps:country-clicked", { detail: { iso: id, name } }));
       return;
     }
-    if (!choro.activeCategoryId) return;
+    if (!choro.activeCategoryId) {
+      if (choro.assignments[id]) {
+        window.dispatchEvent(new CustomEvent("idomaps:choropleth-edit-region", { detail: { iso: id, name } }));
+      }
+      return;
+    }
     if (choro.assignments[id] === choro.activeCategoryId) {
       unassignCountry(id);
     } else {
