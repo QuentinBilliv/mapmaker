@@ -1,5 +1,5 @@
 import { v } from "convex/values";
-import { mutation, query } from "./_generated/server";
+import { mutation, query, internalMutation } from "./_generated/server";
 import { paginationOptsValidator } from "convex/server";
 import {
   getAuthenticatedUser,
@@ -430,5 +430,12 @@ export const reportMap = mutation({
       details: details || undefined,
       createdAt: Date.now(),
     });
+  },
+});
+
+export const _patchVisibleFeatureCount = internalMutation({
+  args: { mapId: v.id("maps"), count: v.number() },
+  handler: async (ctx, { mapId, count }) => {
+    await ctx.db.patch(mapId, { visibleFeatureCount: count });
   },
 });
