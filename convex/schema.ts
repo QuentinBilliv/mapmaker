@@ -6,6 +6,7 @@ export default defineSchema({
   ...authTables,
   users: defineTable({
     name: v.optional(v.string()),
+    nameLower: v.optional(v.string()),
     email: v.optional(v.string()),
     emailVerificationTime: v.optional(v.number()),
     image: v.optional(v.string()),
@@ -15,7 +16,9 @@ export default defineSchema({
     ),
     universityLabel: v.optional(v.string()),
     createdAt: v.optional(v.number()),
-  }).index("email", ["email"]),
+  })
+    .index("email", ["email"])
+    .index("by_name_lower", ["nameLower"]),
 
   maps: defineTable({
     ownerId: v.id("users"),
@@ -40,6 +43,7 @@ export default defineSchema({
     choropleth: v.optional(v.any()),
     dataFileId: v.optional(v.id("_storage")),
     dataFileSize: v.optional(v.number()),
+    visibleFeatureCount: v.optional(v.number()),
     zoomLocked: v.optional(v.boolean()),
     panLocked: v.optional(v.boolean()),
     isPublic: v.optional(v.boolean()),

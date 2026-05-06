@@ -30,7 +30,6 @@ export default function SignUpPage() {
     setLoading(true);
     try {
       const formData = new FormData();
-      formData.set("name", data.name);
       formData.set("email", data.email);
       formData.set("password", data.password);
       formData.set("flow", "signUp");
@@ -48,13 +47,6 @@ export default function SignUpPage() {
       <div className="w-80 space-y-4">
         <h1 className="text-lg font-semibold text-center">Create account</h1>
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-          <Field label="Name" required error={errors.name?.message}>
-            <Input
-              type="text"
-              placeholder="John Doe"
-              {...register("name")}
-            />
-          </Field>
           <Field label="Email" required error={errors.email?.message}>
             <Input
               type="email"

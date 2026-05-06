@@ -13,3 +13,9 @@ export const MAX_FEATURES = 10_000;
 export const MAX_LAYERS = 100;
 export const MAX_GROUPS = 1_000;
 export const MAX_MAP_PAYLOAD = 5_000_000;
+
+export const MAX_DISPLAY_NAME = 50;
+
+export function normalizeName(name: string): string {
+  return name.trim().toLowerCase();
+}

@@ -243,6 +243,7 @@ export const saveMap = mutation({
     groups: v.optional(v.any()),
     legendEntries: v.optional(v.any()),
     choropleth: v.optional(v.any()),
+    visibleFeatureCount: v.optional(v.number()),
   },
   handler: async (ctx, args) => {
     validateMapMetadata(args);
@@ -277,6 +278,7 @@ export const saveMap = mutation({
       groups: isFileMode ? undefined : args.groups,
       legendEntries: isFileMode ? undefined : args.legendEntries,
       choropleth: isFileMode ? undefined : args.choropleth,
+      visibleFeatureCount: args.visibleFeatureCount,
       ownerName,
       searchText: buildSearchText(args.title, args.tags, ownerName),
       updatedAt: Date.now(),
@@ -358,6 +360,11 @@ export const setVisibility = mutation({
       if (blocked) {
         throw new Error(
           `This map cannot be published because it contains prohibited content. Please review your title, description, and tags.`
+        );
+      }
+      if (map.visibleFeatureCount === 0) {
+        throw new Error(
+          `This map looks empty. Add at least one feature with content before publishing.`
         );
       }
     }

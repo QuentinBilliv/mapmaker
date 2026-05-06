@@ -1,4 +1,5 @@
 import MigrationGuard from "@/components/providers/MigrationGuard";
+import DisplayNameGate from "@/components/providers/DisplayNameGate";
 
 export default function PlatformLayout({
   children,
@@ -8,6 +9,7 @@ export default function PlatformLayout({
   return (
     <>
       <MigrationGuard />
+      <DisplayNameGate />
       {children}
     </>
   );

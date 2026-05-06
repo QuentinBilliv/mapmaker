@@ -152,7 +152,7 @@ function buildFeatureUpdate(
     case "text":
       return {
         ...base,
-        textContent: v.textContent,
+        textContent: v.textContent?.trim() || v.label?.trim() || "Text",
         fontSize: v.fontSize,
         fontFamily: v.fontFamily,
         bold: v.bold,

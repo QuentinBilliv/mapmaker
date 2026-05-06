@@ -18,6 +18,7 @@ export default function ConfirmDialog({
   description,
   onConfirm,
   confirmLabel = "Delete",
+  confirmVariant = "destructive",
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -25,6 +26,7 @@ export default function ConfirmDialog({
   description?: string
   onConfirm: () => void
   confirmLabel?: string
+  confirmVariant?: "default" | "destructive"
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -38,7 +40,7 @@ export default function ConfirmDialog({
             <Button variant="outline">Cancel</Button>
           </DialogClose>
           <Button
-            variant="destructive"
+            variant={confirmVariant}
             onClick={() => {
               onConfirm()
               onOpenChange(false)

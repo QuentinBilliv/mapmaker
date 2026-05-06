@@ -61,7 +61,6 @@ export type SignInFormValues = z.infer<typeof signInSchema>;
 
 export const signUpSchema = z
   .object({
-    name: z.string().min(1, "Name is required").max(100, "Name is too long"),
     email: z.string().min(1, "Email is required").email("Invalid email address"),
     password: z
       .string()

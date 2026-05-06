@@ -351,7 +351,7 @@ export function deserialize(raw: string): DeserializedMap {
         return [{ ...base, type: "point" as const, size: p["idomaps:size"] ?? 1, shape: p["idomaps:shape"], customSvg, borderColor: p["idomaps:borderColor"] ?? "#ffffff", borderWidth: p["idomaps:borderWidth"] ?? 0 }];
       }
       case "text":
-        return [{ ...base, type: "text" as const, textContent: p["idomaps:textContent"] ?? "", fontSize: p["idomaps:fontSize"] ?? 24, fontFamily: p["idomaps:fontFamily"] ?? "sans", bold: p["idomaps:bold"] ?? false, italic: p["idomaps:italic"] ?? false, textBorderEnabled: p["idomaps:textBorderEnabled"] ?? true, textBorderColor: p["idomaps:textBorderColor"] ?? "#ffffff", textBorderWidth: p["idomaps:textBorderWidth"] ?? 2 }];
+        return [{ ...base, type: "text" as const, textContent: p["idomaps:textContent"]?.trim() || base.label?.trim() || "Text", fontSize: p["idomaps:fontSize"] ?? 24, fontFamily: p["idomaps:fontFamily"] ?? "sans", bold: p["idomaps:bold"] ?? false, italic: p["idomaps:italic"] ?? false, textBorderEnabled: p["idomaps:textBorderEnabled"] ?? true, textBorderColor: p["idomaps:textBorderColor"] ?? "#ffffff", textBorderWidth: p["idomaps:textBorderWidth"] ?? 2 }];
     }
   });
 

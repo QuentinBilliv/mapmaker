@@ -90,18 +90,20 @@ export default function MapCard({
           </div>
         )}
         <div className="flex items-center gap-2 mt-2 mb-4 text-[10px] text-muted-foreground">
-          {ownerName && ownerId && (
+          {ownerId ? (
             <button
               onClick={() => onAuthorClick?.(ownerId)}
               className="hover:text-foreground transition-colors"
             >
-              {ownerName}
+              {ownerName || "Anonymous"}
               {universityLabel && (
                 <span className="ml-1 px-1 py-0.5 rounded bg-blue-100 text-blue-700 text-[9px]">
                   {universityLabel}
                 </span>
               )}
             </button>
+          ) : (
+            <span>Anonymous</span>
           )}
           <span>{new Date(updatedAt).toLocaleDateString()}</span>
           {onSetVisibility && visibility && (() => {

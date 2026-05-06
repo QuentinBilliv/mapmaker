@@ -4,9 +4,17 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
 import { TIER_LIMITS } from "@convex/shared";
+import toast from "react-hot-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import ConfirmDialog from "@/components/ui/confirm-dialog";
 import Link from "next/link";
+
+function cleanError(err: Error): string {
+  return err.message
+    .replace(/^\[CONVEX[^\]]*]\s*/, "")
+    .replace(/^Uncaught Error:\s*/, "");
+}
 
 export default function AccountPage() {
   const me = useQuery(api.users.getMe);
@@ -14,6 +22,7 @@ export default function AccountPage() {
   const updateName = useMutation(api.users.updateName);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState("");
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   useEffect(() => {
     if (me?.name) setNameValue(me.name);
@@ -27,6 +36,15 @@ export default function AccountPage() {
     );
   }
 
+  const trimmed = nameValue.trim();
+  const isUnchanged = trimmed === (me.name ?? "");
+
+  const commitName = () => {
+    updateName({ name: trimmed })
+      .then(() => setEditingName(false))
+      .catch((err: Error) => toast.error(cleanError(err)));
+  };
+
   return (
     <div className="max-w-3xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
@@ -36,9 +54,8 @@ export default function AccountPage() {
               className="flex items-center gap-2"
               onSubmit={(e) => {
                 e.preventDefault();
-                updateName({ name: nameValue })
-                  .then(() => setEditingName(false))
-                  .catch(console.error);
+                if (!trimmed || isUnchanged) return;
+                setConfirmOpen(true);
               }}
             >
               <Input
@@ -48,7 +65,7 @@ export default function AccountPage() {
                 className="text-lg font-semibold h-auto py-0.5 w-48"
                 maxLength={50}
               />
-              <Button type="submit" size="sm" className="text-xs">Save</Button>
+              <Button type="submit" size="sm" className="text-xs" disabled={!trimmed || isUnchanged}>Save</Button>
               <Button type="button" variant="ghost" size="sm" className="text-xs" onClick={() => { setNameValue(me.name ?? ""); setEditingName(false); }}>Cancel</Button>
             </form>
           ) : (
@@ -57,6 +74,15 @@ export default function AccountPage() {
               <button onClick={() => setEditingName(true)} className="text-xs text-muted-foreground hover:text-foreground">Edit</button>
             </h1>
           )}
+          <ConfirmDialog
+            open={confirmOpen}
+            onOpenChange={setConfirmOpen}
+            title="Change display name?"
+            description={`This will rename you to "${trimmed}" on every one of your public maps. Continue?`}
+            confirmLabel="Change name"
+            confirmVariant="default"
+            onConfirm={commitName}
+          />
           <p className="text-xs text-muted-foreground">
             {me.email} — {me.tier} tier
             {me.universityLabel && ` — ${me.universityLabel}`}

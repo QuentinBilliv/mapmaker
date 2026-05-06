@@ -2,6 +2,8 @@
 
 import { useQuery, useMutation } from "convex/react";
 import { api } from "@convex/_generated/api";
+import type { Id } from "@convex/_generated/dataModel";
+import toast from "react-hot-toast";
 import MapCard from "@/components/maps/MapCard";
 import NewMapDialog from "@/components/dashboard/NewMapDialog";
 
@@ -10,6 +12,11 @@ export default function Dashboard() {
   const maps = useQuery(api.maps.getMyMaps);
   const deleteMap = useMutation(api.maps.deleteMap);
   const setVisibility = useMutation(api.maps.setVisibility);
+
+  const handleSetVisibility = (mapId: Id<"maps">, visibility: "private" | "unlisted" | "public") =>
+    setVisibility({ mapId, visibility }).catch((err: Error) => {
+      toast.error(err.message.replace(/^\[CONVEX[^\]]*]\s*/, "").replace(/^Uncaught Error:\s*/, ""));
+    });
 
   if (!me || maps === undefined) {
     return (
@@ -49,7 +56,7 @@ export default function Dashboard() {
                 thumbnailId={m.thumbnailId}
                 href={`/maps/${m._id}/edit`}
                 visibility={m.visibility}
-                onSetVisibility={(v) => setVisibility({ mapId: m._id, visibility: v }).catch(console.error)}
+                onSetVisibility={(v) => handleSetVisibility(m._id, v)}
                 onDelete={() => deleteMap({ mapId: m._id }).catch(console.error)}
               />
             ))}
