@@ -84,9 +84,12 @@ export function useConvexPersistence(mapId: string) {
       const serializedChoropleth = serializeChoropleth(state.choropleth);
       const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth });
       const payloadHash = hashString(payload);
-      const visibleFeatureCount = state.features.filter((f) =>
+      const featureCount = state.features.filter((f) =>
         f.type === "text" ? Boolean(f.textContent?.trim()) : true,
       ).length;
+      const choroplethRegionCount = Object.keys(state.choropleth?.assignments ?? {}).length
+        + Object.keys(state.choropleth?.values ?? {}).length;
+      const visibleFeatureCount = featureCount + choroplethRegionCount;
       const metadata = {
         mapId: mapId as Id<"maps">,
         title: state.map.title,

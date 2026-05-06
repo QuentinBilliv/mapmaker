@@ -364,7 +364,7 @@ export const setVisibility = mutation({
       }
       if (map.visibleFeatureCount === 0) {
         throw new Error(
-          `This map looks empty. Add at least one feature with content before publishing.`
+          `This map looks empty. Add at least one feature with content, or color a region in the choropleth, before publishing.`
         );
       }
     }
