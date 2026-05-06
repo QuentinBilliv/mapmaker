@@ -10,6 +10,7 @@ import { toMapData } from "@/lib/convex-mapdata";
 import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
 import { deserializeChoropleth } from "@/lib/choropleth-serde";
 import { fetchAndDecodeMapData } from "@/lib/storage-codec";
+import { useRecordView } from "@/lib/hooks/use-record-view";
 
 type MapSnapshot = FunctionReturnType<typeof api.maps.getMap>;
 
@@ -30,6 +31,7 @@ function Loading() {
 export default function MapViewPage({ params }: { params: { id: string } }) {
   const convex = useConvex();
   const [map, setMap] = useState<MapSnapshot | undefined>(undefined);
+  useRecordView(params.id);
 
   useEffect(() => {
     let cancelled = false;

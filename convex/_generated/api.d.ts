@@ -13,6 +13,7 @@ import type * as auth from "../auth.js";
 import type * as blocklist from "../blocklist.js";
 import type * as helpers from "../helpers.js";
 import type * as http from "../http.js";
+import type * as mapStats from "../mapStats.js";
 import type * as maps from "../maps.js";
 import type * as migrateVisibility from "../migrateVisibility.js";
 import type * as shared from "../shared.js";
@@ -31,6 +32,7 @@ declare const fullApi: ApiFromModules<{
   blocklist: typeof blocklist;
   helpers: typeof helpers;
   http: typeof http;
+  mapStats: typeof mapStats;
   maps: typeof maps;
   migrateVisibility: typeof migrateVisibility;
   shared: typeof shared;

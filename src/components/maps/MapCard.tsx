@@ -4,7 +4,14 @@ import { useState, useCallback } from "react";
 import Link from "next/link";
 import { XIcon, LockIcon, LinkIcon, GlobeIcon, ChevronDownIcon, Share2Icon, CheckIcon, EyeIcon, PencilIcon } from "lucide-react";
 import MapThumbnail from "./MapThumbnail";
+import StarButton from "./StarButton";
 import { Button } from "@/components/ui/button";
+
+function formatCount(n: number): string {
+  if (n < 1000) return String(n);
+  if (n < 1_000_000) return (n / 1000).toFixed(n < 10_000 ? 1 : 0).replace(/\.0$/, "") + "k";
+  return (n / 1_000_000).toFixed(1).replace(/\.0$/, "") + "M";
+}
 import {
   Dialog,
   DialogTrigger,
@@ -41,6 +48,9 @@ interface MapCardProps {
   onDelete?: () => void;
   visibility?: Visibility;
   onSetVisibility?: (visibility: Visibility) => void;
+  viewCount?: number;
+  starCount?: number;
+  isStarredByMe?: boolean;
 }
 
 export default function MapCard({
@@ -59,6 +69,9 @@ export default function MapCard({
   onDelete,
   visibility,
   onSetVisibility,
+  viewCount,
+  starCount,
+  isStarredByMe,
 }: MapCardProps) {
   const cardHref = href ?? `/maps/${id}`;
 
@@ -89,7 +102,7 @@ export default function MapCard({
             ))}
           </div>
         )}
-        <div className="flex items-center gap-2 mt-2 mb-4 text-[10px] text-muted-foreground">
+        <div className="flex items-center gap-2 mt-2 text-[10px] text-muted-foreground">
           {ownerId && (
             <button
               onClick={() => onAuthorClick?.(ownerId)}
@@ -146,6 +159,24 @@ export default function MapCard({
             <ShareButton mapId={id} />
           )}
         </div>
+        {(viewCount !== undefined || starCount !== undefined) && (
+          <div className="flex items-center justify-between mt-2 mb-4 text-[10px] text-muted-foreground">
+            {viewCount !== undefined ? (
+              <span className="inline-flex items-center gap-1" title={`${viewCount} views`}>
+                <EyeIcon className="size-3" />
+                {formatCount(viewCount)}
+              </span>
+            ) : <span />}
+            {starCount !== undefined && (
+              <StarButton
+                mapId={id}
+                starred={isStarredByMe ?? false}
+                count={starCount}
+                size="sm"
+              />
+            )}
+          </div>
+        )}
       </div>
       {onDelete && (
         <div className="absolute top-2 right-2 flex gap-1 md:opacity-0 md:group-hover:opacity-100 transition-opacity">

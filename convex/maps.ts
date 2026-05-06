@@ -73,13 +73,21 @@ export const browsePublicMaps = query({
   args: {
     paginationOpts: paginationOptsValidator,
     ownerId: v.optional(v.id("users")),
+    sort: v.optional(v.union(v.literal("recent"), v.literal("top"))),
   },
-  handler: async (ctx, { paginationOpts, ownerId }) => {
-    const page = await ctx.db
-      .query("maps")
-      .withIndex("by_visibility", (idx) => idx.eq("visibility", "public"))
-      .order("desc")
-      .paginate(paginationOpts);
+  handler: async (ctx, { paginationOpts, ownerId, sort }) => {
+    const sortMode = sort ?? "recent";
+    const page = sortMode === "top"
+      ? await ctx.db
+          .query("maps")
+          .withIndex("by_visibility_stars", (idx) => idx.eq("visibility", "public"))
+          .order("desc")
+          .paginate(paginationOpts)
+      : await ctx.db
+          .query("maps")
+          .withIndex("by_visibility", (idx) => idx.eq("visibility", "public"))
+          .order("desc")
+          .paginate(paginationOpts);
 
     const filtered = page.page.filter((m) => {
       if (ownerId && m.ownerId !== ownerId) return false;
@@ -304,6 +312,16 @@ export const deleteMap = mutation({
         // Thumbnail may not exist
       }
     }
+    const stats = await ctx.db
+      .query("mapStats")
+      .withIndex("by_map", (q) => q.eq("mapId", map._id))
+      .first();
+    if (stats) await ctx.db.delete(stats._id);
+    const stars = await ctx.db
+      .query("mapStars")
+      .withIndex("by_map", (q) => q.eq("mapId", map._id))
+      .collect();
+    for (const star of stars) await ctx.db.delete(star._id);
     await ctx.db.delete(map._id);
   },
 });

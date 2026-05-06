@@ -52,6 +52,7 @@ export default defineSchema({
     ),
     ownerName: v.optional(v.string()),
     searchText: v.optional(v.string()),
+    starCount: v.optional(v.number()),
     createdAt: v.number(),
     updatedAt: v.number(),
     thumbnailId: v.optional(v.id("_storage")),
@@ -59,11 +60,27 @@ export default defineSchema({
     .index("by_owner", ["ownerId"])
     .index("by_public", ["isPublic", "updatedAt"])
     .index("by_visibility", ["visibility", "updatedAt"])
+    .index("by_visibility_stars", ["visibility", "starCount"])
     .index("by_owner_updated", ["ownerId", "updatedAt"])
     .searchIndex("search_public", {
       searchField: "searchText",
       filterFields: ["visibility", "ownerId"],
     }),
+
+  mapStats: defineTable({
+    mapId: v.id("maps"),
+    viewCount: v.number(),
+    starCount: v.number(),
+  }).index("by_map", ["mapId"]),
+
+  mapStars: defineTable({
+    userId: v.id("users"),
+    mapId: v.id("maps"),
+    createdAt: v.number(),
+  })
+    .index("by_user_map", ["userId", "mapId"])
+    .index("by_user_created", ["userId", "createdAt"])
+    .index("by_map", ["mapId"]),
 
   reports: defineTable({
     mapId: v.id("maps"),
