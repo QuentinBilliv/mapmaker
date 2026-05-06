@@ -9,6 +9,7 @@ import ReadOnlyMapView from "@/components/maps/ReadOnlyMapView";
 import { toMapData } from "@/lib/convex-mapdata";
 import type { FeatureData, GroupData, LegendEntry, ChoroplethData } from "@/lib/types";
 import { deserializeChoropleth } from "@/lib/choropleth-serde";
+import { fetchAndDecodeMapData } from "@/lib/storage-codec";
 
 type MapSnapshot = FunctionReturnType<typeof api.maps.getMap>;
 
@@ -60,8 +61,12 @@ export default function MapViewPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (!dataFileUrl || hasFetchedRef.current) return;
     hasFetchedRef.current = true;
-    fetch(dataFileUrl)
-      .then((res) => res.json())
+    fetchAndDecodeMapData<{
+      features: FeatureData[];
+      groups: GroupData[];
+      legendEntries?: LegendEntry[];
+      choropleth?: ChoroplethData;
+    }>(dataFileUrl)
       .then(setFileData)
       .catch(console.error);
   }, [dataFileUrl]);

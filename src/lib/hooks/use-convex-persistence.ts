@@ -7,6 +7,7 @@ import type { Id } from "@convex/_generated/dataModel";
 import type { StoredMapState } from "../editor-context";
 import { toMapData } from "../convex-mapdata";
 import { serializeChoropleth, deserializeChoropleth } from "../choropleth-serde";
+import { compressJson, fetchAndDecodeMapData } from "../storage-codec";
 
 interface MapFileData {
   features: StoredMapState["features"];
@@ -48,9 +49,8 @@ export function useConvexPersistence(mapId: string) {
     if (!dataFileUrl || hasFetchedRef.current) return;
     hasFetchedRef.current = true;
     setFileLoading(true);
-    fetch(dataFileUrl)
-      .then((res) => res.json())
-      .then((data: MapFileData) => setFileData(data))
+    fetchAndDecodeMapData<MapFileData>(dataFileUrl)
+      .then((data) => setFileData(data))
       .catch(() => setSaveError("Failed to load map data file."))
       .finally(() => setFileLoading(false));
   }, [dataFileUrl]);
@@ -82,7 +82,8 @@ export function useConvexPersistence(mapId: string) {
     (state: StoredMapState) => {
       if (savePausedRef.current) return;
       const serializedChoropleth = serializeChoropleth(state.choropleth);
-      const payload = JSON.stringify({ features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth });
+      const payloadObject = { features: state.features, groups: state.groups, legendEntries: state.legendEntries, choropleth: serializedChoropleth };
+      const payload = JSON.stringify(payloadObject);
       const payloadHash = hashString(payload);
       const featureCount = state.features.filter((f) =>
         f.type === "text" ? Boolean(f.textContent?.trim()) : true,
@@ -116,10 +117,21 @@ export function useConvexPersistence(mapId: string) {
           const uploadUrl = await generateUploadUrl();
           if (abort.signal.aborted) return;
 
+          let uploadBody: Blob | string;
+          let uploadContentType: string;
+          try {
+            uploadBody = await compressJson(payloadObject);
+            uploadContentType = uploadBody.type === "application/json" ? "application/json" : "application/octet-stream";
+          } catch {
+            uploadBody = payload;
+            uploadContentType = "application/json";
+          }
+          if (abort.signal.aborted) return;
+
           const uploadRes = await fetch(uploadUrl, {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: payload,
+            headers: { "Content-Type": uploadContentType },
+            body: uploadBody,
             signal: abort.signal,
           });
           if (!uploadRes.ok) throw new Error("Upload failed");

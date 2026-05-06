@@ -26,6 +26,7 @@ import { DEFAULT_CHOROPLETH } from "@/lib/types";
 import { useChoroplethDisplay } from "@/lib/hooks/use-choropleth-display";
 import { choroplethLegendProps } from "@/lib/choropleth-legend";
 import { deserializeChoropleth } from "@/lib/choropleth-serde";
+import { fetchAndDecodeMapData } from "@/lib/storage-codec";
 
 type MapSnapshot = FunctionReturnType<typeof api.maps.getMap>;
 
@@ -63,8 +64,12 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
   useEffect(() => {
     if (!dataFileUrl || hasFetchedRef.current) return;
     hasFetchedRef.current = true;
-    fetch(dataFileUrl)
-      .then((res) => res.json())
+    fetchAndDecodeMapData<{
+      features: FeatureData[];
+      groups: GroupData[];
+      legendEntries?: LegendEntry[];
+      choropleth?: ChoroplethData;
+    }>(dataFileUrl)
       .then(setFileData)
       .catch(console.error);
   }, [dataFileUrl]);
