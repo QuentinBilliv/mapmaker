@@ -1,180 +1,99 @@
 # idomaps — TODO
 
-## High priority — Acquisition & retention
+Last cleanup: launch day (PH + Reddit). Filtered to what matters now.
 
-- [x] Landing page with value proposition, map examples, and CTA "Start creating"
-- [x] Dynamic OG image per public map (show map thumbnail when sharing /maps/[id])
-- [ ] Analytics (Plausible or PostHog)
+## P0 — UX bugs surfaced by first public users
 
-## Medium priority — Polish
+These were discovered the day after the Reddit posts and need fixing
+before the PH wave hits the gallery hard.
 
-- [x] Custom 404 and 500 error pages
-- [x] Dark mode
-- [x] Embed support — allow embedding public maps via iframe
-- [x] Keyboard shortcuts reference (visible in UI)
+- [ ] **Anonymous fallback in `MapCard`** — when `ownerName` is empty,
+      show "Anonymous" instead of a blank line. 5-min fix in
+      `src/components/maps/MapCard.tsx`.
+- [ ] **Block publish of "looks empty" maps** — if a map's only
+      features are text features with empty `textContent`, refuse to
+      flip `visibility` to `public` (or warn loudly). Surfaced by the
+      Walser Valleys map (1 text feature, no text) appearing in the
+      gallery as a blank tile.
+- [ ] **Force `textContent` on text feature creation** — when a user
+      clicks "Add label", initialise `textContent` to the source label
+      so we never persist an empty text feature.
+- [ ] **Display-name prompt** — first time a user makes a public map
+      without a `name` set on their user doc, show a small modal
+      "Pick a display name (will appear on your public maps)". Better
+      than enforcing at signup; less friction.
 
-## Later — Growth
+## P1 — Mobile experience
 
-- [x] Map templates (e.g. Roman Empire, trade routes) for quick start
-- [ ] Export map as PNG/SVG image
-- [ ] Collaboration — shared editing via link
+Multiple Reddit commenters asked for it. Split the request:
 
-## Convex bandwidth — reduce DB traffic before hitting free plan cap
+- [ ] **Mobile viewer (read-only)** — `/maps/[id]` and `/embed/[id]`
+      should look great on iOS Safari + Android Chrome. Map zoom,
+      tooltips, legend should all work touch. ~3 days. High SEO
+      impact (Google mobile-first indexing).
+- [ ] **Mobile editor decision** — after the viewer ships and we see
+      whether mobile users still ask for creation. If yes, plan a
+      proper touch-first editor (3-4 weeks). If no, leave as-is.
 
-Context: we are sitting at ~872 MB / 1 GB on the Convex free plan's
-**Database Bandwidth** line, and it's not because we have lots of
-data. The culprit is that `getMap` returns the entire map (metadata +
-features + groups + legend entries + choropleth) as a single payload,
-and because Convex queries are reactive, the full payload is re-sent
-to the client on every mutation. Combined with the 2.5s auto-save in
-the editor, a single 30-minute editing session on a large map (e.g.
-Paris Metro, ~300 KB) can burn ~90 MB of bandwidth. OG image
-generation, the landing showcase carousel, and the metadata panel
-all re-fetch the full map unnecessarily.
+## P2 — UNESCO map polish
 
-### Hotspots identified
-- `convex/maps.ts:44-67` — `getMap` returns the full map document on
-  every invalidation
-- `src/lib/hooks/use-convex-persistence.ts:19` — editor is permanently
-  subscribed to `getMap`, so every mutation triggers a full re-send
-- `src/app/(platform)/maps/[id]/opengraph-image.tsx:21` — OG route
-  calls `getMap` on every social unfurl, no cache
-- `src/components/editor/MapMetadata.tsx:176-180` — metadata panel
-  re-fetches the full map just to show title/center/zoom/thumbnail
-- `src/components/landing/PreviewMap.tsx:21` — landing carousel
-  re-fetches full showcase maps on every rotation
-- `src/app/embed/[id]/page.tsx:30-32` — embed page re-fetches the
-  full map per viewer
+The UNESCO seed map has 128 sites where the image falls back to
+`whc.unesco.org/uploads/sites/site_XXX.jpg` because Wikidata didn't
+have a Commons match. UNESCO's CDN often 503s.
 
-### Plan (ordered by impact × effort)
+- [ ] Fetch each missing site's Wikipedia article and pull the
+      first inline image (a python/node script, ~30 min runtime,
+      one-shot rebuild of `output.idomaps`)
+- [ ] Or accept the gap — 90% of sites already have Commons images,
+      not blocking anyone
 
-**Phase 1 — Shipped (2026-04-14)**
-- [x] Always persist features via Convex file storage (lower
-      `INLINE_THRESHOLD` to 0). Existing inline maps keep working
-      via `getMap`'s backward-compat path and migrate lazily on
-      next save. *(commit b5d09d6)*
-- [x] Editor auto-save: raise debounce from 2.5s → 4s, hash-skip
-      when payload is unchanged, flush pending save on
-      `beforeunload`. *(commit b5d09d6)*
-- [x] Convert viewer (`/maps/[id]`), embed (`/embed/[id]`), and
-      landing `PreviewMap` to one-shot `useConvex().query(...)`
-      instead of reactive `useQuery` — none of these surfaces
-      needed live updates. *(commit 8751c13)*
-- [x] Cache OG images for 7 days via `export const revalidate =
-      604800`, and bust the cache via `/api/revalidate-og` when
-      the editor saves a new title/description or cover image.
-      *(commit d904cd4)*
+## P3 — Convex bandwidth follow-up
 
-**Phase 2 — Already mostly built, just turn it on fully**
-The storage-based feature persistence infra (new `dataFileId`
-field on `maps`, file-mode branch in `saveMap`, `dataFileUrl`
-fallback in `getMap`) was already in place — Phase 1 flipped the
-threshold so every new save uses it. What's left:
-- [ ] One-shot migration pass to rewrite existing inline maps
-      into file storage (cron or admin script reading all maps
-      with `features != null` and resaving through `saveMap`)
-- [ ] After migration, drop the inline-mode branches from
-      `getMap` / `saveMap` and remove the `features` / `groups`
-      fields from the `maps` doc schema entirely
+Phase 1 shipped (b5d09d6, 8751c13, d904cd4). Still TODO:
 
-**Phase 3 — Polish**
-- [ ] Add a `lastFeaturesUpdatedAt` timestamp on the map doc so
-      readers can skip fetching the blob when they already have a
-      fresh copy in browser cache (ETag/If-Modified-Since flow)
-- [ ] Instrument a lightweight bandwidth monitor: log query payload
-      sizes in dev, surface a warning in the editor if a single
-      session crosses a threshold
-- [ ] Once bandwidth is under control, reconsider whether we still
-      need pagination on `getMyMaps` (currently fine but worth
-      re-checking)
+- [ ] One-shot migration to rewrite remaining inline maps into
+      file storage (admin script reading all maps where
+      `features != null`, resaving via `saveMap`)
+- [ ] After migration, drop the inline branches from `getMap` /
+      `saveMap` and remove `features` / `groups` columns
+- [ ] `lastFeaturesUpdatedAt` timestamp on the map doc so viewers
+      can skip re-fetching the blob (ETag flow)
+- [ ] Lightweight bandwidth monitor (log payload sizes in dev, warn
+      in editor when a single session crosses a threshold)
 
-### What we explicitly do NOT need to do
-- Change the public API or `.idomaps` export format — features stay
-  exactly where they are on the wire to external consumers
-- Rewrite the editor state management — `features` already live in
-  local state (`editor-context.tsx`), Convex just persists them
-- Upgrade to the paid plan preemptively — Phase 1 alone should buy
-  us many months of headroom
+## P4 — Growth features (not blocking)
 
-## Trust & Safety — before opening the site to the public
+- [ ] Export map as **PNG/SVG image** — recurring ask, Pro-tier
+      candidate eventually
+- [ ] **Collaboration** — shared editing via link. Big infra change
+      (presence, conflict resolution). Park until demand is loud.
+- [ ] **Map templates** beyond the seeds — let users start from
+      e.g. "World countries", "France régions", "US states" with the
+      polygons already drawn
+- [ ] **AI assist** — "Generate a map of [topic]" using the
+      `generate-map` skill behind a Pro feature. Validated demand
+      from the Reddit threads ("can it suggest features?").
 
-Context: the site is free and publishing is one click away. If we ship
-without safeguards, people can publish porn, hate content, spam, CSAM,
-or trademark/copyright infringement on a `/maps/[id]` URL that we host.
-A pricing wall does NOT solve this — it filters casual users but not
-malicious ones, who will happily pay. We need real guardrails before
-we push idomaps publicly.
+## P5 — Pre-existing flaky test
 
-The plan below is layered: each layer alone is insufficient, together
-they give us both legal cover (hosting safe-harbor) and practical
-protection against the most common abuse patterns.
+- [ ] `idomaps-format.test.ts` — "migrates legacy natgeo base map to
+      liberty" is failing on `main` since before this session.
+      Investigate and fix or update expectation.
 
-### 1. Identity & friction at publish time
-- [ ] Require authenticated account to publish a map (OAuth: Google,
-      GitHub — no email/password to avoid throwaway accounts)
-- [ ] Keep maps private by default; publishing must be an explicit,
-      deliberate action with a confirmation dialog that reminds the
-      user of the ToS
-- [ ] Rate-limit publishing: max N public maps per account per day
-      (start around 5), enforced server-side in Convex
-- [ ] Rate-limit account creation per IP to cut drive-by spam
-- [ ] Track `publishedAt`, `publishedBy`, `lastPublishedFromIp` on each
-      public map so we can act on repeat offenders
+## Done since last cleanup (for memory)
 
-### 2. Terms of Service & legal posture
-- [ ] Write Terms of Service that explicitly forbid: sexual content,
-      CSAM, hate speech, incitement to violence, personal data
-      exposure, trademark/copyright infringement, illegal content
-      under French/EU law
-- [ ] Make ToS acceptance mandatory at signup (checkbox, logged)
-- [ ] Write a short Privacy Policy (what we store, how long, how to
-      request deletion — RGPD)
-- [ ] State clearly that we reserve the right to unpublish/delete any
-      map without notice, and that we act as a hosting provider under
-      the EU e-commerce directive (article 14 — safe harbor requires
-      "expeditious removal" upon notice)
-- [ ] Add a visible "Report this map" button on every public map page,
-      hitting a Convex mutation that writes to a `reports` table with
-      reporter IP, map id, reason, timestamp
-- [ ] Expose a `abuse@` or `legal@` email in the footer of public map
-      pages (legal requirement in several EU countries for hosted
-      content)
-
-### 3. Automated checks at publish time
-- [ ] Static blocklist of obvious slurs / porn terms in FR + EN
-      (and a few more languages). Reject immediately at publish time.
-- [ ] Validate any `customSvg` the user sets: strip `<script>`, event
-      handlers, external URLs, `<foreignObject>`. We already render
-      these — an unsanitized SVG is an XSS vector too. Use a real
-      sanitizer (DOMPurify with the SVG profile) rather than regex.
-- [ ] Reject base64 image payloads in SVG over a size threshold (users
-      could smuggle porn as an inline raster inside a "custom icon")
-- [ ] Do NOT index public maps on a public `/discover` or `/gallery`
-      page until moderation is in place. Published = URL-shareable,
-      but not listed anywhere crawlable from the homepage.
-
-### 4. Moderation queue & takedown — DONE
-- [x] `reports` table + `reportMap` mutation
-- [x] Report button on every public map (reason: inappropriate,
-      spam, copyright, other)
-- [x] Admin page at `/admin` to list pending reports, unpublish
-      maps, and dismiss reports (protected by tier === "admin")
-- [x] Audit logging via console.info on every admin action
-- [x] "This map is not available" for unpublished/private maps
-
-### 5. What we deliberately skip
-- Pricing is NOT part of the safety plan. It will come later if/when
-  we know what to charge for (private maps, no-watermark embeds,
-  collaboration, higher rate limits, exports) — driven by value, not
-  by "filtering cons".
-- No LLM-based screening. Report button + admin moderation is enough.
-- No human pre-moderation of every publish. We rely on blocklist +
-  post-hoc reports. Manual review only for flagged items.
-- No real-name / KYC requirement. OAuth + ToS is enough friction for
-  the target audience.
-
-### Rollout order (minimum viable "safe to open")
-1. ~~OAuth login + publish-requires-auth~~ (already in place)
-2. ~~ToS / Privacy Policy + Report button~~ (shipped)
-3. ~~Moderation queue + unpublish flow~~ (shipped)
-4. ~~Static blocklist + SVG sanitizer at publish time~~ (shipped)
+- Domain `idomaps.app` purchased + DNS configured + apex set as primary
+- Vercel Analytics + Speed Insights wired in
+- Dynamic sitemap pulling all public maps from Convex
+- `FEATURE_LIMIT` raised from 150 → 500, soft warning at 250
+- Hole punching on polygons (turf.difference + UI button)
+- Image URLs on features rendered in tooltips with shimmer + lazy load
+- 7 new seed maps: UNESCO, European castles, Animals 2025, 15th-century
+  cities, Volcanoes, Ibn Battuta routes
+- Public maps gallery scrolling fix
+- Tooltip image: `object-fit: contain` + `overflow-wrap: anywhere`
+- Description sanitization (no more truncated `...`, no HTML tags)
+- Bold/italic + dynamic font size in legend swatches
+- Save bug on metadata-only changes (Convex persistence early-return)
+- `@auth/core` peer dep installed properly
+- Dropped `Arial Unicode MS` from text-font stack (404 noise)
