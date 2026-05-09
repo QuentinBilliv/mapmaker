@@ -5,7 +5,7 @@ import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
 import type { DrawMode } from "@/lib/draw-engine";
 import { getTileLayerConfig } from "@/lib/choropleth";
-import { CHOROPLETH_FILL, CHOROPLETH_HIT } from "./use-feature-rendering";
+import { CHOROPLETH_FILL, CHOROPLETH_HIT, ZF } from "./use-feature-rendering";
 import { useChoroplethDisplay } from "./use-choropleth-display";
 
 export function useChoropleth(
@@ -32,6 +32,11 @@ export function useChoropleth(
     if (!map || !choro.enabled) return;
     const inMode = choroplethModeRef.current;
     if (!inMode && drawModeRef.current !== "select") return;
+
+    const featureLayers = (map.getStyle().layers ?? [])
+      .filter((l) => l.id.startsWith(ZF))
+      .map((l) => l.id);
+    if (featureLayers.length > 0 && map.queryRenderedFeatures(e.point, { layers: featureLayers }).length > 0) return;
 
     const config = getTileLayerConfig(choro.tileLayer);
     const features = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL, CHOROPLETH_HIT] });
