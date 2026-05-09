@@ -55,6 +55,7 @@ interface EditorDataState {
   maxPayloadSize: number;
   choropleth: ChoroplethData;
   choroplethMode: boolean;
+  drawingPointCount: number;
   canUndo: boolean;
   canRedo: boolean;
 }
@@ -129,6 +130,7 @@ interface EditorActions {
   importMapData: (data: DeserializedMap) => void;
   finishDrawing: () => void;
   cancelDrawing: () => void;
+  setDrawingPointCount: (n: number) => void;
   registerDrawingControls: (controls: {
     finishDrawing: () => void;
     cancelDrawing: () => void;
@@ -207,6 +209,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const [selectedFeatureIds, setSelectedFeatureIds] = useState<string[]>([]);
   const [choropleth, setChoroplethState] = useState<ChoroplethData>(initialData?.choropleth ?? DEFAULT_CHOROPLETH);
   const [choroplethMode, setChoroplethMode] = useState(false);
+  const [drawingPointCount, setDrawingPointCount] = useState(0);
 
   const initialBaseMap = initialData?.baseMapId
     ? findBaseMap(initialData.baseMapId)
@@ -493,8 +496,8 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   // Context values
 
   const dataValue = useMemo<EditorDataState>(
-    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, payloadSize, maxPayloadSize: MAX_MAP_PAYLOAD, choropleth, choroplethMode, canUndo, canRedo }),
-    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, payloadSize, choropleth, choroplethMode, canUndo, canRedo]
+    () => ({ map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, payloadSize, maxPayloadSize: MAX_MAP_PAYLOAD, choropleth, choroplethMode, drawingPointCount, canUndo, canRedo }),
+    [map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, featureLimitReached, featureLimit, payloadSize, choropleth, choroplethMode, drawingPointCount, canUndo, canRedo]
   );
 
   const actionsValue = useMemo<EditorActions>(
@@ -523,7 +526,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       assignCountryToCategory, unassignCountry, setCountryDetails, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
-      finishDrawing, cancelDrawing, registerDrawingControls,
+      finishDrawing, cancelDrawing, setDrawingPointCount, registerDrawingControls,
       recordSnapshot, undo, redo,
     }),
     [
@@ -551,7 +554,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       assignCountryToCategory, unassignCountry, setCountryDetails, importChoroplethData,
       setGradientValue, removeGradientValue, importGradientData,
       setChoroplethMode, updateMap, importMapData,
-      finishDrawing, cancelDrawing, registerDrawingControls,
+      finishDrawing, cancelDrawing, setDrawingPointCount, registerDrawingControls,
       recordSnapshot, undo, redo,
     ]
   );

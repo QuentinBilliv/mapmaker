@@ -23,7 +23,8 @@ export function useDrawing(
   onFeatureDrawn: (geometry: GeoJSON.Geometry) => void,
   onFeatureClick: (featureId: string, shiftKey: boolean) => void,
   vertexInteractingRef: React.RefObject<boolean> | undefined,
-  styleVersion: number
+  styleVersion: number,
+  onPointCountChange?: (count: number) => void,
 ): DrawingControls {
   const drawStateRef = useRef<DrawState>({
     mode: "select",
@@ -31,6 +32,11 @@ export function useDrawing(
     isDrawing: false,
   });
   const drawModeRef = useRef(drawMode);
+  const onPointCountChangeRef = useRef(onPointCountChange);
+  useEffect(() => { onPointCountChangeRef.current = onPointCountChange; }, [onPointCountChange]);
+  const notifyPointCount = useCallback(() => {
+    onPointCountChangeRef.current?.(drawStateRef.current.currentPoints.length);
+  }, []);
 
   useEffect(() => {
     drawModeRef.current = drawMode;
@@ -44,7 +50,8 @@ export function useDrawing(
       mapRef.current.getCanvas().style.cursor =
         drawMode === "select" ? "" : "crosshair";
     }
-  }, [drawMode, mapRef]);
+    notifyPointCount();
+  }, [drawMode, mapRef, notifyPointCount]);
 
   const finishDrawing = useCallback(() => {
     const map = mapRef.current;
@@ -56,7 +63,8 @@ export function useDrawing(
     if (geometry) onFeatureDrawn(geometry);
     state.currentPoints = [];
     clearDrawPreview(map);
-  }, [mapRef, onFeatureDrawn]);
+    notifyPointCount();
+  }, [mapRef, onFeatureDrawn, notifyPointCount]);
 
   const cancelDrawing = useCallback(() => {
     const map = mapRef.current;
@@ -64,7 +72,8 @@ export function useDrawing(
       drawStateRef.current.currentPoints = [];
       clearDrawPreview(map);
     }
-  }, [mapRef]);
+    notifyPointCount();
+  }, [mapRef, notifyPointCount]);
 
   const handleClick = useCallback(
     (e: maplibregl.MapMouseEvent) => {
@@ -105,13 +114,15 @@ export function useDrawing(
         } else {
           updateDrawPreview(map, state);
         }
+        notifyPointCount();
         return;
       }
 
       state.currentPoints.push(point);
       updateDrawPreview(map, state);
+      notifyPointCount();
     },
-    [mapRef, onFeatureDrawn, onFeatureClick]
+    [mapRef, onFeatureDrawn, onFeatureClick, notifyPointCount]
   );
 
   const handleDblClick = useCallback(

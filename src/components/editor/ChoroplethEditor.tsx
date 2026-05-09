@@ -5,13 +5,11 @@ import { useEditorData, useEditorActions } from "@/lib/editor-context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { FaXmark, FaPlus, FaFileImport, FaTrash, FaCheck, FaRotateLeft, FaRotateRight, FaArrowLeft } from "react-icons/fa6";
+import { FaPlus, FaFileImport, FaTrash, FaCheck, FaArrowLeft } from "react-icons/fa6";
 import { TILE_LAYERS } from "@/lib/choropleth";
 import type { TileLayerId } from "@/lib/types";
 import { GradientContent } from "@/components/editor/ChoroplethGradient";
 import { ImportDialog, GradientImportDialog } from "@/components/editor/ChoroplethImport";
-import HelpHint from "@/components/ui/HelpHint";
-import ChoroplethHelp from "@/components/help/Choropleth";
 import Field from "@/components/ui/Field";
 
 const CATEGORY_COLORS = [
@@ -19,19 +17,13 @@ const CATEGORY_COLORS = [
   "#ec4899", "#14b8a6", "#f97316", "#6366f1", "#06b6d4",
 ];
 
-interface ChoroplethDialogProps {
-  open: boolean;
-  onClose: () => void;
-}
-
-export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProps) {
-  const { choropleth, canUndo, canRedo } = useEditorData();
+export default function ChoroplethEditor() {
+  const { choropleth } = useEditorData();
   const {
     setChoropleth, addChoroplethCategory, updateChoroplethCategory,
     deleteChoroplethCategory, importChoroplethData,
     setGradientValue, removeGradientValue, importGradientData,
     setCountryDetails, unassignCountry,
-    undo, redo,
   } = useEditorActions();
   const [showImport, setShowImport] = useState(false);
   const [editingRegion, setEditingRegion] = useState<{ iso: string; name: string } | null>(null);
@@ -79,34 +71,9 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
     setChoropleth({ tileLayer: layerId, categories: [], assignments: {}, values: {}, activeCategoryId: null });
   }, [setChoropleth]);
 
-  if (!open) return null;
-
   return (
     <>
-      <div
-        className="fixed inset-0 z-30 bg-black/40 md:hidden"
-        onClick={onClose}
-      />
-      <aside className="fixed right-0 top-0 bottom-0 z-40 w-80 max-w-[calc(100vw-3rem)] bg-popover flex flex-col border-l shadow-xl animate-in slide-in-from-right duration-200">
-        <div className="flex items-center justify-between px-4 py-3 border-b shrink-0">
-          <h2 className="text-sm font-semibold flex items-center gap-1.5">
-            Choropleth
-            <HelpHint help={ChoroplethHelp} />
-          </h2>
-          <div className="flex items-center gap-1">
-            <Button variant="ghost" size="icon-xs" disabled={!canUndo} onClick={undo} title="Undo (Ctrl+Z)">
-              <FaRotateLeft />
-            </Button>
-            <Button variant="ghost" size="icon-xs" disabled={!canRedo} onClick={redo} title="Redo (Ctrl+Shift+Z)">
-              <FaRotateRight />
-            </Button>
-            <Button variant="ghost" size="icon-xs" onClick={onClose}>
-              <FaXmark className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto">
-          <div className="px-4 py-3 space-y-3">
+      <div className="px-3 py-3 space-y-3">
             <Field
               label="Regions"
               help="Which set of regions will be colored. You can only use one set per map — switching resets any assigned categories and values."
@@ -205,9 +172,7 @@ export default function ChoroplethDialog({ open, onClose }: ChoroplethDialogProp
                 onClearAll={handleClearAll}
               />
             )}
-          </div>
-        </div>
-      </aside>
+      </div>
       {showImport && (
         choropleth.mode === "discrete" ? (
           <ImportDialog
@@ -287,7 +252,7 @@ function DiscreteContent({
       )}
       {!choropleth.activeCategoryId && sortedCategories.length > 0 && (
         <p className="text-xs text-muted-foreground italic text-center">
-          Click an assigned region on the map to add a description or image.
+          Click a category above to select it, then click regions on the map to assign them. Click an already-assigned region to edit its description or image.
         </p>
       )}
       {sortedCategories.length > 0 && (
@@ -437,7 +402,7 @@ function RegionDetailsView({
           onBlur={commit}
           rows={4}
           maxLength={500}
-          placeholder="e.g. Les Misérables — Victor Hugo. Epic novel about poverty and redemption."
+          placeholder="e.g. Population: 83M. GDP per capita: $51,000."
           className="text-xs resize-y"
         />
       </Field>

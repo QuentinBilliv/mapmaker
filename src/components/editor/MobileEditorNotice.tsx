@@ -3,7 +3,11 @@
 import Link from "next/link";
 import { FaMap, FaDesktop } from "react-icons/fa6";
 
-export default function MobileEditorNotice() {
+interface MobileEditorNoticeProps {
+  onBypass?: () => void;
+}
+
+export default function MobileEditorNotice({ onBypass }: MobileEditorNoticeProps) {
   return (
     <div className="md:hidden flex-1 flex items-center justify-center p-6 bg-background">
       <div className="max-w-sm w-full flex flex-col items-center text-center gap-5">
@@ -31,6 +35,15 @@ export default function MobileEditorNotice() {
           >
             Back to home
           </Link>
+          {onBypass && (
+            <button
+              type="button"
+              onClick={onBypass}
+              className="mt-2 text-[11px] text-muted-foreground/60 hover:text-muted-foreground underline underline-offset-2"
+            >
+              I know and I don&apos;t care — open editor anyway
+            </button>
+          )}
         </div>
       </div>
     </div>

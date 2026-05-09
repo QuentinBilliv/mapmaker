@@ -3,6 +3,7 @@
 import { useEffect, useRef, useCallback } from "react";
 import maplibregl from "maplibre-gl";
 import type { ChoroplethData } from "@/lib/types";
+import type { DrawMode } from "@/lib/draw-engine";
 import { getTileLayerConfig } from "@/lib/choropleth";
 import { CHOROPLETH_FILL, CHOROPLETH_HIT } from "./use-feature-rendering";
 import { useChoroplethDisplay } from "./use-choropleth-display";
@@ -14,15 +15,24 @@ export function useChoropleth(
   assignCountry: (iso: string, name: string) => void,
   unassignCountry: (iso: string) => void,
   choroplethMode: boolean,
+  drawMode: DrawMode,
+  enterChoroplethMode: () => void,
 ): void {
   useChoroplethDisplay(mapRef, choropleth, styleVersion);
   const choroplethRef = useRef(choropleth);
   useEffect(() => { choroplethRef.current = choropleth; }, [choropleth]);
+  const choroplethModeRef = useRef(choroplethMode);
+  useEffect(() => { choroplethModeRef.current = choroplethMode; }, [choroplethMode]);
+  const drawModeRef = useRef(drawMode);
+  useEffect(() => { drawModeRef.current = drawMode; }, [drawMode]);
 
   const handleClick = useCallback((e: maplibregl.MapMouseEvent) => {
     const map = mapRef.current;
     const choro = choroplethRef.current;
     if (!map || !choro.enabled) return;
+    const inMode = choroplethModeRef.current;
+    if (!inMode && drawModeRef.current !== "select") return;
+
     const config = getTileLayerConfig(choro.tileLayer);
     const features = map.queryRenderedFeatures(e.point, { layers: [CHOROPLETH_FILL, CHOROPLETH_HIT] });
     if (!features.length) return;
@@ -30,6 +40,21 @@ export function useChoropleth(
     const id = f.properties?.[config.idProp] as string;
     const name = f.properties?.[config.nameProp] as string;
     if (!id || !name) return;
+
+    if (!inMode) {
+      const hasAssignment = choro.mode === "discrete"
+        ? Boolean(choro.assignments[id])
+        : choro.values[id] !== undefined;
+      if (!hasAssignment) return;
+      e.preventDefault();
+      enterChoroplethMode();
+      const eventName = choro.mode === "discrete" ? "idomaps:choropleth-edit-region" : "idomaps:country-clicked";
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent(eventName, { detail: { iso: id, name } }));
+      }, 0);
+      return;
+    }
+
     e.preventDefault();
     if (choro.mode === "gradient") {
       window.dispatchEvent(new CustomEvent("idomaps:country-clicked", { detail: { iso: id, name } }));
@@ -46,15 +71,15 @@ export function useChoropleth(
     } else {
       assignCountry(id, name);
     }
-  }, [mapRef, assignCountry, unassignCountry]);
+  }, [mapRef, assignCountry, unassignCountry, enterChoroplethMode]);
 
   useEffect(() => {
-    if (!choroplethMode) return;
+    if (!choropleth.enabled) return;
     const map = mapRef.current;
     if (!map) return;
     map.on("click", handleClick);
     return () => {
       try { map.off("click", handleClick); } catch (e) { console.warn("Failed to remove click handler:", e); }
     };
-  }, [mapRef, handleClick, styleVersion, choroplethMode]);
+  }, [mapRef, handleClick, styleVersion, choropleth.enabled]);
 }

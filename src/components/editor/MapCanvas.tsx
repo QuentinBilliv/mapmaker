@@ -18,7 +18,8 @@ import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
 export default function MapCanvas() {
   const { map, features, groups, legendEntries, selectedFeatureIds, selectedFeature, choropleth, choroplethMode } = useEditorData();
   const { drawMode, activeBaseMap, styleOptions } = useDrawingState();
-  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup, assignCountryToCategory, unassignCountry } = useEditorActions();
+  const { addFeature, selectFeature, selectFeatures, updateFeature, updateMap, registerDrawingControls, recordSnapshot, moveGroup, rotateGroup, assignCountryToCategory, unassignCountry, setChoroplethMode, setDrawingPointCount } = useEditorActions();
+  const enterChoroplethMode = useCallback(() => setChoroplethMode(true), [setChoroplethMode]);
 
   const containerRef = useRef<HTMLDivElement>(null);
   const isDefaultView = map.center[0] === DEFAULT_CENTER[0] && map.center[1] === DEFAULT_CENTER[1] && map.zoom === DEFAULT_ZOOM;
@@ -50,7 +51,7 @@ export default function MapCanvas() {
   );
 
   useFeatureRendering(mapRef, features, groups, styleVersion, legendEntries, choropleth);
-  useChoropleth(mapRef, choropleth, styleVersion, assignCountryToCategory, unassignCountry, choroplethMode);
+  useChoropleth(mapRef, choropleth, styleVersion, assignCountryToCategory, unassignCountry, choroplethMode, drawMode, enterChoroplethMode);
 
   const selectedGroupId = useMemo(() => {
     if (drawMode !== "select" || selectedFeatureIds.length < 2) return null;
@@ -73,7 +74,7 @@ export default function MapCanvas() {
     get current() { return !!(vertexInteractingRef.current || shapeInteractingRef.current || groupInteractingRef.current); },
     set current(_v: boolean) {},
   }), [vertexInteractingRef, shapeInteractingRef, groupInteractingRef]);
-  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion);
+  const controls = useDrawing(mapRef, drawMode, addFeature, onFeatureClick, combinedRef, styleVersion, setDrawingPointCount);
   useEffect(() => registerDrawingControls(controls), [controls, registerDrawingControls]);
   useSaveViewListener(mapRef, updateMap);
   useFlyToListener(mapRef);

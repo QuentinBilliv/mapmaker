@@ -41,7 +41,7 @@ export default function BaseMapSelector() {
   }
 
   return (
-    <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-popover rounded-lg shadow-lg p-1">
+    <div className="absolute bottom-20 md:bottom-8 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1 bg-popover rounded-lg shadow-lg p-1">
       <div className="absolute -right-2.5 -top-2.5 flex size-6 items-center justify-center rounded-full border bg-popover shadow-md">
         <HelpHint help={BaseMapSelectorHelp} />
       </div>

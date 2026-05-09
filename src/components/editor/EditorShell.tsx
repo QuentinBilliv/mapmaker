@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import MapCanvas from "./MapCanvas";
 import MapCanvasErrorBoundary from "./MapCanvasErrorBoundary";
 import DrawingToolbar from "./DrawingToolbar";
+import DrawingActionButtons from "./DrawingActionButtons";
 import FeatureForm from "./FeatureForm";
 
 import MapMetadata from "./MapMetadata";
@@ -12,7 +13,6 @@ import Legend from "./Legend";
 import FeaturePanel, { MapSizeBar } from "./FeaturePanel";
 import LegendPanel from "./LegendPanel";
 import ChoroplethPanel from "./ChoroplethPanel";
-import ChoroplethDialog from "./ChoroplethDialog";
 import ExportImportButtons from "./ExportImportButtons";
 
 import { useEditorData, useEditorActions } from "@/lib/editor-context";
@@ -26,6 +26,7 @@ export default function EditorShell() {
   const { setChoroplethMode, selectFeature } = useEditorActions();
   const [showSidebar, setShowSidebar] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [bypassMobile, setBypassMobile] = useState(false);
   useEffect(() => {
     const mq = window.matchMedia("(max-width: 767px)");
     const update = () => setIsMobile(mq.matches);
@@ -33,9 +34,27 @@ export default function EditorShell() {
     mq.addEventListener("change", update);
     return () => mq.removeEventListener("change", update);
   }, []);
+  useEffect(() => {
+    if (window.localStorage.getItem("bypassMobileEditor") === "1") {
+      setBypassMobile(true);
+    }
+  }, []);
+  useEffect(() => {
+    if (!isMobile) return;
+    const handler = () => setShowSidebar(true);
+    window.addEventListener("idomaps:choropleth-edit-region", handler);
+    window.addEventListener("idomaps:country-clicked", handler);
+    return () => {
+      window.removeEventListener("idomaps:choropleth-edit-region", handler);
+      window.removeEventListener("idomaps:country-clicked", handler);
+    };
+  }, [isMobile]);
+  const handleBypassMobile = useCallback(() => {
+    window.localStorage.setItem("bypassMobileEditor", "1");
+    setBypassMobile(true);
+  }, []);
 
   const handleOpenChoropleth = useCallback(() => {
-    setShowSidebar(false);
     setChoroplethMode(true);
     selectFeature(null);
   }, [setChoroplethMode, selectFeature]);
@@ -44,7 +63,7 @@ export default function EditorShell() {
     setChoroplethMode(false);
   }, [setChoroplethMode]);
 
-  if (isMobile) return <MobileEditorNotice />;
+  if (isMobile && !bypassMobile) return <MobileEditorNotice onBypass={handleBypassMobile} />;
 
   return (
     <div className="flex-1 flex overflow-hidden">
@@ -53,6 +72,7 @@ export default function EditorShell() {
           <MapCanvas />
         </MapCanvasErrorBoundary>
         {!choroplethMode && <DrawingToolbar />}
+        {!choroplethMode && <DrawingActionButtons />}
         <MapMetadata />
         {!choroplethMode && <FeatureForm />}
         <BaseMapSelector />
@@ -100,9 +120,12 @@ export default function EditorShell() {
           <FeaturePanel />
           <LegendPanel />
         </div>
-        <ChoroplethPanel onOpenDialog={handleOpenChoropleth} />
+        <ChoroplethPanel
+          onOpenDialog={handleOpenChoropleth}
+          choroplethMode={choroplethMode}
+          onCloseChoropleth={handleCloseChoropleth}
+        />
       </aside>
-      <ChoroplethDialog open={choroplethMode} onClose={handleCloseChoropleth} />
     </div>
   );
 }

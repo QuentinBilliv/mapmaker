@@ -31,7 +31,7 @@ function MetadataToggle({ onOpen }: { onOpen: () => void }) {
     <Button
       variant="outline"
       onClick={onOpen}
-      className="absolute top-3 left-16 z-10 shadow-lg md:left-1/2 md:-translate-x-1/2"
+      className="absolute top-3 left-1/2 -translate-x-1/2 z-10 shadow-lg"
     >
       {map.title || "Untitled"}
     </Button>

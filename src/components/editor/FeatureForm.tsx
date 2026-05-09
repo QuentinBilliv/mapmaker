@@ -284,6 +284,11 @@ export default function FeatureForm() {
           onClose={() => selectFeature(null)}
         />
         <div className="p-3 space-y-3 overflow-y-auto">
+          {(selectedFeature.type === "polygon" || selectedFeature.type === "polyline") && (
+            <p className="[@media(pointer:fine)]:hidden text-xs leading-relaxed rounded-md border border-amber-200 dark:border-amber-800/50 bg-amber-50 dark:bg-amber-950/30 px-2.5 py-2 text-amber-900 dark:text-amber-200">
+              Reshaping this feature (moving its vertices) is only available on a non-touch screen. You can still edit its properties below.
+            </p>
+          )}
           <LegendEntryPicker feature={selectedFeature} />
           <StyleFields />
           <TypeSpecificFields feature={selectedFeature} />
