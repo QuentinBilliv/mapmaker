@@ -75,7 +75,7 @@ export function loadFromLocalStorage(): {
       legendEntries: state.legendEntries ?? [],
       baseMap,
       styleOptions: state.styleOptions,
-      choropleth: state.choropleth,
+      choropleth: state.choropleth ? { ...state.choropleth, activeCategoryId: null } : undefined,
     };
   } catch {
     onStorageError?.("load_corrupted");
