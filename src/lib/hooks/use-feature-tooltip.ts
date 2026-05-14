@@ -9,6 +9,7 @@ export function useFeatureTooltip(
   drawMode: string,
   styleVersion: number,
   hasSelection?: boolean,
+  isChoroplethEditing?: boolean,
 ) {
   const popupRef = useRef<maplibregl.Popup | null>(null);
 
@@ -25,7 +26,7 @@ export function useFeatureTooltip(
     popupRef.current = popup;
 
     const onMouseMove = (e: maplibregl.MapMouseEvent) => {
-      if (drawMode !== "select" || hasSelection) {
+      if (drawMode !== "select" || hasSelection || isChoroplethEditing) {
         popup.remove();
         return;
       }
@@ -92,7 +93,7 @@ export function useFeatureTooltip(
       map.off("mousemove", onMouseMove);
       map.off("mouseout", onMouseLeave);
     };
-  }, [mapRef, drawMode, styleVersion, hasSelection]);
+  }, [mapRef, drawMode, styleVersion, hasSelection, isChoroplethEditing]);
 }
 
 function escapeHtml(s: string): string {
