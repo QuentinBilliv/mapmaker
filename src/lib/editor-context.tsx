@@ -91,6 +91,7 @@ interface EditorActions {
   deleteFeature: (id: string) => void;
   duplicateFeature: (id: string) => void;
   startPunchHole: (targetId: string) => void;
+  startAddPolygon: (targetId: string) => void;
   addLabelToFeature: (id: string) => void;
   duplicateGroup: (groupId: string) => void;
   deleteGroup: (groupId: string) => void;
@@ -275,6 +276,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
   const drawModeRef = useRef(drawing.drawMode);
   drawModeRef.current = drawing.drawMode;
   const holeTargetIdRef = useRef<string | null>(null);
+  const addPolygonTargetIdRef = useRef<string | null>(null);
   const drawingRef = useRef(drawing);
   drawingRef.current = drawing;
   const featuresRef = useRef(features);
@@ -310,6 +312,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
 
   const setDrawMode = useCallback((mode: DrawMode) => {
     holeTargetIdRef.current = null;
+    addPolygonTargetIdRef.current = null;
     const typeMap: Record<string, FeatureData["type"]> = {
       polygon: "polygon", rectangle: "polygon", circle: "polygon",
       polyline: "polyline", arrow: "polyline", "double-arrow": "polyline",
@@ -411,16 +414,25 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
     duplicateFeature, addLabelToFeature, deleteFeature,
     clearAllFeatures, reorderFeatures,
   } = useFeatureActions({
-    featuresRef, drawingRef, drawModeRef, holeTargetIdRef,
+    featuresRef, drawingRef, drawModeRef, holeTargetIdRef, addPolygonTargetIdRef,
     setFeatures, setSelectedFeatureIds, dispatchDrawing,
     recordSnapshot, featureLimit, onFeatureAdded,
   });
 
   const startPunchHole = useCallback((targetId: string) => {
     holeTargetIdRef.current = targetId;
+    addPolygonTargetIdRef.current = null;
     dispatchDrawing({ type: "SET", payload: { drawMode: "polygon" } });
     setSelectedFeatureIds([]);
     toast("Draw the area to remove from the polygon", { icon: "✂️", duration: 4000 });
+  }, []);
+
+  const startAddPolygon = useCallback((targetId: string) => {
+    addPolygonTargetIdRef.current = targetId;
+    holeTargetIdRef.current = null;
+    dispatchDrawing({ type: "SET", payload: { drawMode: "polygon" } });
+    setSelectedFeatureIds([]);
+    toast("Draw the polygon to add to this feature", { icon: "➕", duration: 4000 });
   }, []);
 
   const {
@@ -513,7 +525,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       selectFeature, selectFeatures,
       addFeature, addBankFeature, updateFeature,
       duplicateFeature, addLabelToFeature, duplicateGroup,
-      deleteFeature, deleteGroup, startPunchHole, clearAllFeatures, reorderFeatures,
+      deleteFeature, deleteGroup, startPunchHole, startAddPolygon, clearAllFeatures, reorderFeatures,
       createGroup, dissolveGroup, updateGroup,
       reorderItems, reorderGroupChildren,
       addFeatureToGroup, removeFeatureFromGroup,
@@ -541,7 +553,7 @@ export function EditorProvider({ children, initialData, onSave, featureLimit = F
       selectFeature, selectFeatures,
       addFeature, addBankFeature, updateFeature,
       duplicateFeature, addLabelToFeature, duplicateGroup,
-      deleteFeature, deleteGroup, startPunchHole, clearAllFeatures, reorderFeatures,
+      deleteFeature, deleteGroup, startPunchHole, startAddPolygon, clearAllFeatures, reorderFeatures,
       createGroup, dissolveGroup, updateGroup,
       reorderItems, reorderGroupChildren,
       addFeatureToGroup, removeFeatureFromGroup,

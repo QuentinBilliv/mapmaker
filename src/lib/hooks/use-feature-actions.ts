@@ -32,6 +32,7 @@ interface Deps {
   drawingRef: React.RefObject<DrawingState>;
   drawModeRef: React.RefObject<DrawMode>;
   holeTargetIdRef: React.MutableRefObject<string | null>;
+  addPolygonTargetIdRef: React.MutableRefObject<string | null>;
   setFeatures: React.Dispatch<React.SetStateAction<FeatureData[]>>;
   setSelectedFeatureIds: React.Dispatch<React.SetStateAction<string[]>>;
   dispatchDrawing: React.Dispatch<{ type: "RESET_AFTER_ADD"; isText: boolean }>;
@@ -41,7 +42,7 @@ interface Deps {
 }
 
 export function useFeatureActions({
-  featuresRef, drawingRef, drawModeRef, holeTargetIdRef,
+  featuresRef, drawingRef, drawModeRef, holeTargetIdRef, addPolygonTargetIdRef,
   setFeatures, setSelectedFeatureIds, dispatchDrawing,
   recordSnapshot, featureLimit, onFeatureAdded,
 }: Deps) {
@@ -54,6 +55,34 @@ export function useFeatureActions({
   }, [setSelectedFeatureIds]);
 
   const addFeature = useCallback((geometry: GeoJSON.Geometry) => {
+    const addTargetId = addPolygonTargetIdRef.current;
+    if (addTargetId && (geometry.type === "Polygon" || geometry.type === "MultiPolygon")) {
+      addPolygonTargetIdRef.current = null;
+      const target = featuresRef.current!.find((f) => f.id === addTargetId) as PolygonFeature | undefined;
+      if (!target || target.type !== "polygon") return;
+      if (target.geometry.type !== "Polygon" && target.geometry.type !== "MultiPolygon") return;
+      const existingPolys: GeoJSON.Position[][][] = target.geometry.type === "Polygon"
+        ? [target.geometry.coordinates]
+        : target.geometry.coordinates;
+      const incomingPolys: GeoJSON.Position[][][] = geometry.type === "Polygon"
+        ? [geometry.coordinates]
+        : geometry.coordinates;
+      const newGeom: GeoJSON.MultiPolygon = {
+        type: "MultiPolygon",
+        coordinates: [...existingPolys, ...incomingPolys],
+      };
+      recordSnapshot();
+      setFeatures((prev) =>
+        prev.map((f) =>
+          f.id === addTargetId
+            ? ({ ...f, geometry: newGeom, shapeOrigin: undefined } as FeatureData)
+            : f
+        )
+      );
+      setSelectedFeatureIds([addTargetId]);
+      dispatchDrawing({ type: "RESET_AFTER_ADD", isText: false });
+      return;
+    }
     const holeTargetId = holeTargetIdRef.current;
     if (holeTargetId && (geometry.type === "Polygon" || geometry.type === "MultiPolygon")) {
       holeTargetIdRef.current = null;
@@ -148,7 +177,7 @@ export function useFeatureActions({
     setSelectedFeatureIds([newFeature.id]);
     dispatchDrawing({ type: "RESET_AFTER_ADD", isText });
     onFeatureAdded?.(featuresRef.current!.length + 1);
-  }, [featuresRef, drawingRef, drawModeRef, holeTargetIdRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit, onFeatureAdded]);
+  }, [featuresRef, drawingRef, drawModeRef, holeTargetIdRef, addPolygonTargetIdRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit, onFeatureAdded]);
 
   const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string, options?: { color?: string; description?: string; imageUrl?: string; legendEntryId?: string }) => {
     if (featureLimit !== Infinity && featuresRef.current!.length >= featureLimit) return;

@@ -299,7 +299,10 @@ export default function FeatureForm() {
             <AddLabelButton featureId={selectedFeature.id} />
           )}
           {selectedFeature.type === "polygon" && (
-            <PunchHoleButton featureId={selectedFeature.id} />
+            <>
+              <PunchHoleButton featureId={selectedFeature.id} />
+              <AddPolygonButton featureId={selectedFeature.id} />
+            </>
           )}
         </div>
         <FormActions
@@ -1003,6 +1006,21 @@ function PunchHoleButton({ featureId }: { featureId: string }) {
       onClick={() => startPunchHole(featureId)}
     >
       Punch hole
+    </Button>
+  );
+}
+
+function AddPolygonButton({ featureId }: { featureId: string }) {
+  const { startAddPolygon } = useEditorActions();
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      className="w-full"
+      onClick={() => startAddPolygon(featureId)}
+    >
+      Add polygon
     </Button>
   );
 }
