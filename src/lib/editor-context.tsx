@@ -86,7 +86,7 @@ interface EditorActions {
   selectFeature: (id: string | null) => void;
   selectFeatures: (ids: string[]) => void;
   addFeature: (geometry: GeoJSON.Geometry) => void;
-  addBankFeature: (geometry: GeoJSON.Geometry, label: string) => void;
+  addBankFeature: (geometry: GeoJSON.Geometry, label: string, options?: { color?: string; description?: string; imageUrl?: string; legendEntryId?: string }) => void;
   updateFeature: (id: string, updates: FeatureUpdate) => void;
   deleteFeature: (id: string) => void;
   duplicateFeature: (id: string) => void;

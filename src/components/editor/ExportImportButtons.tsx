@@ -11,16 +11,21 @@ import toast from "react-hot-toast";
 
 const MAX_IMPORT_FEATURES = 500;
 const MAX_LABEL_LENGTH = 200;
+const HEX_COLOR_RE = /^#[0-9a-fA-F]{6}$/;
 
 function sanitizeLabel(raw: unknown): string {
   if (typeof raw !== "string") return "";
   return raw.replace(/<[^>]*>/g, "").trim().slice(0, MAX_LABEL_LENGTH);
 }
 
+function isHttpUrl(s: string): boolean {
+  return /^https?:\/\//i.test(s);
+}
+
 export default function ExportImportButtons() {
   const { map, features, groups, legendEntries, choropleth, featureLimit } = useEditorData();
   const { activeBaseMap, styleOptions } = useDrawingState();
-  const { importMapData, addBankFeature, clearAllFeatures } = useEditorActions();
+  const { importMapData, addBankFeature, clearAllFeatures, addLegendEntry } = useEditorActions();
   const [status, setStatus] = useState<{ message: string; error: boolean } | null>(null);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
 
@@ -78,6 +83,7 @@ export default function ExportImportButtons() {
         return;
       }
       const toImport = remaining === Infinity ? rawFeatures : rawFeatures.slice(0, remaining);
+      const legendByKey = new Map<string, string>();
       let added = 0;
       for (const item of toImport) {
         if (typeof item !== "object" || item === null) continue;
@@ -90,7 +96,36 @@ export default function ExportImportButtons() {
         if (fType !== "point" && fType !== "polyline" && fType !== "polygon") continue;
         const props = (typeof f.properties === "object" && f.properties !== null ? f.properties : {}) as Record<string, unknown>;
         const label = sanitizeLabel(props.name || props.shapeName || props.NAME || props.label || "");
-        addBankFeature(geometry, label);
+        let color: string | undefined;
+        if (typeof props.color === "string" && HEX_COLOR_RE.test(props.color)) color = props.color;
+        else if (typeof props.fill === "string" && HEX_COLOR_RE.test(props.fill)) color = props.fill;
+        const description = typeof props.description === "string" ? props.description.slice(0, 500) : undefined;
+        const imageUrl = typeof props.imageUrl === "string" && isHttpUrl(props.imageUrl) ? props.imageUrl.slice(0, 500) : undefined;
+        let legendEntryId: string | undefined;
+        if (color && fType === "polygon") {
+          const levelRaw = typeof props.level === "string" ? props.level.toLowerCase() : "";
+          const legendLabel = typeof props.legendLabel === "string" ? sanitizeLabel(props.legendLabel)
+            : levelRaw ? levelRaw.charAt(0).toUpperCase() + levelRaw.slice(1)
+            : color;
+          const key = `${color}|${legendLabel}`;
+          legendEntryId = legendByKey.get(key);
+          if (!legendEntryId) {
+            legendEntryId = addLegendEntry({
+              featureType: "polygon",
+              label: legendLabel,
+              color,
+              opacity: 0.7,
+              smoothing: 0,
+              strokeWidth: 3,
+              lineStyle: "solid",
+              lineDecoration: "none",
+              decorationSpacing: 50,
+              fillPattern: "none",
+            });
+            legendByKey.set(key, legendEntryId);
+          }
+        }
+        addBankFeature(geometry, label, { color, description, imageUrl, legendEntryId });
         added++;
       }
       if (added > 0) {
@@ -102,7 +137,7 @@ export default function ExportImportButtons() {
       console.error("GeoJSON import error:", err);
       setStatus({ message: "Invalid JSON file", error: true });
     }
-  }, [importMapData, addBankFeature, clearAllFeatures, features.length, featureLimit]);
+  }, [importMapData, addBankFeature, clearAllFeatures, features.length, featureLimit, addLegendEntry]);
 
   return (
     <>

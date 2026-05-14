@@ -150,7 +150,7 @@ export function useFeatureActions({
     onFeatureAdded?.(featuresRef.current!.length + 1);
   }, [featuresRef, drawingRef, drawModeRef, holeTargetIdRef, setFeatures, setSelectedFeatureIds, dispatchDrawing, recordSnapshot, featureLimit, onFeatureAdded]);
 
-  const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string) => {
+  const addBankFeature = useCallback((geometry: GeoJSON.Geometry, label: string, options?: { color?: string; description?: string; imageUrl?: string; legendEntryId?: string }) => {
     if (featureLimit !== Infinity && featuresRef.current!.length >= featureLimit) return;
     recordSnapshot();
     const s = drawingRef.current!;
@@ -159,11 +159,13 @@ export function useFeatureActions({
     const base = {
       id: uuid(),
       label,
-      description: "",
-      color: s.activeColor,
+      description: options?.description ?? "",
+      imageUrl: options?.imageUrl,
+      color: options?.color ?? s.activeColor,
       opacity: s.activeOpacity,
       order,
       geometry,
+      legendEntryId: options?.legendEntryId,
     };
     let newFeature: FeatureData;
     switch (featureType) {
