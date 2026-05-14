@@ -37,7 +37,8 @@ export function saveToLocalStorage(
   choropleth?: ChoroplethData,
 ): void {
   try {
-    const state: StoredState = { version: VERSION, map, features, groups, legendEntries, baseMapId, styleOptions, choropleth };
+    const sanitizedChoropleth = choropleth ? { ...choropleth, activeCategoryId: null } : undefined;
+    const state: StoredState = { version: VERSION, map, features, groups, legendEntries, baseMapId, styleOptions, choropleth: sanitizedChoropleth };
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
   } catch (e) {
     const type = e instanceof DOMException && e.name === "QuotaExceededError"

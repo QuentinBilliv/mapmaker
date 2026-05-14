@@ -11,6 +11,7 @@ export function serializeChoropleth(
   if (!c) return undefined;
   return {
     ...c,
+    activeCategoryId: null,
     assignments: Object.entries(c.assignments),
     values: Object.entries(c.values),
   };
@@ -27,5 +28,5 @@ export function deserializeChoropleth(raw: unknown): ChoroplethData | undefined 
     : ((r.values as Record<string, number> | undefined) ?? {});
   const descriptions = (r.descriptions as Record<string, string> | undefined) ?? {};
   const imageUrls = (r.imageUrls as Record<string, string> | undefined) ?? {};
-  return { ...(r as ChoroplethData), assignments, values, descriptions, imageUrls };
+  return { ...(r as ChoroplethData), assignments, values, descriptions, imageUrls, activeCategoryId: null };
 }
