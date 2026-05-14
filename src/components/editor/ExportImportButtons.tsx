@@ -166,6 +166,7 @@ export default function ExportImportButtons() {
         onOpenChange={setImportDialogOpen}
         onImport={handleImport}
         hasFeatures={features.length > 0}
+        maxSizeKB={featureLimit === Infinity ? 51200 : 5000}
       />
       {status && (
         <div

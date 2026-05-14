@@ -81,8 +81,9 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
 
   const handleImportGeoJSON = useCallback(() => {
     if (!geoValue.trim()) return;
-    if (geoValue.length > MAX_IMPORT_SIZE) {
-      setError(`GeoJSON too large (max ${Math.round(MAX_IMPORT_SIZE / 1_000_000)} MB)`);
+    const sizeLimit = featureLimit === Infinity ? 50_000_000 : MAX_IMPORT_SIZE;
+    if (geoValue.length > sizeLimit) {
+      setError(`GeoJSON too large (max ${Math.round(sizeLimit / 1_000_000)} MB)`);
       return;
     }
     try {
@@ -133,7 +134,7 @@ export default function CodePanel({ onClose }: { onClose: () => void }) {
     } catch {
       setError("Invalid JSON");
     }
-  }, [geoValue, addBankFeature, features.length]);
+  }, [geoValue, addBankFeature, features.length, featureLimit]);
 
   return (
     <div className="h-full flex flex-col">

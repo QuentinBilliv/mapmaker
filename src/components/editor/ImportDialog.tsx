@@ -19,11 +19,13 @@ export default function ImportDialog({
   onOpenChange,
   onImport,
   hasFeatures,
+  maxSizeKB = 5000,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onImport: (content: string, isIdomap: boolean, mode: ImportMode) => void;
   hasFeatures: boolean;
+  maxSizeKB?: number;
 }) {
   const [pasteValue, setPasteValue] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -95,7 +97,7 @@ export default function ImportDialog({
           <>
             <FileDropZone
               accept=".idomaps,.geojson,.json"
-              maxSizeKB={5000}
+              maxSizeKB={maxSizeKB}
               label="Drop a .idomaps or .geojson file"
               onFile={(content, fileName) => submit(content, fileName ?? "import.geojson")}
               onError={setError}
