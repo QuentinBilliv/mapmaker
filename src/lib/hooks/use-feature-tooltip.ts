@@ -80,7 +80,9 @@ export function useFeatureTooltip(
 
     const onMouseLeave = () => popup.remove();
 
+    let cancelled = false;
     const setup = () => {
+      if (cancelled) return;
       map.on("mousemove", onMouseMove);
       map.on("mouseout", onMouseLeave);
     };
@@ -89,6 +91,7 @@ export function useFeatureTooltip(
     else map.once("idle", setup);
 
     return () => {
+      cancelled = true;
       popup.remove();
       map.off("mousemove", onMouseMove);
       map.off("mouseout", onMouseLeave);
