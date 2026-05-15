@@ -439,12 +439,13 @@ function buildGeoJSONSorted(
       const rawGeometry = f.geometry;
 
       if (f.type === "text") {
+        const hasTooltipContent = !!(f.description || f.imageUrl);
         return [{
           type: "Feature" as const,
           geometry: rawGeometry,
           properties: {
             id: f.id,
-            label: "",
+            label: hasTooltipContent ? (f.label ?? "") : "",
             description: f.description ?? "",
             imageUrl: f.imageUrl ?? "",
             color: f.color,
