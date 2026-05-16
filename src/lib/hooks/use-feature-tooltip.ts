@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from "react";
 import maplibregl from "maplibre-gl";
-import { ZF, CHOROPLETH_FILL } from "./use-feature-rendering";
+import { ZF, HOVER_HIGHLIGHT, CHOROPLETH_FILL } from "./use-feature-rendering";
+
+const NO_MATCH: maplibregl.FilterSpecification = ["==", ["get", "id"], " "];
 
 export function useFeatureTooltip(
   mapRef: React.RefObject<maplibregl.Map | null>,
@@ -25,9 +27,21 @@ export function useFeatureTooltip(
     });
     popupRef.current = popup;
 
+    let hoveredId: string | null = null;
+    const setHover = (id: string | null) => {
+      if (id === hoveredId) return;
+      hoveredId = id;
+      if (!map.getLayer(HOVER_HIGHLIGHT)) return;
+      map.setFilter(
+        HOVER_HIGHLIGHT,
+        id ? ["==", ["get", "id"], id] : NO_MATCH,
+      );
+    };
+
     const onMouseMove = (e: maplibregl.MapMouseEvent) => {
       if (drawMode !== "select" || hasSelection || isChoroplethEditing) {
         popup.remove();
+        setHover(null);
         return;
       }
 
@@ -47,6 +61,10 @@ export function useFeatureTooltip(
           description = hits[0].properties?.description || "";
           imageUrl = hits[0].properties?.imageUrl || "";
         }
+        const polyHit = hits.find((h) => h.properties?.featureType === "polygon");
+        setHover(polyHit ? (polyHit.properties?.id as string) : null);
+      } else {
+        setHover(null);
       }
 
       if (!label && !description && map.getLayer(CHOROPLETH_FILL)) {
@@ -78,7 +96,7 @@ export function useFeatureTooltip(
         .addTo(map);
     };
 
-    const onMouseLeave = () => popup.remove();
+    const onMouseLeave = () => { popup.remove(); setHover(null); };
 
     let cancelled = false;
     const setup = () => {
@@ -93,6 +111,7 @@ export function useFeatureTooltip(
     return () => {
       cancelled = true;
       popup.remove();
+      setHover(null);
       map.off("mousemove", onMouseMove);
       map.off("mouseout", onMouseLeave);
     };

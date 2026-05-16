@@ -38,7 +38,7 @@ function applyLegendEntry(feature: FeatureData, entry: LegendEntry): FeatureData
     }
     case "polygon": {
       const e = entry as PolygonLegendEntry;
-      return { ...feature, color: e.color, opacity: e.opacity, smoothing: e.smoothing, strokeWidth: e.strokeWidth, lineStyle: e.lineStyle, lineDecoration: e.lineDecoration, decorationSpacing: e.decorationSpacing, fillPattern: e.fillPattern } as PolygonFeature;
+      return { ...feature, color: e.color, opacity: e.opacity, hoverColor: e.hoverColor ?? feature.hoverColor, smoothing: e.smoothing, strokeWidth: e.strokeWidth, lineStyle: e.lineStyle, lineDecoration: e.lineDecoration, decorationSpacing: e.decorationSpacing, fillPattern: e.fillPattern } as PolygonFeature;
     }
     case "text": {
       const e = entry as TextLegendEntry;
@@ -84,7 +84,7 @@ export function deduceLegendEntry(feature: FeatureData, label: string): Omit<Poi
     case "polyline":
       return { ...base, featureType: "polyline", smoothing: feature.smoothing, strokeWidth: feature.strokeWidth, lineStyle: feature.lineStyle, arrowStyle: feature.arrowStyle, lineDecoration: feature.lineDecoration, decorationSpacing: feature.decorationSpacing };
     case "polygon":
-      return { ...base, featureType: "polygon", smoothing: feature.smoothing, strokeWidth: feature.strokeWidth, lineStyle: feature.lineStyle, lineDecoration: feature.lineDecoration, decorationSpacing: feature.decorationSpacing, fillPattern: feature.fillPattern };
+      return { ...base, featureType: "polygon", hoverColor: feature.hoverColor, smoothing: feature.smoothing, strokeWidth: feature.strokeWidth, lineStyle: feature.lineStyle, lineDecoration: feature.lineDecoration, decorationSpacing: feature.decorationSpacing, fillPattern: feature.fillPattern };
     case "text":
       return { ...base, featureType: "text", fontSize: feature.fontSize, fontFamily: feature.fontFamily, bold: feature.bold, italic: feature.italic, textBorderEnabled: feature.textBorderEnabled, textBorderColor: feature.textBorderColor, textBorderWidth: feature.textBorderWidth };
   }
@@ -106,7 +106,7 @@ export function legendEntryToSyntheticFeature(entry: LegendEntry): FeatureData {
     case "polyline":
       return { ...base, type: "polyline", smoothing: entry.smoothing, strokeWidth: entry.strokeWidth, lineStyle: entry.lineStyle, arrowStyle: entry.arrowStyle, lineDecoration: entry.lineDecoration, decorationSpacing: entry.decorationSpacing, geometry: { type: "LineString" as const, coordinates: [[0, 0], [1, 1]] } };
     case "polygon":
-      return { ...base, type: "polygon", smoothing: entry.smoothing, strokeWidth: entry.strokeWidth, lineStyle: entry.lineStyle, lineDecoration: entry.lineDecoration, decorationSpacing: entry.decorationSpacing, fillPattern: entry.fillPattern, geometry: { type: "Polygon" as const, coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] } };
+      return { ...base, type: "polygon", hoverColor: entry.hoverColor, smoothing: entry.smoothing, strokeWidth: entry.strokeWidth, lineStyle: entry.lineStyle, lineDecoration: entry.lineDecoration, decorationSpacing: entry.decorationSpacing, fillPattern: entry.fillPattern, geometry: { type: "Polygon" as const, coordinates: [[[0, 0], [1, 0], [1, 1], [0, 1], [0, 0]]] } };
     case "text":
       return { ...base, type: "text", textContent: "Text", fontSize: entry.fontSize, fontFamily: entry.fontFamily, bold: entry.bold, italic: entry.italic, textBorderEnabled: entry.textBorderEnabled, textBorderColor: entry.textBorderColor, textBorderWidth: entry.textBorderWidth };
   }

@@ -128,6 +128,7 @@ interface LegendEntryBase {
   order: number;
   color: string;
   opacity: number;
+  hoverColor?: string;
 }
 
 export interface PointLegendEntry extends LegendEntryBase {
@@ -180,6 +181,7 @@ interface FeatureBase {
   imageUrl?: string;
   color: string;
   opacity: number;
+  hoverColor?: string;
   order: number;
   rotation?: number;
   groupId?: string;

@@ -33,6 +33,7 @@ const idomapsProps = z
     "idomaps:showInLegend": z.boolean().default(false),
     "idomaps:color": colorSchema.default("#1a1a1a"),
     "idomaps:opacity": z.number().min(0).max(1).default(1),
+    "idomaps:hoverColor": colorSchema.optional(),
     "idomaps:size": z.number().min(0.1).max(20).optional(),
     "idomaps:shape": z
       .enum(["circle", "triangle", "square", "diamond", "star", "cross", "pentagon", "hexagon"])
@@ -106,6 +107,7 @@ const legendEntrySchema = z.object({
   featureType: z.enum(["point", "polyline", "polygon", "text"]),
   color: colorSchema,
   opacity: z.number().min(0).max(1),
+  hoverColor: colorSchema.optional(),
   size: z.number().optional(),
   shape: z.enum(["circle", "triangle", "square", "diamond", "star", "cross", "pentagon", "hexagon"]).optional(),
   icon: z.string().max(200).optional(),
@@ -230,6 +232,7 @@ export function serialize(
       if (!hasEntry) {
         props["idomaps:color"] = f.color;
         props["idomaps:opacity"] = f.opacity;
+        if (f.hoverColor) props["idomaps:hoverColor"] = f.hoverColor;
       }
       if (f.rotation !== undefined) props["idomaps:rotation"] = f.rotation;
       if (f.groupId) props["idomaps:groupId"] = f.groupId;
@@ -337,6 +340,7 @@ export function deserialize(raw: string): DeserializedMap {
       imageUrl: p["idomaps:imageUrl"],
       color: p["idomaps:color"],
       opacity: p["idomaps:opacity"],
+      hoverColor: p["idomaps:hoverColor"],
       order: p["idomaps:order"] ?? idx,
       rotation: p["idomaps:rotation"],
       groupId: p["idomaps:groupId"],

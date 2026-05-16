@@ -215,6 +215,7 @@ type StyleUpdate = Partial<{
   label: string;
   color: string;
   opacity: number;
+  hoverColor: string | undefined;
   size: number;
   shape: PointShape;
   customSvg: string | undefined;
@@ -348,6 +349,29 @@ function ArrowField({ value, onChange }: { value: ArrowStyle; onChange: (u: Styl
   );
 }
 
+function HoverColorField({ value, fallback, onChange }: { value: string | undefined; fallback: string; onChange: (u: StyleUpdate) => void }) {
+  const enabled = !!value;
+  return (
+    <Field label="Hover highlight">
+      <div className="flex gap-2 items-center">
+        <Button
+          type="button"
+          variant={enabled ? "default" : "outline"}
+          size="xs"
+          onClick={() => onChange({ hoverColor: enabled ? undefined : fallback })}
+        >
+          {enabled ? "Custom color" : "Use entry color"}
+        </Button>
+        {enabled && (
+          <div className="flex-1">
+            <ColorInput value={value ?? fallback} onChange={(e) => onChange({ hoverColor: (e.target as HTMLInputElement).value })} />
+          </div>
+        )}
+      </div>
+    </Field>
+  );
+}
+
 function FillPatternField({ value, onChange }: { value: FillPattern; onChange: (u: StyleUpdate) => void }) {
   return (
     <Field label="Fill pattern">
@@ -398,6 +422,7 @@ function EntryStyleFields({ entry, onChange }: { entry: NewLegendEntry; onChange
       {(entry.featureType === "polyline" || entry.featureType === "polygon") && <StrokeStyleFields entry={entry} onChange={onChange} />}
       {entry.featureType === "polyline" && <ArrowField value={entry.arrowStyle} onChange={onChange} />}
       {entry.featureType === "polygon" && <FillPatternField value={entry.fillPattern} onChange={onChange} />}
+      {entry.featureType === "polygon" && <HoverColorField value={entry.hoverColor} fallback={entry.color} onChange={onChange} />}
       {entry.featureType === "text" && <TextStyleFields entry={entry} onChange={onChange} />}
     </>
   );

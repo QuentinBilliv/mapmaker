@@ -28,6 +28,7 @@ export const featureSchema = z.object({
     .optional(),
   color: hexColor,
   opacity: z.number().min(0).max(1),
+  hoverColor: hexColor.optional(),
   size: z.number().min(0.5).max(3),
   shape: z.enum(POINT_SHAPE_VALUES),
   customSvg: z.string().optional(),

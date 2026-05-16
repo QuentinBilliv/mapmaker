@@ -104,6 +104,7 @@ const TYPE_FORM_KEYS: Record<FeatureData["type"], (keyof FeatureFormValues)[]> =
       "lineDecoration",
       "decorationSpacing",
       "fillPattern",
+      "hoverColor",
     ],
   };
 
@@ -180,6 +181,7 @@ function buildFeatureUpdate(
         lineDecoration: v.lineDecoration,
         decorationSpacing: v.decorationSpacing,
         fillPattern: v.fillPattern,
+        hoverColor: v.hoverColor || undefined,
       };
   }
 }
@@ -340,6 +342,7 @@ function TypeSpecificFields({ feature }: { feature: FeatureData }) {
         <>
           {custom && <StrokeFields showArrows={false} />}
           {custom && <FillPatternSelect />}
+          {custom && <HoverColorField />}
         </>
       );
   }
@@ -820,6 +823,44 @@ function FillPatternSelect() {
             {p.label}
           </Button>
         ))}
+      </div>
+    </Field>
+  );
+}
+
+function HoverColorField() {
+  const { watch, setValue } = useFormContext<FeatureFormValues>();
+  const hoverColor = watch("hoverColor");
+  const color = watch("color");
+  const enabled = !!hoverColor;
+
+  return (
+    <Field label="Hover highlight">
+      <div className="flex gap-2 items-center">
+        <Button
+          type="button"
+          variant={enabled ? "default" : "outline"}
+          size="xs"
+          onClick={() =>
+            setValue("hoverColor", enabled ? undefined : color, {
+              shouldDirty: true,
+            })
+          }
+        >
+          {enabled ? "Custom color" : "Use feature color"}
+        </Button>
+        {enabled && (
+          <div className="flex-1">
+            <ColorInput
+              value={hoverColor ?? color}
+              onChange={(e) =>
+                setValue("hoverColor", (e.target as HTMLInputElement).value, {
+                  shouldDirty: true,
+                })
+              }
+            />
+          </div>
+        )}
       </div>
     </Field>
   );
