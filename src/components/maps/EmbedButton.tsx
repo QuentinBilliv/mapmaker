@@ -8,7 +8,9 @@ export function EmbedButton({ mapId }: { mapId: string }) {
   const [open, setOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
-  const snippet = `<iframe src="${typeof window !== "undefined" ? window.location.origin : "https://idomaps.app"}/embed/${mapId}" width="100%" height="450" style="border:none;border-radius:8px" allowfullscreen></iframe>`;
+  const origin = typeof window !== "undefined" ? window.location.origin : "https://idomaps.app";
+  const snippet = `<iframe src="${origin}/embed/${mapId}" width="100%" height="450" style="border:none;border-radius:8px" allowfullscreen></iframe>
+<p style="font:12px/1.4 system-ui,sans-serif;margin:6px 0 0;color:#6b7280">Interactive map made with <a href="https://idomaps.app" target="_blank" rel="noopener">idomaps</a></p>`;
 
   function handleCopy() {
     navigator.clipboard.writeText(snippet);
@@ -35,6 +37,9 @@ export function EmbedButton({ mapId }: { mapId: string }) {
             <pre className="text-[10px] bg-muted p-2 rounded overflow-x-auto whitespace-pre-wrap break-all">
               {snippet}
             </pre>
+            <p className="text-[10px] text-muted-foreground mt-1.5">
+              Includes a small credit link — please keep it to support idomaps.
+            </p>
             <Button
               size="sm"
               className="w-full mt-2 text-xs h-7"
