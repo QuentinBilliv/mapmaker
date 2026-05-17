@@ -116,21 +116,22 @@ export function useFeatureTooltip(
       const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
         ? `<img class="idomaps-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
         : "";
-      let labelHtml: string;
-      if (stackedNames.length > 1) {
-        const countHtml = `<div style="font-size:11px;opacity:0.6;margin-bottom:2px">${stackedNames.length} overlapping here</div>`;
-        const listHtml = stackedNames
-          .map((n) => `<strong>${escapeHtml(n)}</strong>`)
-          .join("<br>");
-        labelHtml = `${countHtml}${listHtml}`;
-      } else {
-        labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
-      }
+      const stacked = stackedNames.length > 1;
+      const countHtml = stacked
+        ? `<div style="font-size:11px;opacity:0.55;margin-bottom:3px">${stackedNames.length} iwi overlap here</div>`
+        : "";
+      const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
       const subtitleHtml = subtitle ? `<div class="idomaps-tooltip-subtitle">${escapeHtml(subtitle)}</div>` : "";
       const descHtml = description ? `<div style="margin-top:4px;opacity:0.85">${escapeHtml(description)}</div>` : "";
+      const othersHtml = stacked
+        ? `<div style="margin-top:6px;padding-top:5px;border-top:1px solid rgba(255,255,255,0.15);font-size:11px;opacity:0.6">Also here · ${stackedNames
+            .slice(1)
+            .map((n) => escapeHtml(n))
+            .join(" · ")}</div>`
+        : "";
       popup
         .setLngLat(e.lngLat)
-        .setHTML(`${imgHtml}${labelHtml}${subtitleHtml}${descHtml}`)
+        .setHTML(`${imgHtml}${countHtml}${labelHtml}${subtitleHtml}${descHtml}${othersHtml}`)
         .addTo(map);
     };
 
