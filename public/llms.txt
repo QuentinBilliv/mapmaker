@@ -1,0 +1,32 @@
+# idomaps
+
+> idomaps is a free, browser-based thematic map editor. Draw polygons, lines, points, and text on real base maps, style them, organize them with groups and a legend, then export to GeoJSON or share an interactive map online. No installation, no account required to start.
+
+## What it is
+
+idomaps is an online cartography tool for making thematic and reference maps: historical maps, territory and boundary maps, travel and field maps, data/choropleth maps, and explainer maps for articles or teaching. It runs entirely in the browser.
+
+## Key facts
+
+- Free to use. No signup required to create a map (sign up only to save).
+- Import and export GeoJSON; export to the .idomaps format.
+- Draw polygons, polylines, points, text, arrows, circles, rectangles.
+- Per-feature styling: colors, opacity, fill patterns, line styles, custom SVG markers, icons, hover highlight color.
+- Groups and a legend system with shared styles.
+- Choropleth maps from country/region tiles.
+- Multiple base maps (OpenStreetMap, Voyager, Topographic, Satellite, and more).
+- Publish a map at a public URL or embed it on any website with an iframe.
+- Overlapping polygons: hovering aggregates every shape under the cursor so nothing is hidden.
+
+## Common use cases
+
+- Education: history and geography teaching maps (migrations, trade routes, territories).
+- Research and journalism: explanatory maps with sourced descriptions.
+- Travel and outdoors: route and point-of-interest maps.
+- Worldbuilding and content creation.
+
+## Links
+
+- App: https://idomaps.app
+- Try it now (no signup): https://idomaps.app/try
+- Public map gallery: https://idomaps.app/maps

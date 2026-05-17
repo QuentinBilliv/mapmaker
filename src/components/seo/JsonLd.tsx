@@ -29,3 +29,38 @@ export function WebAppJsonLd() {
     />
   );
 }
+
+export function MapJsonLd({
+  url,
+  name,
+  description,
+  keywords,
+}: {
+  url: string;
+  name: string;
+  description: string;
+  keywords?: string[];
+}) {
+  const jsonLd = {
+    "@context": "https://schema.org",
+    "@type": "CreativeWork",
+    "@id": url,
+    url,
+    name,
+    description,
+    ...(keywords && keywords.length ? { keywords: keywords.join(", ") } : {}),
+    isPartOf: {
+      "@type": "WebApplication",
+      name: "idomaps",
+      url: "https://idomaps.app",
+    },
+    creator: { "@type": "Organization", name: "idomaps" },
+  };
+
+  return (
+    <script
+      type="application/ld+json"
+      dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+    />
+  );
+}

@@ -28,7 +28,13 @@ function Loading() {
   );
 }
 
-export default function MapViewClient({ params }: { params: { id: string } }) {
+export default function MapViewClient({
+  params,
+  hideTitle = false,
+}: {
+  params: { id: string };
+  hideTitle?: boolean;
+}) {
   const convex = useConvex();
   const [map, setMap] = useState<MapSnapshot | undefined>(undefined);
   useRecordView(params.id);
@@ -96,9 +102,11 @@ export default function MapViewClient({ params }: { params: { id: string } }) {
 
   return (
     <>
-      <div className="px-4 py-2 border-b shrink-0">
-        <h1 className="text-lg font-semibold">{map.title || "Untitled map"}</h1>
-      </div>
+      {!hideTitle && (
+        <div className="px-4 py-2 border-b shrink-0">
+          <h1 className="text-lg font-semibold">{map.title || "Untitled map"}</h1>
+        </div>
+      )}
       <ReadOnlyMapView
         map={toMapData(map)}
         features={data.features}
