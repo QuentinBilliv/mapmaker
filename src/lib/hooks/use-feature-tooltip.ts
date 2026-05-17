@@ -53,16 +53,45 @@ export function useFeatureTooltip(
       let subtitle = "";
       let description = "";
       let imageUrl = "";
+      let stackedNames: string[] = [];
 
       if (featureLayers.length > 0) {
         const hits = map.queryRenderedFeatures(e.point, { layers: featureLayers });
-        if (hits.length > 0) {
+
+        const seen = new Set<string>();
+        const polys: { id: string; label: string; description: string; imageUrl: string; area: number }[] = [];
+        for (const h of hits) {
+          const p = h.properties ?? {};
+          if (p.featureType !== "polygon") continue;
+          const id = p.id as string;
+          if (!id || seen.has(id)) continue;
+          seen.add(id);
+          polys.push({
+            id,
+            label: p.label || "",
+            description: p.description || "",
+            imageUrl: p.imageUrl || "",
+            area: typeof p.area === "number" ? p.area : Number(p.area) || 0,
+          });
+        }
+
+        if (polys.length > 0) {
+          // Most specific first = smallest rohe; nothing stays hidden under another.
+          polys.sort((a, b) => a.area - b.area);
+          const primary = polys[0];
+          label = primary.label;
+          description = primary.description;
+          imageUrl = primary.imageUrl;
+          stackedNames = polys.map((p) => p.label).filter(Boolean);
+          setHover(primary.id);
+        } else if (hits.length > 0) {
           label = hits[0].properties?.label || "";
           description = hits[0].properties?.description || "";
           imageUrl = hits[0].properties?.imageUrl || "";
+          setHover(null);
+        } else {
+          setHover(null);
         }
-        const polyHit = hits.find((h) => h.properties?.featureType === "polygon");
-        setHover(polyHit ? (polyHit.properties?.id as string) : null);
       } else {
         setHover(null);
       }
@@ -76,7 +105,7 @@ export function useFeatureTooltip(
           imageUrl = choroHits[0].properties?._tooltip_image || "";
         }
       }
-      if (!label && !subtitle && !description && !imageUrl) {
+      if (!label && !subtitle && !description && !imageUrl && stackedNames.length === 0) {
         popup.remove();
         map.getCanvas().style.cursor = "";
         return;
@@ -87,7 +116,16 @@ export function useFeatureTooltip(
       const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
         ? `<img class="idomaps-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
         : "";
-      const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
+      let labelHtml: string;
+      if (stackedNames.length > 1) {
+        const countHtml = `<div style="font-size:11px;opacity:0.6;margin-bottom:2px">${stackedNames.length} overlapping here</div>`;
+        const listHtml = stackedNames
+          .map((n) => `<strong>${escapeHtml(n)}</strong>`)
+          .join("<br>");
+        labelHtml = `${countHtml}${listHtml}`;
+      } else {
+        labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
+      }
       const subtitleHtml = subtitle ? `<div class="idomaps-tooltip-subtitle">${escapeHtml(subtitle)}</div>` : "";
       const descHtml = description ? `<div style="margin-top:4px;opacity:0.85">${escapeHtml(description)}</div>` : "";
       popup
