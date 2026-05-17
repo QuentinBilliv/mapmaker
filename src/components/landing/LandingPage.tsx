@@ -388,6 +388,9 @@ function Footer() {
           <Link href="/maps" className="text-xs text-white/30 hover:text-white/60 transition-colors">
             Public maps
           </Link>
+          <Link href="/faq" className="text-xs text-white/30 hover:text-white/60 transition-colors">
+            FAQ
+          </Link>
           <Link href="/terms" className="text-xs text-white/30 hover:text-white/60 transition-colors">
             Terms
           </Link>
