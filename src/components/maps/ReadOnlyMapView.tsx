@@ -14,6 +14,7 @@ import { HighlightProvider } from "@/lib/highlight-context";
 import { findBaseMap, resolveBaseMapStyle, type StyleOptions } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
 import { EmbedButton } from "@/components/maps/EmbedButton";
+import MadeWithBadge from "@/components/maps/MadeWithBadge";
 import { FaPenToSquare, FaChevronUp, FaChevronDown, FaFlag } from "react-icons/fa6";
 import { Share2Icon, CheckIcon } from "lucide-react";
 import { computeFeaturesBounds } from "@/lib/geojson";
@@ -116,6 +117,11 @@ function ReadOnlyMapViewInner({
           <LegendDisplay features={features} legendEntries={legendEntries} {...choroplethLegendProps(choropleth)} />
         </div>
       </div>
+      {!editHref && (
+        <div className="absolute top-2 right-2 z-20 pointer-events-auto">
+          <MadeWithBadge source="shared" />
+        </div>
+      )}
       <div className="absolute top-0 left-0 right-0 z-20 overflow-visible">
         <div className="relative bg-popover/90 backdrop-blur-sm">
           <div

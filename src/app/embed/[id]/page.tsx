@@ -13,6 +13,7 @@ import { useLegendHighlight } from "@/lib/hooks/use-legend-highlight";
 import { HighlightProvider } from "@/lib/highlight-context";
 import { findBaseMap, resolveBaseMapStyle } from "@/lib/map-style";
 import { LegendDisplay } from "@/components/ui/legend-display";
+import MadeWithBadge from "@/components/maps/MadeWithBadge";
 import { toMapData } from "@/lib/convex-mapdata";
 import { computeFeaturesBounds } from "@/lib/geojson";
 import { DEFAULT_CENTER, DEFAULT_ZOOM } from "@/lib/defaults";
@@ -126,7 +127,6 @@ export default function EmbedPage({ params }: { params: { id: string } }) {
             | import("@/lib/map-style").StyleOptions
             | undefined
         }
-        mapId={params.id}
       />
     </HighlightProvider>
   );
@@ -140,7 +140,6 @@ function EmbedMapView({
   choropleth,
   baseMapId,
   styleOptions,
-  mapId,
 }: {
   mapData: ReturnType<typeof toMapData>;
   features: FeatureData[];
@@ -149,7 +148,6 @@ function EmbedMapView({
   choropleth: ChoroplethData;
   baseMapId: string;
   styleOptions?: import("@/lib/map-style").StyleOptions;
-  mapId: string;
 }) {
   const containerRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<maplibregl.Map | null>(null);
@@ -221,14 +219,9 @@ function EmbedMapView({
         legendEntries={legendEntries}
         {...choroplethLegendProps(choropleth)}
       />
-      <a
-        href={`/maps/${mapId}`}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="absolute bottom-2 right-2 z-10 px-2 py-1 rounded bg-white/80 backdrop-blur-sm border border-black/10 text-[10px] text-black/60 hover:text-black transition-colors no-underline"
-      >
-        Open in idomaps
-      </a>
+      <div className="absolute bottom-2 right-2 z-10">
+        <MadeWithBadge source="embed" />
+      </div>
     </div>
   );
 }
