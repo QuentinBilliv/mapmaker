@@ -118,7 +118,7 @@ export function useFeatureTooltip(
         : "";
       const stacked = stackedNames.length > 1;
       const countHtml = stacked
-        ? `<div style="font-size:11px;opacity:0.55;margin-bottom:3px">${stackedNames.length} iwi overlap here</div>`
+        ? `<div style="font-size:11px;opacity:0.55;margin-bottom:3px">${stackedNames.length} overlapping here</div>`
         : "";
       const labelHtml = label ? `<strong>${escapeHtml(label)}</strong>` : "";
       const subtitleHtml = subtitle ? `<div class="idomaps-tooltip-subtitle">${escapeHtml(subtitle)}</div>` : "";
