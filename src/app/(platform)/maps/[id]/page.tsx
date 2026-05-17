@@ -7,7 +7,7 @@ import { fetchAndDecodeMapData } from "@/lib/decode-map-data";
 import { MapJsonLd } from "@/components/seo/JsonLd";
 import MapViewClient from "./MapViewClient";
 
-export const revalidate = 86400;
+export const revalidate = 3600;
 
 const SITE_URL = "https://idomaps.app";
 const MAX_LABELS = 200;
