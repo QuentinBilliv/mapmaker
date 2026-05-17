@@ -5,6 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useAuthActions } from "@convex-dev/auth/react";
 import { useRouter } from "next/navigation";
+import { track } from "@vercel/analytics";
+import { consumeStoredRef } from "@/components/analytics/RefTracker";
 import { signUpSchema, type SignUpFormValues } from "@/lib/schemas";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -34,6 +36,7 @@ export default function SignUpPage() {
       formData.set("password", data.password);
       formData.set("flow", "signUp");
       await signIn("password", formData);
+      track("signup", { ref: consumeStoredRef() ?? "direct" });
       router.replace("/dashboard");
     } catch {
       setServerError("Could not create account. Email may already be in use.");

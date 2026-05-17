@@ -6,6 +6,7 @@ import { useEffect } from "react";
 import { EditorProvider } from "@/lib/editor-context";
 import { HighlightProvider } from "@/lib/highlight-context";
 import EditorShell from "@/components/editor/EditorShell";
+import RefTracker from "@/components/analytics/RefTracker";
 import { ANONYMOUS_FEATURE_LIMIT } from "@/lib/defaults";
 
 export default function TryPage() {
@@ -29,6 +30,7 @@ export default function TryPage() {
   return (
     <EditorProvider featureLimit={ANONYMOUS_FEATURE_LIMIT} isAnonymous>
       <HighlightProvider>
+        <RefTracker />
         <div className="flex flex-1 overflow-hidden">
           <EditorShell />
         </div>
