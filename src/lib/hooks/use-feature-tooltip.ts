@@ -75,20 +75,24 @@ export function useFeatureTooltip(
           });
         }
 
-        if (polys.length > 0) {
-          // Most specific first = smallest rohe; nothing stays hidden under another.
-          polys.sort((a, b) => a.area - b.area);
+        polys.sort((a, b) => a.area - b.area);
+        const nonPoly = hits.find((h) => h.properties?.featureType !== "polygon");
+        if (nonPoly) {
+          // A point, text, or polyline beats any polygon underneath — that's
+          // what the user is actually pointing at. Keep the polygon
+          // highlight as background context if there is one.
+          label = nonPoly.properties?.label || "";
+          description = nonPoly.properties?.description || "";
+          imageUrl = nonPoly.properties?.imageUrl || "";
+          setHover(polys.length > 0 ? polys[0].id : null);
+        } else if (polys.length > 0) {
+          // Pure polygon hover: most specific first = smallest rohe.
           const primary = polys[0];
           label = primary.label;
           description = primary.description;
           imageUrl = primary.imageUrl;
           stackedNames = polys.map((p) => p.label).filter(Boolean);
           setHover(primary.id);
-        } else if (hits.length > 0) {
-          label = hits[0].properties?.label || "";
-          description = hits[0].properties?.description || "";
-          imageUrl = hits[0].properties?.imageUrl || "";
-          setHover(null);
         } else {
           setHover(null);
         }
