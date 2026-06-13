@@ -109,14 +109,6 @@ export function useFeatureTooltip(
           imageUrl = choroHits[0].properties?._tooltip_image || "";
         }
       }
-      if (!label && !subtitle && !description && !imageUrl && stackedNames.length === 0) {
-        popup.remove();
-        map.getCanvas().style.cursor = "";
-        return;
-      }
-
-      popup.options.maxWidth = imageUrl ? "320px" : "260px";
-
       const imgHtml = imageUrl && /^https?:\/\//i.test(imageUrl)
         ? `<img class="idomaps-tooltip-img" src="${escapeHtml(imageUrl)}" alt="" loading="lazy" referrerpolicy="no-referrer" onload="this.classList.add('loaded')" onerror="this.style.display='none'" />`
         : "";
@@ -133,9 +125,17 @@ export function useFeatureTooltip(
             .map((n) => escapeHtml(n))
             .join(" · ")}</div>`
         : "";
+      const html = `${imgHtml}${countHtml}${labelHtml}${subtitleHtml}${descHtml}${othersHtml}`;
+      if (!html) {
+        popup.remove();
+        map.getCanvas().style.cursor = "";
+        return;
+      }
+
+      popup.options.maxWidth = imageUrl ? "320px" : "260px";
       popup
         .setLngLat(e.lngLat)
-        .setHTML(`${imgHtml}${countHtml}${labelHtml}${subtitleHtml}${descHtml}${othersHtml}`)
+        .setHTML(html)
         .addTo(map);
     };
 

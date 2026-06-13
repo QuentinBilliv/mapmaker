@@ -213,7 +213,7 @@ function ensureSourceAndLayers(map: maplibregl.Map) {
     source: FEATURES_SOURCE,
     paint: {
       "fill-color": ["get", "hoverColor"],
-      "fill-opacity": 0.55,
+      "fill-opacity": ["case", ["==", ["coalesce", ["get", "opacity"], 1], 0], 0, 0.55],
     },
     filter: ["==", ["get", "id"], " "],
   });
